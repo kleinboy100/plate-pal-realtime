@@ -24,7 +24,7 @@ interface MenuManagerProps {
   restaurantId: string;
 }
 
-const categories = ['Mains', 'Sides', 'Drinks', 'Desserts', 'Combos', 'Specials'];
+const categories = ['Dagwoods', 'Kota Menu', 'Loafds', 'Chips', 'Combo Menu', 'Tops'];
 
 export function MenuManager({ restaurantId }: MenuManagerProps) {
   const { toast } = useToast();
