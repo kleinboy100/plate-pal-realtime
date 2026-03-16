@@ -227,6 +227,15 @@ export default function RestaurantDashboard() {
                   <span className="hidden sm:inline">Completed</span>
                   <span className="sm:hidden">Done</span>
                 </TabsTrigger>
+                {/* Stock & Recipes tabs - accessible to owner and staff */}
+                <TabsTrigger value="stock" className="flex-1 min-w-0 text-xs md:text-sm px-2 md:px-3 data-[state=active]:bg-amber-600 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg transition-all">
+                  <Package size={14} className="mr-1 shrink-0" />
+                  <span className="hidden sm:inline">Stock</span>
+                </TabsTrigger>
+                <TabsTrigger value="recipes" className="flex-1 min-w-0 text-xs md:text-sm px-2 md:px-3 data-[state=active]:bg-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg transition-all">
+                  <ChefHat size={14} className="mr-1 shrink-0" />
+                  <span className="hidden sm:inline">Recipes</span>
+                </TabsTrigger>
                 {/* Only show Menu and Settings for owners */}
                 {!isStaffOnly && (
                   <>
