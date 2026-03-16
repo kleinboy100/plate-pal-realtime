@@ -10,10 +10,12 @@ import { YocoSettings } from '@/components/YocoSettings';
 import { MenuManager } from '@/components/MenuManager';
 import { OperatingHoursSettings } from '@/components/OperatingHoursSettings';
 import { StaffManager } from '@/components/StaffManager';
-import { Store, Bell, Volume2, Settings, UtensilsCrossed, BarChart3, ExternalLink } from 'lucide-react';
+import { Store, Bell, Volume2, Settings, UtensilsCrossed, BarChart3, ExternalLink, ChefHat, Package } from 'lucide-react';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { useIsRestaurantOwner } from '@/hooks/useIsRestaurantOwner';
 import { useIsRestaurantStaff } from '@/hooks/useIsRestaurantStaff';
+import { RecipeManager } from '@/components/RecipeManager';
+import { StockManager } from '@/components/StockManager';
 
 const EXTERNAL_DASHBOARD_URL = 'https://restaurant-demand-forecasting-1.onrender.com';
 
@@ -225,6 +227,15 @@ export default function RestaurantDashboard() {
                   <span className="hidden sm:inline">Completed</span>
                   <span className="sm:hidden">Done</span>
                 </TabsTrigger>
+                {/* Stock & Recipes tabs - accessible to owner and staff */}
+                <TabsTrigger value="stock" className="flex-1 min-w-0 text-xs md:text-sm px-2 md:px-3 data-[state=active]:bg-amber-600 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg transition-all">
+                  <Package size={14} className="mr-1 shrink-0" />
+                  <span className="hidden sm:inline">Stock</span>
+                </TabsTrigger>
+                <TabsTrigger value="recipes" className="flex-1 min-w-0 text-xs md:text-sm px-2 md:px-3 data-[state=active]:bg-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg transition-all">
+                  <ChefHat size={14} className="mr-1 shrink-0" />
+                  <span className="hidden sm:inline">Recipes</span>
+                </TabsTrigger>
                 {/* Only show Menu and Settings for owners */}
                 {!isStaffOnly && (
                   <>
@@ -293,6 +304,14 @@ export default function RestaurantDashboard() {
                     ))}
                   </div>
                 )}
+              </TabsContent>
+
+              {/* Stock & Recipes - accessible to owner and staff */}
+              <TabsContent value="stock">
+                <StockManager restaurantId={selectedRestaurant} />
+              </TabsContent>
+              <TabsContent value="recipes">
+                <RecipeManager />
               </TabsContent>
 
               {!isStaffOnly && (
