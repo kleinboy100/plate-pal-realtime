@@ -114,7 +114,12 @@ export default function RestaurantDashboard() {
   };
 
   const updateStatus = async (orderId: string, status: string) => {
-    await supabase.from('orders').update({ status }).eq('id', orderId);
+    const { error } = await supabase.from('orders').update({ status, updated_at: new Date().toISOString() }).eq('id', orderId);
+    if (error) {
+      console.error('Failed to update order status:', error);
+      alert(`Failed to update order: ${error.message}`);
+      return;
+    }
     setNewOrderIds(prev => {
       const updated = new Set(prev);
       updated.delete(orderId);
