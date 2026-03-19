@@ -29,7 +29,7 @@ export function Navbar() {
             <img 
               src={nostyLogo} 
               alt="Nosty's Fresh Fast Food" 
-              className="h-12 w-auto rounded-lg shadow-md transition-transform duration-200 group-hover:scale-105"
+              className="h-24 w-auto rounded-lg shadow-md transition-transform duration-200 group-hover:scale-105"
             />
           </Link>
 
