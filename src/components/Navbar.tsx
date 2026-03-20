@@ -31,7 +31,7 @@ export function Navbar() {
               alt="Nosty's Fresh Fast Food" 
               className="h-12 w-auto rounded-lg shadow-md transition-transform duration-200 group-hover:scale-105"
             />
-            <span className="text-lg font-bold text-white drop-shadow-md tracking-tight hidden sm:inline">
+            <span className="text-xs sm:text-sm md:text-lg font-bold text-white drop-shadow-md tracking-tight">
               Nosty'$ Fresh Fast Food
             </span>
           </Link>
