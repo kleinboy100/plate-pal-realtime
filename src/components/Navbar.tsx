@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
 import { useIsRestaurantOwner } from '@/hooks/useIsRestaurantOwner';
 import { cn } from '@/lib/utils';
+import nostyLogo from '@/assets/nosty-logo.jpg';
 
 export function Navbar() {
   const { user, signOut } = useAuth();
@@ -25,9 +26,11 @@ export function Navbar() {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-2 group">
-            <span className="font-display text-lg md:text-xl font-black text-brand-foreground bg-brand px-3 py-1.5 rounded-xl shadow-md transition-transform duration-200 group-hover:scale-105">
-              Nosty'$ Fresh Fast Food
-            </span>
+            <img 
+              src={nostyLogo} 
+              alt="Nosty's Fresh Fast Food" 
+              className="h-12 w-auto rounded-lg shadow-md transition-transform duration-200 group-hover:scale-105"
+            />
           </Link>
 
           {/* Desktop Navigation */}
