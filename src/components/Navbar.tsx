@@ -22,7 +22,7 @@ export function Navbar() {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-border/50 shadow-sm" style={{ background: 'linear-gradient(135deg, hsl(120 25% 30% / 0.85), hsl(35 45% 55% / 0.9), hsl(25 60% 45% / 0.85))', backdropFilter: 'blur(16px)' }}>
+    <nav className="sticky top-0 z-50 border-b border-border/50 shadow-sm bg-[hsl(var(--brand))]" style={{ backdropFilter: 'blur(16px)' }}>
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-2.5 group">
