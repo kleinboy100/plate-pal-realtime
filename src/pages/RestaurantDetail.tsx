@@ -46,7 +46,7 @@ export default function RestaurantDetail() {
     // Use public view to avoid exposing sensitive data (phone, owner_id, yoco keys)
     const [restaurantRes, menuRes] = await Promise.all([
       supabase.from('restaurants_public').select('*').eq('id', id).maybeSingle(),
-      supabase.from('menu_items').select('*').eq('restaurant_id', id).eq('is_available', true)
+      supabase.from('menu_items').select('*').eq('restaurant_id', id).eq('is_available', true).order('category', { ascending: true }).order('price', { ascending: true })
     ]);
 
     if (restaurantRes.error || !restaurantRes.data) {

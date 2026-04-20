@@ -55,7 +55,7 @@ export default function Index() {
   const fetchData = async () => {
     const [restaurantRes, menuRes] = await Promise.all([
       supabase.from('restaurants_public').select('id, name').eq('id', NOSTY_RESTAURANT_ID).maybeSingle(),
-      supabase.from('menu_items').select('*').eq('restaurant_id', NOSTY_RESTAURANT_ID).eq('is_available', true)
+      supabase.from('menu_items').select('*').eq('restaurant_id', NOSTY_RESTAURANT_ID).eq('is_available', true).order('category', { ascending: true }).order('price', { ascending: true })
     ]);
 
     if (restaurantRes.error) {
