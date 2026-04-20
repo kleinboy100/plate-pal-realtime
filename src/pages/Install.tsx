@@ -54,8 +54,8 @@ const Install = () => {
         </header>
 
         {installed && (
-          <Card className="p-4 flex items-center gap-3 border-green-500/40 bg-green-500/10">
-            <Check className="h-5 w-5 text-green-600" />
+          <Card className="p-4 flex items-center gap-3 border-primary/40 bg-primary/10">
+            <Check className="h-5 w-5 text-primary" />
             <p className="text-sm font-medium">App is installed. Open it from your home screen.</p>
           </Card>
         )}
