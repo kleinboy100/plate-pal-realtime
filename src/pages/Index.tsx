@@ -83,7 +83,7 @@ export default function Index() {
   const availableCategories = ['All', ...new Set(menuItems.map(item => item.category))];
 
   return (
-    <div className="min-h-screen bg-muted">
+    <div className="min-h-screen bg-[hsl(220,70%,40%)]">
       {/* Operating Status Banner */}
       {!statusLoading && (
         <div className={cn(
@@ -128,7 +128,7 @@ export default function Index() {
        </section>
 
       {/* Category Filters - Sticky */}
-      <section className="py-3 border-b border-border/50 sticky top-16 bg-background/95 backdrop-blur-lg z-40 shadow-sm">
+      <section className="py-3 border-b border-border/50 sticky top-16 bg-[hsl(220,70%,40%)]/95 backdrop-blur-lg z-40 shadow-sm">
         <div className="container mx-auto px-3">
           <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide -mx-1 px-1">
             {availableCategories.map((category, index) => (
