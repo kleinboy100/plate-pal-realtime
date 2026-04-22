@@ -32,7 +32,7 @@ export function Navbar() {
               className="h-12 w-auto rounded-lg shadow-md transition-transform duration-200 group-hover:scale-105"
             />
             <span className="text-xs sm:text-sm md:text-lg font-bold text-white drop-shadow-md tracking-tight">
-              Nosty'$ Fresh Fast Food
+              It's All About Monkgo Le Manyeke
             </span>
           </Link>
 
