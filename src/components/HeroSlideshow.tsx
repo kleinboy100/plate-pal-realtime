@@ -76,7 +76,7 @@ export function HeroSlideshow({ menuItems, restaurantId, restaurantName }: HeroS
   };
 
   return (
-    <div className="absolute inset-0 overflow-hidden rounded-2xl mx-4 my-2">
+    <div className="absolute inset-0 overflow-hidden">
       {/* Slides */}
       {slides.map((slide, index) => (
         <div
