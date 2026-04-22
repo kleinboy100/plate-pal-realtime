@@ -154,11 +154,16 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-family: 'Inter', sans-serif;
+    letter-spacing: 0.005em;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: 'Playfair Display', 'Cormorant Garamond', Georgia, serif;
+    letter-spacing: -0.015em;
+    font-weight: 700;
   }
+
+  h1 { font-weight: 800; }
 }
 
 @layer components {
