@@ -31,8 +31,8 @@ export function Navbar() {
               alt="Nosty's Fresh Fast Food" 
               className="h-12 w-auto rounded-lg shadow-md transition-transform duration-200 group-hover:scale-105"
             />
-            <span className="text-xs sm:text-sm md:text-lg font-bold text-white drop-shadow-md tracking-tight">
-              It's All About Monkgo Le Manyeke
+            <span className="text-base sm:text-xl md:text-3xl font-bold text-white drop-shadow-md tracking-tight" style={{ fontFamily: "'Comic Sans MS', 'Comic Neue', 'Chalkboard SE', cursive" }}>
+              It's All About Mongko Le Manyeke!
             </span>
           </Link>
 
