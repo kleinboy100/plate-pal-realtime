@@ -18,7 +18,7 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    --background: 47 97% 61%; /* #fcd03c yellow base */
     --foreground: 265 4% 12.9%;
 
     --card: 0 0% 100%;
@@ -152,9 +152,12 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    @apply text-foreground font-sans antialiased;
     font-family: 'Inter', sans-serif;
     letter-spacing: 0.005em;
+    background: linear-gradient(135deg, #fcd03c 0%, #e73211 55%, #1e3a8a 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
   }
 
   h1, h2, h3, h4, h5, h6 {
