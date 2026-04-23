@@ -67,7 +67,17 @@ export default function Index() {
     if (menuRes.error) {
       console.error('Error fetching menu:', menuRes.error);
     } else {
-      setMenuItems(menuRes.data || []);
+      const categoryOrder = ['Kota Menu', 'Dagwoods', 'Loafs', 'Chips', 'Tops', 'Combo Menu'];
+      const getOrder = (cat: string) => {
+        const idx = categoryOrder.findIndex(c => c.toLowerCase() === cat.toLowerCase());
+        return idx === -1 ? 999 : idx;
+      };
+      const sorted = [...(menuRes.data || [])].sort((a, b) => {
+        const diff = getOrder(a.category) - getOrder(b.category);
+        if (diff !== 0) return diff;
+        return Number(a.price) - Number(b.price);
+      });
+      setMenuItems(sorted);
     }
     setLoading(false);
   };
@@ -104,7 +114,7 @@ export default function Index() {
       )}
 
       {/* Hero Section with Slideshow */}
-      <section className="relative h-[340px] md:h-[440px] overflow-hidden bg-[hsl(220,70%,40%)]">
+      <section className="relative h-[460px] md:h-[600px] overflow-hidden bg-[hsl(220,70%,40%)]">
         <HeroSlideshow 
           menuItems={menuItems} 
           restaurantId={restaurant?.id || NOSTY_RESTAURANT_ID}
