@@ -114,7 +114,7 @@ export default function Index() {
       )}
 
       {/* Hero Section with Slideshow */}
-      <section className="relative h-[340px] md:h-[440px] overflow-hidden bg-[hsl(220,70%,40%)]">
+      <section className="relative h-[460px] md:h-[600px] overflow-hidden bg-[hsl(220,70%,40%)]">
         <HeroSlideshow 
           menuItems={menuItems} 
           restaurantId={restaurant?.id || NOSTY_RESTAURANT_ID}
