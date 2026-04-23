@@ -67,7 +67,17 @@ export default function Index() {
     if (menuRes.error) {
       console.error('Error fetching menu:', menuRes.error);
     } else {
-      setMenuItems(menuRes.data || []);
+      const categoryOrder = ['Kota Menu', 'Dagwoods', 'Loafs', 'Chips', 'Tops', 'Combo Menu'];
+      const getOrder = (cat: string) => {
+        const idx = categoryOrder.findIndex(c => c.toLowerCase() === cat.toLowerCase());
+        return idx === -1 ? 999 : idx;
+      };
+      const sorted = [...(menuRes.data || [])].sort((a, b) => {
+        const diff = getOrder(a.category) - getOrder(b.category);
+        if (diff !== 0) return diff;
+        return Number(a.price) - Number(b.price);
+      });
+      setMenuItems(sorted);
     }
     setLoading(false);
   };
