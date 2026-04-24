@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Trash2, Minus, Plus, ShoppingBag, ArrowLeft, Bell, Loader2, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 
 const MAX_NOTES_LENGTH = 1000;
 const MAX_ADDRESS_LENGTH = 500;
+const RATE_PER_100M = 1; // R1 per 100m => R10 per km
 
 export default function Cart() {
   const { items, updateQuantity, removeItem, clearCart, total, restaurantId } = useCart();
@@ -30,6 +31,57 @@ export default function Cart() {
   const [deliveryCoords, setDeliveryCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
+  const [restaurantCoords, setRestaurantCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [restaurantAddress, setRestaurantAddress] = useState<string>('');
+  const [distanceKm, setDistanceKm] = useState<number | null>(null);
+  const [calculatingFee, setCalculatingFee] = useState(false);
+
+  useEffect(() => {
+    if (!restaurantId) return;
+    (async () => {
+      const { data } = await supabase
+        .from('restaurants_public')
+        .select('latitude, longitude, address')
+        .eq('id', restaurantId)
+        .maybeSingle();
+      if (data) {
+        setRestaurantAddress(data.address || '');
+        if (data.latitude && data.longitude) {
+          setRestaurantCoords({ lat: data.latitude, lng: data.longitude });
+        }
+      }
+    })();
+  }, [restaurantId]);
+
+  useEffect(() => {
+    if (orderType !== 'delivery') { setDistanceKm(null); return; }
+    if (!deliveryCoords && !deliveryAddress.trim()) { setDistanceKm(null); return; }
+    if (!restaurantCoords && !restaurantAddress) return;
+
+    const handle = setTimeout(async () => {
+      setCalculatingFee(true);
+      try {
+        const { data, error } = await supabase.functions.invoke('calculate-distance', {
+          body: {
+            restaurantCoords: restaurantCoords || undefined,
+            restaurantAddress: restaurantCoords ? undefined : restaurantAddress,
+            customerCoords: deliveryCoords || undefined,
+            customerAddress: deliveryCoords ? undefined : deliveryAddress,
+          },
+        });
+        if (!error && data?.distanceKm != null) setDistanceKm(data.distanceKm);
+      } catch (err) {
+        console.error('Distance calc error:', err);
+      } finally {
+        setCalculatingFee(false);
+      }
+    }, 600);
+    return () => clearTimeout(handle);
+  }, [orderType, deliveryAddress, deliveryCoords, restaurantCoords, restaurantAddress]);
+
+  const deliveryFee = orderType === 'delivery' && distanceKm != null
+    ? Math.max(0, Math.round(distanceKm * 10 * RATE_PER_100M * 100) / 100)
+    : 0;
 
   const handleEnableNotifications = async () => {
     const granted = await requestPermission();
@@ -324,13 +376,26 @@ export default function Cart() {
                 </div>
                 {orderType === 'delivery' && (
                   <div className="flex justify-between text-sm text-muted-foreground">
-                    <span>Delivery Fee</span>
-                    <span>R25.00</span>
+                    <span>
+                      Delivery Fee
+                      {distanceKm != null && (
+                        <span className="text-xs ml-1">({distanceKm} km)</span>
+                      )}
+                    </span>
+                    <span>
+                      {calculatingFee ? (
+                        <Loader2 className="w-4 h-4 animate-spin inline" />
+                      ) : distanceKm != null ? (
+                        `R${deliveryFee.toFixed(2)}`
+                      ) : (
+                        <span className="text-xs">Enter address</span>
+                      )}
+                    </span>
                   </div>
                 )}
                 <div className="flex justify-between font-bold text-foreground text-lg pt-3 border-t border-border/50">
                   <span>Total</span>
-                  <span className="text-primary">R{(orderType === 'delivery' ? total + 25 : total).toFixed(2)}</span>
+                  <span className="text-primary">R{(orderType === 'delivery' ? total + deliveryFee : total).toFixed(2)}</span>
                 </div>
               </div>
 
