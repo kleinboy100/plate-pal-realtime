@@ -376,13 +376,26 @@ export default function Cart() {
                 </div>
                 {orderType === 'delivery' && (
                   <div className="flex justify-between text-sm text-muted-foreground">
-                    <span>Delivery Fee</span>
-                    <span>R25.00</span>
+                    <span>
+                      Delivery Fee
+                      {distanceKm != null && (
+                        <span className="text-xs ml-1">({distanceKm} km)</span>
+                      )}
+                    </span>
+                    <span>
+                      {calculatingFee ? (
+                        <Loader2 className="w-4 h-4 animate-spin inline" />
+                      ) : distanceKm != null ? (
+                        `R${deliveryFee.toFixed(2)}`
+                      ) : (
+                        <span className="text-xs">Enter address</span>
+                      )}
+                    </span>
                   </div>
                 )}
                 <div className="flex justify-between font-bold text-foreground text-lg pt-3 border-t border-border/50">
                   <span>Total</span>
-                  <span className="text-primary">R{(orderType === 'delivery' ? total + 25 : total).toFixed(2)}</span>
+                  <span className="text-primary">R{(orderType === 'delivery' ? total + deliveryFee : total).toFixed(2)}</span>
                 </div>
               </div>
 
