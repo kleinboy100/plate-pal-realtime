@@ -25,9 +25,14 @@ export function HeroSlideshow({ menuItems, restaurantId, restaurantName }: HeroS
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const { addItem } = useCart();
 
-  // Use menu items if available, otherwise use fallback
-  const slides = menuItems.length > 0 
-    ? menuItems.slice(0, 5).map(item => ({
+  // Top 5 Kota Menu items, sorted from most expensive to least expensive
+  const kotaItems = menuItems
+    .filter(item => item.category?.toLowerCase() === 'kota menu')
+    .sort((a, b) => Number(b.price) - Number(a.price))
+    .slice(0, 5);
+
+  const slides = kotaItems.length > 0
+    ? kotaItems.map(item => ({
         id: item.id,
         image: item.image_url || 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1200',
         title: item.name,
