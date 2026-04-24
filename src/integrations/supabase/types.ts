@@ -899,6 +899,18 @@ export type Database = {
             }
             Returns: string
           }
+        | {
+            Args: {
+              p_delivery_address: string
+              p_delivery_fee?: number
+              p_items: Json
+              p_notes: string
+              p_order_type?: string
+              p_payment_method: string
+              p_restaurant_id: string
+            }
+            Returns: string
+          }
       is_any_restaurant_owner: { Args: never; Returns: boolean }
       is_restaurant_owner: {
         Args: { p_restaurant_id: string }
