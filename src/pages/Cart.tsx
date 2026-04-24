@@ -167,8 +167,9 @@ export default function Cart() {
           menu_item_id: item.menuItemId,
           quantity: item.quantity
         })),
-        p_order_type: orderType
-      });
+        p_order_type: orderType,
+        p_delivery_fee: orderType === 'delivery' ? deliveryFee : null,
+      } as any);
 
       if (orderError) {
         console.error('Order error:', orderError);
