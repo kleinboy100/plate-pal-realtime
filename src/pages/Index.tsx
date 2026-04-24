@@ -4,11 +4,14 @@ import { Search, Clock } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { KFCMenuItem } from '@/components/KFCMenuItem';
 import { HeroSlideshow } from '@/components/HeroSlideshow';
+import { PrivacyPolicyDialog } from '@/components/PrivacyPolicyDialog';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { useRestaurantOperatingStatus } from '@/hooks/useRestaurantOperatingStatus';
 import { useIsRestaurantOwner } from '@/hooks/useIsRestaurantOwner';
 import { useIsRestaurantStaff } from '@/hooks/useIsRestaurantStaff';
 import { cn } from '@/lib/utils';
+import proudlySaLogo from '@/assets/proudly-sa.png';
 
 // Nosty's restaurant ID
 const NOSTY_RESTAURANT_ID = '7f5250bb-263f-4bca-a4af-d325f761542b';
@@ -31,6 +34,7 @@ const mealCategories = ['All', 'Mains', 'Sides', 'Drinks', 'Desserts', 'Combos',
 
 export default function Index() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { isOwner, loading: ownerLoading } = useIsRestaurantOwner();
   const { isStaff, loading: staffLoading } = useIsRestaurantStaff();
   const [menuItems, setMenuItems] = useState<MenuItemType[]>([]);
@@ -38,8 +42,30 @@ export default function Index() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
-  
+  const [showPrivacy, setShowPrivacy] = useState(false);
+
   const { isOpen, loading: statusLoading } = useRestaurantOperatingStatus(NOSTY_RESTAURANT_ID);
+
+  // Show privacy policy on first signup / login
+  useEffect(() => {
+    if (user) {
+      const key = `privacy_accepted_${user.id}`;
+      if (!localStorage.getItem(key)) {
+        setShowPrivacy(true);
+      }
+    }
+  }, [user]);
+
+  const handleAcceptPrivacy = () => {
+    if (user) localStorage.setItem(`privacy_accepted_${user.id}`, new Date().toISOString());
+    setShowPrivacy(false);
+  };
+
+  const handleDeclinePrivacy = async () => {
+    setShowPrivacy(false);
+    await supabase.auth.signOut();
+    navigate('/auth');
+  };
 
   // Redirect restaurant owners and staff to dashboard
   useEffect(() => {
@@ -94,21 +120,41 @@ export default function Index() {
 
   return (
     <div className="min-h-screen bg-[linear-gradient(135deg,#fcd03c_0%,#e73211_55%,#1e3a8a_100%)]">
+      {/* Privacy Policy Popup */}
+      <PrivacyPolicyDialog
+        open={showPrivacy}
+        onAccept={handleAcceptPrivacy}
+        onDecline={handleDeclinePrivacy}
+      />
+
       {/* Operating Status Banner */}
       {!statusLoading && (
         <div className={cn(
-          "py-3 px-4 text-center text-sm font-medium transition-all duration-300 animate-slide-down",
-          isOpen 
-            ? 'bg-success/10 text-success border-b border-success/20' 
+          "py-3 px-4 text-sm font-medium transition-all duration-300 animate-slide-down",
+          isOpen
+            ? 'bg-success/10 text-success border-b border-success/20'
             : 'bg-muted text-muted-foreground border-b border-border'
         )}>
-          <div className="container mx-auto flex items-center justify-center gap-2">
-            <div className={cn(
-              "w-2 h-2 rounded-full animate-pulse",
-              isOpen ? "bg-success" : "bg-muted-foreground"
-            )} />
-            <Clock className="w-4 h-4" />
-            <span className="font-semibold">{isOpen ? "We're open!" : "We're closed"}</span>
+          <div className="container mx-auto flex items-center justify-between gap-2">
+            <div className="flex-1" />
+            <div className="flex items-center gap-2">
+              <div className={cn(
+                "w-2 h-2 rounded-full animate-pulse",
+                isOpen ? "bg-success" : "bg-muted-foreground"
+              )} />
+              <Clock className="w-4 h-4" />
+              <span className="font-semibold">{isOpen ? "We're open!" : "We're closed"}</span>
+            </div>
+            <div className="flex-1 flex justify-end">
+              <img
+                src={proudlySaLogo}
+                alt="Proudly South African"
+                width={40}
+                height={40}
+                loading="lazy"
+                className="h-9 w-9 md:h-10 md:w-10 object-contain"
+              />
+            </div>
           </div>
         </div>
       )}
