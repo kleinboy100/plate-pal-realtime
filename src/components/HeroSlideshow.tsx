@@ -125,9 +125,9 @@ export function HeroSlideshow({ menuItems, restaurantId, restaurantName }: HeroS
                         e.stopPropagation();
                         handleOrderNow(slide);
                       }}
-                      className="h-8 md:h-9 text-xs md:text-sm px-4 gap-1.5 bg-secondary-foreground text-secondary hover:bg-secondary-foreground/90 rounded-full shadow-lg transition-all duration-200 hover:scale-105"
+                      className="h-5 md:h-6 text-[9px] md:text-[10px] px-2 gap-1 bg-secondary-foreground text-secondary hover:bg-secondary-foreground/90 rounded-full shadow-lg transition-all duration-200 hover:scale-105 [&_svg]:size-2.5"
                     >
-                      <ShoppingCart size={14} />
+                      <ShoppingCart size={10} />
                       Order Now
                     </Button>
                   )}
