@@ -22,7 +22,7 @@ export function OrderTypeSelector({ value, onChange }: OrderTypeSelectorProps) {
         <Truck size={24} />
         <div className="text-center">
           <p className="font-medium">Delivery</p>
-          <p className="text-xs text-muted-foreground">+R25 delivery fee</p>
+          <p className="text-xs text-muted-foreground">Calculated by distance</p>
         </div>
       </button>
 
