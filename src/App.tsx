@@ -20,6 +20,7 @@ import NotFound from "./pages/NotFound";
 import RestaurantAnalytics from "./pages/RestaurantAnalytics";
 import { OAuthCallback } from "./pages/OAuthCallback";
 import Install from "./pages/Install";
+import Privacy from "./pages/Privacy";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +47,7 @@ const App = () => (
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/~oauth" element={<OAuthCallback />} />
                 <Route path="/install" element={<Install />} />
+                <Route path="/privacy" element={<Privacy />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </div>
