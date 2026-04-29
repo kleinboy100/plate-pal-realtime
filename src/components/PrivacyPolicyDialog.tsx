@@ -40,7 +40,7 @@ export function PrivacyPolicyDialog({ open, onAccept, onDecline }: PrivacyPolicy
               <li><strong>Account</strong> means a unique account created for You to access our Service.</li>
               <li><strong>Affiliate</strong> means an entity that controls, is controlled by, or is under common control with a party.</li>
               <li><strong>Application</strong> refers to KasiConnect, the software program provided by the Company.</li>
-              <li><strong>Company</strong> refers to MOZK Solutions (pty) ltd, 15085 Patrice Lumumba street Joubeton Klerksdorp.</li>
+              <li><strong>Company</strong> refers to MOZK Solutions (pty) ltd.</li>
               <li><strong>Country</strong> refers to: South Africa</li>
               <li><strong>Device</strong> means any device that can access the Service such as a computer, a cell phone or a digital tablet.</li>
               <li><strong>Personal Data</strong> is any information that relates to an identified or identifiable individual.</li>
@@ -95,7 +95,7 @@ export function PrivacyPolicyDialog({ open, onAccept, onDecline }: PrivacyPolicy
             <p>We may update Our Privacy Policy from time to time. We will notify You via email and/or a prominent notice on Our Service prior to changes becoming effective.</p>
 
             <h3 className="font-semibold text-base mt-4">Contact Us</h3>
-            <p>If you have any questions about this Privacy Policy, You can contact us by phone: <strong>+27 67 040 5952</strong></p>
+            <p>If you have any questions about this Privacy Policy, You can contact us through the in-app support channels.</p>
           </div>
         </ScrollArea>
 
