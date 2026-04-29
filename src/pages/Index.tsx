@@ -12,6 +12,7 @@ import { useIsRestaurantOwner } from '@/hooks/useIsRestaurantOwner';
 import { useIsRestaurantStaff } from '@/hooks/useIsRestaurantStaff';
 import { cn } from '@/lib/utils';
 import proudlySaLogo from '@/assets/proudly-sa.png';
+import africanPattern from '@/assets/african-pattern.jpg';
 
 // Nosty's restaurant ID
 const NOSTY_RESTAURANT_ID = '7f5250bb-263f-4bca-a4af-d325f761542b';
@@ -129,15 +130,22 @@ export default function Index() {
 
       {/* Operating Status Banner */}
       {!statusLoading && (
-        <div className={cn(
-          "py-3 px-4 text-sm font-medium transition-all duration-300 animate-slide-down",
-          isOpen
-            ? 'bg-success/10 text-success border-b border-success/20'
-            : 'bg-muted text-muted-foreground border-b border-border'
-        )}>
-          <div className="container mx-auto flex items-center justify-between gap-2">
+        <div
+          className="relative py-3 px-4 text-sm font-medium transition-all duration-300 animate-slide-down border-b border-black/20"
+          style={{
+            backgroundImage: `url(${africanPattern})`,
+            backgroundRepeat: 'repeat',
+            backgroundSize: '320px auto',
+          }}
+        >
+          {/* Readability overlay */}
+          <div className={cn(
+            "absolute inset-0 pointer-events-none",
+            isOpen ? "bg-black/30" : "bg-black/55"
+          )} />
+          <div className="container mx-auto flex items-center justify-between gap-2 relative">
             <div className="flex-1" />
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-black/40 backdrop-blur-sm text-white">
               <div className={cn(
                 "w-2 h-2 rounded-full animate-pulse",
                 isOpen ? "bg-success" : "bg-muted-foreground"
@@ -152,7 +160,7 @@ export default function Index() {
                 width={40}
                 height={40}
                 loading="lazy"
-                className="h-9 w-9 md:h-10 md:w-10 object-contain"
+                className="h-9 w-9 md:h-10 md:w-10 object-contain drop-shadow-md"
               />
             </div>
           </div>
