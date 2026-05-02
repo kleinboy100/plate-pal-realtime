@@ -204,15 +204,30 @@ export function RestaurantOrderCard({ order, onUpdateStatus, isNew }: Restaurant
            order.status !== 'delivered' && 
            order.status !== 'cancelled' && 
            nextAction && (
-            <Button
-              size="sm"
-              className={cn("text-white", nextAction.color)}
-              onClick={() => handleAction(nextAction.status)}
-              disabled={loading || (order.status === 'confirmed' && !order.payment_confirmed)}
-            >
-              <nextAction.icon size={16} className="mr-1" />
-              {nextAction.label}
-            </Button>
+            <>
+              <Button
+                size="sm"
+                className={cn("text-white", nextAction.color)}
+                onClick={() => handleAction(nextAction.status)}
+                disabled={loading || (order.status === 'confirmed' && !order.payment_confirmed)}
+              >
+                <nextAction.icon size={16} className="mr-1" />
+                {nextAction.label}
+              </Button>
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={() => {
+                  if (window.confirm('Cancel this order? This cannot be undone.')) {
+                    handleDecline();
+                  }
+                }}
+                disabled={loading}
+              >
+                <X size={16} className="mr-1" />
+                Cancel
+              </Button>
+            </>
           )}
         </div>
 
