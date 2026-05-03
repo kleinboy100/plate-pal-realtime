@@ -35,18 +35,18 @@ export default function Auth() {
             </p>
           </div>
 
-          <EmailAuth onSuccess={handleSuccess} />
+          <GoogleAuth />
 
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-border/50" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-3 text-muted-foreground font-medium">Or continue with</span>
+              <span className="bg-card px-3 text-muted-foreground font-medium">Or continue with email</span>
             </div>
           </div>
 
-          <GoogleAuth />
+          <EmailAuth onSuccess={handleSuccess} />
         </div>
       </div>
     </div>
