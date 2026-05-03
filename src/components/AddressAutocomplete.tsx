@@ -24,7 +24,7 @@ export function AddressAutocomplete({
   value,
   onChange,
   onCoordinatesChange,
-  placeholder = "Enter your address",
+  placeholder = "Enter full address e.g 123 Ext 6, Kasi street, Jouberton",
   disabled = false,
   className,
   showLocationButton = false
@@ -255,10 +255,6 @@ export function AddressAutocomplete({
                 <span className="text-sm truncate">{suggestion.display_name}</span>
               </button>
             ))
-          ) : query.length >= 3 ? (
-            <div className="px-4 py-3 text-sm text-muted-foreground">
-              No addresses found
-            </div>
           ) : null}
         </div>
       )}
