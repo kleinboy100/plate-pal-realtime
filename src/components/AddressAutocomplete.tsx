@@ -24,7 +24,7 @@ export function AddressAutocomplete({
   value,
   onChange,
   onCoordinatesChange,
-  placeholder = "Enter full address e.g 123 Ext 6, Kasi street, Jouberton",
+  placeholder = "Enter full address e.g 123 Ext 6, street name, Jouberton",
   disabled = false,
   className,
   showLocationButton = false
