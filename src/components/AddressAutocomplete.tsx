@@ -193,52 +193,11 @@ export function AddressAutocomplete({
         )}
       </div>
 
-      {/* External "Use current location" button */}
-      {showLocationButton && (
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={handleUseCurrentLocation}
-          disabled={gettingLocation}
-          className="mt-2 w-full"
-        >
-          {gettingLocation ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin mr-2" />
-              Getting location...
-            </>
-          ) : (
-            <>
-              <Navigation className="w-4 h-4 mr-2" />
-              Use current location
-            </>
-          )}
-        </Button>
-      )}
-
       {showDropdown && (
         <div
           ref={dropdownRef}
           className="absolute z-50 w-full mt-1 bg-background border border-border rounded-lg shadow-lg overflow-hidden"
         >
-          {/* Use Current Location */}
-          <button
-            type="button"
-            onClick={handleUseCurrentLocation}
-            className="w-full px-4 py-3 flex items-center gap-3 hover:bg-muted/50 transition-colors border-b border-border"
-            disabled={gettingLocation}
-          >
-            <div className="p-2 rounded-full bg-primary/10">
-              <Navigation className="text-primary" size={16} />
-            </div>
-            <div className="text-left">
-              <p className="font-medium text-sm">Use current location</p>
-              <p className="text-xs text-muted-foreground">Get your GPS location</p>
-            </div>
-          </button>
-
-          {/* Suggestions */}
           {loading ? (
             <div className="px-4 py-3 text-sm text-muted-foreground">
               Searching addresses...
@@ -255,6 +214,10 @@ export function AddressAutocomplete({
                 <span className="text-sm truncate">{suggestion.display_name}</span>
               </button>
             ))
+          ) : query.length >= 3 ? (
+            <div className="px-4 py-3 text-sm text-muted-foreground">
+              Continue to type in your full address
+            </div>
           ) : null}
         </div>
       )}
