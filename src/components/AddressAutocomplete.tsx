@@ -20,6 +20,12 @@ interface Suggestion {
   lon: string;
 }
 
+// Klerksdorp / Jouberton bounding box (approx)
+// left,top,right,bottom => west,north,east,south (lon,lat,lon,lat)
+const KLERKSDORP_VIEWBOX = '26.55,-26.78,26.78,-26.95';
+// Klerksdorp center coords for proximity-biased ranking
+const KLERKSDORP_CENTER = { lat: -26.8523, lon: 26.6669 };
+
 export function AddressAutocomplete({
   value,
   onChange,
@@ -27,7 +33,7 @@ export function AddressAutocomplete({
   placeholder = "Enter full address e.g 123 Ext 6, street name, Jouberton",
   disabled = false,
   className,
-  showLocationButton = false
+  showLocationButton = true,
 }: AddressAutocompleteProps) {
   const [query, setQuery] = useState(value);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -38,12 +44,10 @@ export function AddressAutocomplete({
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Sync external value changes
   useEffect(() => {
     setQuery(value);
   }, [value]);
 
-  // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -55,34 +59,91 @@ export function AddressAutocomplete({
         setShowDropdown(false);
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Search addresses using OpenStreetMap Nominatim (free, no API key)
+  const fetchNominatim = async (params: string): Promise<Suggestion[]> => {
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?${params}`, {
+      headers: { 'User-Agent': 'PlatePal-Delivery-App/1.0' },
+    });
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
+  };
+
+  // Search addresses with strong bias toward Klerksdorp/Jouberton area.
   const searchAddresses = async (searchQuery: string) => {
-    if (searchQuery.length < 3) {
+    const q = searchQuery.trim();
+    if (q.length < 3) {
       setSuggestions([]);
       return;
     }
 
     setLoading(true);
     try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&countrycodes=za&limit=5&addressdetails=1`,
-        {
-          headers: {
-            'User-Agent': 'PlatePal-Delivery-App/1.0'
-          }
-        }
-      );
-      const data = await response.json();
-      
-      if (data && Array.isArray(data)) {
-        setSuggestions(data);
-        setShowDropdown(true);
+      // If user didn't already mention the area, append it to improve recall
+      // for township/extension-style addresses (e.g. "123 Ext 6 Kasi Street").
+      const lower = q.toLowerCase();
+      const mentionsArea =
+        lower.includes('jouberton') ||
+        lower.includes('klerksdorp') ||
+        lower.includes('matlosana') ||
+        lower.includes('kanana') ||
+        lower.includes('alabama') ||
+        lower.includes('orkney');
+
+      const augmentedQ = mentionsArea ? q : `${q}, Jouberton, Klerksdorp`;
+
+      // 1) Bounded search constrained to Klerksdorp viewbox (highest precision)
+      const boundedParams = new URLSearchParams({
+        format: 'json',
+        q: augmentedQ,
+        countrycodes: 'za',
+        limit: '8',
+        addressdetails: '1',
+        viewbox: KLERKSDORP_VIEWBOX,
+        bounded: '1',
+      });
+      let results = await fetchNominatim(boundedParams.toString());
+
+      // 2) Fallback: viewbox bias but not bounded, country = ZA
+      if (results.length === 0) {
+        const biasedParams = new URLSearchParams({
+          format: 'json',
+          q: augmentedQ,
+          countrycodes: 'za',
+          limit: '8',
+          addressdetails: '1',
+          viewbox: KLERKSDORP_VIEWBOX,
+        });
+        results = await fetchNominatim(biasedParams.toString());
       }
+
+      // 3) Last resort: original query, country-only
+      if (results.length === 0) {
+        const plainParams = new URLSearchParams({
+          format: 'json',
+          q,
+          countrycodes: 'za',
+          limit: '5',
+          addressdetails: '1',
+        });
+        results = await fetchNominatim(plainParams.toString());
+      }
+
+      // Sort by proximity to Klerksdorp center so local matches surface first
+      results.sort((a, b) => {
+        const da =
+          Math.abs(parseFloat(a.lat) - KLERKSDORP_CENTER.lat) +
+          Math.abs(parseFloat(a.lon) - KLERKSDORP_CENTER.lon);
+        const db =
+          Math.abs(parseFloat(b.lat) - KLERKSDORP_CENTER.lat) +
+          Math.abs(parseFloat(b.lon) - KLERKSDORP_CENTER.lon);
+        return da - db;
+      });
+
+      setSuggestions(results);
+      setShowDropdown(true);
     } catch (error) {
       console.error('Error fetching address suggestions:', error);
     } finally {
@@ -96,13 +157,10 @@ export function AddressAutocomplete({
     onChange(newValue);
     onCoordinatesChange?.(null);
 
-    // Debounce search
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
-    }
+    if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
       searchAddresses(newValue);
-    }, 400); // Slightly longer debounce for Nominatim rate limits
+    }, 400);
   };
 
   const handleSelectSuggestion = (suggestion: Suggestion) => {
@@ -110,7 +168,7 @@ export function AddressAutocomplete({
     onChange(suggestion.display_name);
     onCoordinatesChange?.({
       lat: parseFloat(suggestion.lat),
-      lng: parseFloat(suggestion.lon)
+      lng: parseFloat(suggestion.lon),
     });
     setSuggestions([]);
     setShowDropdown(false);
@@ -130,31 +188,24 @@ export function AddressAutocomplete({
         navigator.geolocation.getCurrentPosition(resolve, reject, {
           enableHighAccuracy: true,
           timeout: 15000,
-          maximumAge: 0
+          maximumAge: 0,
         });
       });
 
       const { latitude, longitude } = position.coords;
 
-      // Reverse geocode using OpenStreetMap Nominatim (free, no API key)
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`,
-        {
-          headers: {
-            'User-Agent': 'PlatePal-Delivery-App/1.0'
-          }
-        }
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1&zoom=18`,
+        { headers: { 'User-Agent': 'PlatePal-Delivery-App/1.0' } }
       );
       const data = await response.json();
 
       if (data && data.display_name) {
-        // Use the formatted display_name from Nominatim
         const address = data.display_name;
         setQuery(address);
         onChange(address);
         onCoordinatesChange?.({ lat: latitude, lng: longitude });
       } else {
-        // Fallback to coordinate string if reverse geocoding fails
         const fallbackAddress = `Location: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
         setQuery(fallbackAddress);
         onChange(fallbackAddress);
@@ -162,22 +213,18 @@ export function AddressAutocomplete({
       }
     } catch (error: any) {
       console.error('Error getting current location:', error);
-      if (error.code === 1) {
-        console.error('Location permission denied');
-      } else if (error.code === 2) {
-        console.error('Location unavailable');
-      } else if (error.code === 3) {
-        console.error('Location request timed out');
-      }
     } finally {
       setGettingLocation(false);
     }
   };
 
   return (
-    <div className={cn("relative", className)}>
+    <div className={cn('relative', className)}>
       <div className="relative">
-        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+        <MapPin
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+          size={18}
+        />
         <Input
           ref={inputRef}
           type="text"
@@ -189,9 +236,30 @@ export function AddressAutocomplete({
           className="pl-10 pr-10"
         />
         {(loading || gettingLocation) && (
-          <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground animate-spin" size={18} />
+          <Loader2
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground animate-spin"
+            size={18}
+          />
         )}
       </div>
+
+      {showLocationButton && (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={handleUseCurrentLocation}
+          disabled={disabled || gettingLocation}
+          className="mt-2 gap-2"
+        >
+          {gettingLocation ? (
+            <Loader2 size={16} className="animate-spin" />
+          ) : (
+            <Navigation size={16} />
+          )}
+          {gettingLocation ? 'Getting location...' : 'Use current location'}
+        </Button>
+      )}
 
       {showDropdown && (
         <div
