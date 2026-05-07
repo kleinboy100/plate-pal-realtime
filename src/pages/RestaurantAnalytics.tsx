@@ -272,6 +272,15 @@ export default function RestaurantAnalytics() {
             </Button>
           </Link>
           <h1 className="font-display text-xl md:text-2xl font-bold">Analytics</h1>
+          <Button
+            onClick={handleDownloadPDF}
+            disabled={downloading || loading}
+            className="ml-auto rounded-xl"
+            size="sm"
+          >
+            {downloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+            <span className="ml-2 hidden sm:inline">Download PDF</span>
+          </Button>
         </div>
 
         <div className="flex flex-col sm:flex-row flex-wrap gap-3 mb-6">
