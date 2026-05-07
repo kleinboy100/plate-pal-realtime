@@ -383,7 +383,7 @@ export default function RestaurantAnalytics() {
               </CardContent></Card>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-4 md:gap-6">
+            <div className="grid md:grid-cols-1 gap-4 md:gap-6">
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base md:text-lg">Orders Over Time</CardTitle>
@@ -400,7 +400,11 @@ export default function RestaurantAnalytics() {
                   </ChartContainer>
                 </CardContent>
               </Card>
+            </div>
+          </div>
 
+          <div ref={page2Ref} className="bg-background p-2 mt-4">
+            <div className="grid gap-4 md:gap-6">
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base md:text-lg">Revenue Over Time</CardTitle>
@@ -418,7 +422,7 @@ export default function RestaurantAnalytics() {
                 </CardContent>
               </Card>
 
-              <Card className="md:col-span-2">
+              <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base md:text-lg">Order Status Distribution</CardTitle>
                   <CardDescription>Breakdown by order status</CardDescription>
@@ -448,6 +452,7 @@ export default function RestaurantAnalytics() {
               </Card>
             </div>
           </div>
+          </>
         )}
       </div>
     </div>
