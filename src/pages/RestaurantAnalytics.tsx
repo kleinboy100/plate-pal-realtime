@@ -138,6 +138,9 @@ export default function RestaurantAnalytics() {
     if (statusFilter !== 'all') {
       query = query.eq('status', statusFilter);
     }
+    if (paymentFilter !== 'all') {
+      query = query.eq('payment_method', paymentFilter);
+    }
 
     const { data: orders, error } = await query;
 
