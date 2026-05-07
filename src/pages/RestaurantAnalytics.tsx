@@ -337,7 +337,7 @@ export default function RestaurantAnalytics() {
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : (
-          <>
+          <div ref={reportRef} className="bg-background p-2">
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
               <Card><CardContent className="p-4 md:p-6">
                 <div className="flex items-center gap-3">
