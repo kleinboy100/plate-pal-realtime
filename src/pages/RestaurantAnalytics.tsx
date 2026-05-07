@@ -324,6 +324,17 @@ export default function RestaurantAnalytics() {
               ))}
             </SelectContent>
           </Select>
+
+          <Select value={paymentFilter} onValueChange={setPaymentFilter}>
+            <SelectTrigger className="w-full sm:w-44">
+              <SelectValue placeholder="Filter by payment" />
+            </SelectTrigger>
+            <SelectContent>
+              {PAYMENT_FILTER_OPTIONS.map(opt => (
+                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {loading ? (
@@ -331,7 +342,8 @@ export default function RestaurantAnalytics() {
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : (
-          <div ref={reportRef} className="bg-background p-2">
+          <>
+          <div ref={page1Ref} className="bg-background p-2">
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
               <Card><CardContent className="p-4 md:p-6">
                 <div className="flex items-center gap-3">
