@@ -10,7 +10,11 @@ import { BarChart, Bar, XAxis, YAxis, LineChart, Line, PieChart, Pie, Cell } fro
 import { useAuth } from '@/contexts/AuthContext';
 import { useIsRestaurantOwner } from '@/hooks/useIsRestaurantOwner';
 import { supabase } from '@/integrations/supabase/client';
-import { ArrowLeft, TrendingUp, ShoppingBag, DollarSign, Clock, Loader2, CalendarIcon } from 'lucide-react';
+import { ArrowLeft, TrendingUp, ShoppingBag, DollarSign, Clock, Loader2, CalendarIcon, Download } from 'lucide-react';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import { useRef } from 'react';
+import { toast } from '@/hooks/use-toast';
 import { format, startOfDay, endOfDay, differenceInDays, addDays, subDays } from 'date-fns';
 import type { DateRange } from 'react-day-picker';
 import { cn } from '@/lib/utils';
