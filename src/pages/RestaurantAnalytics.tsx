@@ -190,6 +190,63 @@ export default function RestaurantAnalytics() {
     setLoading(false);
   };
 
+  const handleDownloadPDF = async () => {
+    if (!reportRef.current) return;
+    setDownloading(true);
+    try {
+      const canvas = await html2canvas(reportRef.current, {
+        scale: 2,
+        backgroundColor: '#ffffff',
+        useCORS: true,
+      });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = pdfWidth;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      const restaurantName = restaurants.find(r => r.id === selectedRestaurant)?.name || 'Restaurant';
+      pdf.setFontSize(14);
+      pdf.text(`${restaurantName} – Analytics`, 10, 10);
+      pdf.setFontSize(10);
+      pdf.text(dateLabel, 10, 16);
+
+      let position = 22;
+      let remainingHeight = imgHeight;
+      if (imgHeight <= pdfHeight - position) {
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      } else {
+        let sY = 0;
+        const pageContentHeight = pdfHeight - position;
+        const ratio = canvas.width / imgWidth;
+        while (remainingHeight > 0) {
+          const sliceHeight = Math.min(pageContentHeight, remainingHeight);
+          const sourceSliceHeight = sliceHeight * ratio;
+          const pageCanvas = document.createElement('canvas');
+          pageCanvas.width = canvas.width;
+          pageCanvas.height = sourceSliceHeight;
+          const ctx = pageCanvas.getContext('2d');
+          ctx?.drawImage(canvas, 0, sY, canvas.width, sourceSliceHeight, 0, 0, canvas.width, sourceSliceHeight);
+          pdf.addImage(pageCanvas.toDataURL('image/png'), 'PNG', 0, position, imgWidth, sliceHeight);
+          remainingHeight -= sliceHeight;
+          sY += sourceSliceHeight;
+          if (remainingHeight > 0) {
+            pdf.addPage();
+            position = 10;
+          }
+        }
+      }
+      pdf.save(`analytics-${restaurantName}-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+      toast({ title: 'Downloaded', description: 'Analytics report saved.' });
+    } catch (e) {
+      console.error(e);
+      toast({ title: 'Download failed', description: 'Could not generate PDF.', variant: 'destructive' });
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   const dateLabel = dateRange?.from
     ? dateRange.to && format(dateRange.from, 'yyyy-MM-dd') !== format(dateRange.to, 'yyyy-MM-dd')
       ? `${format(dateRange.from, 'MMM d')} – ${format(dateRange.to, 'MMM d, yyyy')}`
