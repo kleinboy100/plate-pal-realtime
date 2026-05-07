@@ -63,6 +63,12 @@ const STATUS_FILTER_OPTIONS = [
   { value: 'declined', label: 'Declined' },
 ];
 
+const PAYMENT_FILTER_OPTIONS = [
+  { value: 'all', label: 'All payments' },
+  { value: 'online', label: 'Online payment' },
+  { value: 'cash', label: 'Cash on delivery' },
+];
+
 export default function RestaurantAnalytics() {
   const { user } = useAuth();
   const { isOwner, loading: ownerLoading } = useIsRestaurantOwner();
