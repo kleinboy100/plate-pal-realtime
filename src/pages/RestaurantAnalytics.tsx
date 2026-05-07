@@ -441,7 +441,7 @@ export default function RestaurantAnalytics() {
                 </CardContent>
               </Card>
             </div>
-          </>
+          </div>
         )}
       </div>
     </div>
