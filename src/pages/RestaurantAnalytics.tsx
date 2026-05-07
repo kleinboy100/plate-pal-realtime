@@ -63,6 +63,12 @@ const STATUS_FILTER_OPTIONS = [
   { value: 'declined', label: 'Declined' },
 ];
 
+const PAYMENT_FILTER_OPTIONS = [
+  { value: 'all', label: 'All payments' },
+  { value: 'online', label: 'Online payment' },
+  { value: 'cash', label: 'Cash on delivery' },
+];
+
 export default function RestaurantAnalytics() {
   const { user } = useAuth();
   const { isOwner, loading: ownerLoading } = useIsRestaurantOwner();
@@ -71,12 +77,14 @@ export default function RestaurantAnalytics() {
   const [restaurants, setRestaurants] = useState<any[]>([]);
   const [selectedRestaurant, setSelectedRestaurant] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [paymentFilter, setPaymentFilter] = useState<string>('all');
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: subDays(new Date(), 6),
     to: new Date(),
   });
 
-  const reportRef = useRef<HTMLDivElement>(null);
+  const page1Ref = useRef<HTMLDivElement>(null);
+  const page2Ref = useRef<HTMLDivElement>(null);
   const [downloading, setDownloading] = useState(false);
 
   const [loading, setLoading] = useState(true);
@@ -101,7 +109,7 @@ export default function RestaurantAnalytics() {
 
   useEffect(() => {
     if (selectedRestaurant && dateRange?.from) fetchAnalytics();
-  }, [selectedRestaurant, dateRange, statusFilter]);
+  }, [selectedRestaurant, dateRange, statusFilter, paymentFilter]);
 
   const fetchRestaurants = async () => {
     const { data } = await supabase
@@ -129,6 +137,9 @@ export default function RestaurantAnalytics() {
 
     if (statusFilter !== 'all') {
       query = query.eq('status', statusFilter);
+    }
+    if (paymentFilter !== 'all') {
+      query = query.eq('payment_method', paymentFilter);
     }
 
     const { data: orders, error } = await query;
@@ -191,52 +202,35 @@ export default function RestaurantAnalytics() {
   };
 
   const handleDownloadPDF = async () => {
-    if (!reportRef.current) return;
+    if (!page1Ref.current || !page2Ref.current) return;
     setDownloading(true);
     try {
-      const canvas = await html2canvas(reportRef.current, {
-        scale: 2,
-        backgroundColor: '#ffffff',
-        useCORS: true,
-      });
-      const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
-      const imgWidth = pdfWidth;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
       const restaurantName = restaurants.find(r => r.id === selectedRestaurant)?.name || 'Restaurant';
-      pdf.setFontSize(14);
-      pdf.text(`${restaurantName} – Analytics`, 10, 10);
-      pdf.setFontSize(10);
-      pdf.text(dateLabel, 10, 16);
+      const margin = 8;
+      const headerHeight = 18;
 
-      let position = 22;
-      let remainingHeight = imgHeight;
-      if (imgHeight <= pdfHeight - position) {
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      } else {
-        let sY = 0;
-        const pageContentHeight = pdfHeight - position;
-        const ratio = canvas.width / imgWidth;
-        while (remainingHeight > 0) {
-          const sliceHeight = Math.min(pageContentHeight, remainingHeight);
-          const sourceSliceHeight = sliceHeight * ratio;
-          const pageCanvas = document.createElement('canvas');
-          pageCanvas.width = canvas.width;
-          pageCanvas.height = sourceSliceHeight;
-          const ctx = pageCanvas.getContext('2d');
-          ctx?.drawImage(canvas, 0, sY, canvas.width, sourceSliceHeight, 0, 0, canvas.width, sourceSliceHeight);
-          pdf.addImage(pageCanvas.toDataURL('image/png'), 'PNG', 0, position, imgWidth, sliceHeight);
-          remainingHeight -= sliceHeight;
-          sY += sourceSliceHeight;
-          if (remainingHeight > 0) {
-            pdf.addPage();
-            position = 10;
-          }
-        }
-      }
+      const renderSection = async (el: HTMLElement, isFirst: boolean) => {
+        const canvas = await html2canvas(el, { scale: 2, backgroundColor: '#ffffff', useCORS: true });
+        const availableWidth = pdfWidth - margin * 2;
+        const availableHeight = pdfHeight - headerHeight - margin;
+        const ratio = Math.min(availableWidth / (canvas.width / 2), availableHeight / (canvas.height / 2));
+        const imgWidth = (canvas.width / 2) * ratio;
+        const imgHeight = (canvas.height / 2) * ratio;
+        if (!isFirst) pdf.addPage();
+        pdf.setFontSize(14);
+        pdf.text(`${restaurantName} – Analytics`, margin, 10);
+        pdf.setFontSize(10);
+        pdf.text(dateLabel, margin, 16);
+        const x = (pdfWidth - imgWidth) / 2;
+        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', x, headerHeight, imgWidth, imgHeight);
+      };
+
+      await renderSection(page1Ref.current, true);
+      await renderSection(page2Ref.current, false);
+
       pdf.save(`analytics-${restaurantName}-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
       toast({ title: 'Downloaded', description: 'Analytics report saved.' });
     } catch (e) {
@@ -330,6 +324,17 @@ export default function RestaurantAnalytics() {
               ))}
             </SelectContent>
           </Select>
+
+          <Select value={paymentFilter} onValueChange={setPaymentFilter}>
+            <SelectTrigger className="w-full sm:w-44">
+              <SelectValue placeholder="Filter by payment" />
+            </SelectTrigger>
+            <SelectContent>
+              {PAYMENT_FILTER_OPTIONS.map(opt => (
+                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {loading ? (
@@ -337,7 +342,8 @@ export default function RestaurantAnalytics() {
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : (
-          <div ref={reportRef} className="bg-background p-2">
+          <>
+          <div ref={page1Ref} className="bg-background p-2">
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
               <Card><CardContent className="p-4 md:p-6">
                 <div className="flex items-center gap-3">
@@ -377,7 +383,7 @@ export default function RestaurantAnalytics() {
               </CardContent></Card>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-4 md:gap-6">
+            <div className="grid md:grid-cols-1 gap-4 md:gap-6">
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base md:text-lg">Orders Over Time</CardTitle>
@@ -394,7 +400,11 @@ export default function RestaurantAnalytics() {
                   </ChartContainer>
                 </CardContent>
               </Card>
+            </div>
+          </div>
 
+          <div ref={page2Ref} className="bg-background p-2 mt-4">
+            <div className="grid gap-4 md:gap-6">
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base md:text-lg">Revenue Over Time</CardTitle>
@@ -412,7 +422,7 @@ export default function RestaurantAnalytics() {
                 </CardContent>
               </Card>
 
-              <Card className="md:col-span-2">
+              <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base md:text-lg">Order Status Distribution</CardTitle>
                   <CardDescription>Breakdown by order status</CardDescription>
@@ -442,6 +452,7 @@ export default function RestaurantAnalytics() {
               </Card>
             </div>
           </div>
+          </>
         )}
       </div>
     </div>
