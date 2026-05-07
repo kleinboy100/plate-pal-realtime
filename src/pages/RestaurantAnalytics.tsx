@@ -3,13 +3,17 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from '@/components/ui/chart';
 import { BarChart, Bar, XAxis, YAxis, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
 import { useAuth } from '@/contexts/AuthContext';
 import { useIsRestaurantOwner } from '@/hooks/useIsRestaurantOwner';
 import { supabase } from '@/integrations/supabase/client';
-import { ArrowLeft, TrendingUp, ShoppingBag, DollarSign, Clock, Loader2, Filter } from 'lucide-react';
-import { format, subDays, startOfDay, endOfDay } from 'date-fns';
+import { ArrowLeft, TrendingUp, ShoppingBag, DollarSign, Clock, Loader2, Filter, CalendarIcon } from 'lucide-react';
+import { format, startOfDay, endOfDay, differenceInDays } from 'date-fns';
+import type { DateRange } from 'react-day-picker';
+import { cn } from '@/lib/utils';
 
 interface OrderStats {
   totalOrders: number;
