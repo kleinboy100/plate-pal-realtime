@@ -76,6 +76,9 @@ export default function RestaurantAnalytics() {
     to: new Date(),
   });
 
+  const reportRef = useRef<HTMLDivElement>(null);
+  const [downloading, setDownloading] = useState(false);
+
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<OrderStats>({
     totalOrders: 0,
