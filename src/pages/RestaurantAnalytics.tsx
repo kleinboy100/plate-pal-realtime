@@ -10,7 +10,11 @@ import { BarChart, Bar, XAxis, YAxis, LineChart, Line, PieChart, Pie, Cell } fro
 import { useAuth } from '@/contexts/AuthContext';
 import { useIsRestaurantOwner } from '@/hooks/useIsRestaurantOwner';
 import { supabase } from '@/integrations/supabase/client';
-import { ArrowLeft, TrendingUp, ShoppingBag, DollarSign, Clock, Loader2, CalendarIcon } from 'lucide-react';
+import { ArrowLeft, TrendingUp, ShoppingBag, DollarSign, Clock, Loader2, CalendarIcon, Download } from 'lucide-react';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import { useRef } from 'react';
+import { toast } from '@/hooks/use-toast';
 import { format, startOfDay, endOfDay, differenceInDays, addDays, subDays } from 'date-fns';
 import type { DateRange } from 'react-day-picker';
 import { cn } from '@/lib/utils';
@@ -71,6 +75,9 @@ export default function RestaurantAnalytics() {
     from: subDays(new Date(), 6),
     to: new Date(),
   });
+
+  const reportRef = useRef<HTMLDivElement>(null);
+  const [downloading, setDownloading] = useState(false);
 
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<OrderStats>({
@@ -183,6 +190,63 @@ export default function RestaurantAnalytics() {
     setLoading(false);
   };
 
+  const handleDownloadPDF = async () => {
+    if (!reportRef.current) return;
+    setDownloading(true);
+    try {
+      const canvas = await html2canvas(reportRef.current, {
+        scale: 2,
+        backgroundColor: '#ffffff',
+        useCORS: true,
+      });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = pdfWidth;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      const restaurantName = restaurants.find(r => r.id === selectedRestaurant)?.name || 'Restaurant';
+      pdf.setFontSize(14);
+      pdf.text(`${restaurantName} – Analytics`, 10, 10);
+      pdf.setFontSize(10);
+      pdf.text(dateLabel, 10, 16);
+
+      let position = 22;
+      let remainingHeight = imgHeight;
+      if (imgHeight <= pdfHeight - position) {
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      } else {
+        let sY = 0;
+        const pageContentHeight = pdfHeight - position;
+        const ratio = canvas.width / imgWidth;
+        while (remainingHeight > 0) {
+          const sliceHeight = Math.min(pageContentHeight, remainingHeight);
+          const sourceSliceHeight = sliceHeight * ratio;
+          const pageCanvas = document.createElement('canvas');
+          pageCanvas.width = canvas.width;
+          pageCanvas.height = sourceSliceHeight;
+          const ctx = pageCanvas.getContext('2d');
+          ctx?.drawImage(canvas, 0, sY, canvas.width, sourceSliceHeight, 0, 0, canvas.width, sourceSliceHeight);
+          pdf.addImage(pageCanvas.toDataURL('image/png'), 'PNG', 0, position, imgWidth, sliceHeight);
+          remainingHeight -= sliceHeight;
+          sY += sourceSliceHeight;
+          if (remainingHeight > 0) {
+            pdf.addPage();
+            position = 10;
+          }
+        }
+      }
+      pdf.save(`analytics-${restaurantName}-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+      toast({ title: 'Downloaded', description: 'Analytics report saved.' });
+    } catch (e) {
+      console.error(e);
+      toast({ title: 'Download failed', description: 'Could not generate PDF.', variant: 'destructive' });
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   const dateLabel = dateRange?.from
     ? dateRange.to && format(dateRange.from, 'yyyy-MM-dd') !== format(dateRange.to, 'yyyy-MM-dd')
       ? `${format(dateRange.from, 'MMM d')} – ${format(dateRange.to, 'MMM d, yyyy')}`
@@ -208,6 +272,15 @@ export default function RestaurantAnalytics() {
             </Button>
           </Link>
           <h1 className="font-display text-xl md:text-2xl font-bold">Analytics</h1>
+          <Button
+            onClick={handleDownloadPDF}
+            disabled={downloading || loading}
+            className="ml-auto rounded-xl"
+            size="sm"
+          >
+            {downloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+            <span className="ml-2 hidden sm:inline">Download PDF</span>
+          </Button>
         </div>
 
         <div className="flex flex-col sm:flex-row flex-wrap gap-3 mb-6">
@@ -264,7 +337,7 @@ export default function RestaurantAnalytics() {
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : (
-          <>
+          <div ref={reportRef} className="bg-background p-2">
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
               <Card><CardContent className="p-4 md:p-6">
                 <div className="flex items-center gap-3">
@@ -368,7 +441,7 @@ export default function RestaurantAnalytics() {
                 </CardContent>
               </Card>
             </div>
-          </>
+          </div>
         )}
       </div>
     </div>
