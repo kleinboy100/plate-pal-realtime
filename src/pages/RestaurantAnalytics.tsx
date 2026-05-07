@@ -202,52 +202,35 @@ export default function RestaurantAnalytics() {
   };
 
   const handleDownloadPDF = async () => {
-    if (!reportRef.current) return;
+    if (!page1Ref.current || !page2Ref.current) return;
     setDownloading(true);
     try {
-      const canvas = await html2canvas(reportRef.current, {
-        scale: 2,
-        backgroundColor: '#ffffff',
-        useCORS: true,
-      });
-      const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
-      const imgWidth = pdfWidth;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
       const restaurantName = restaurants.find(r => r.id === selectedRestaurant)?.name || 'Restaurant';
-      pdf.setFontSize(14);
-      pdf.text(`${restaurantName} – Analytics`, 10, 10);
-      pdf.setFontSize(10);
-      pdf.text(dateLabel, 10, 16);
+      const margin = 8;
+      const headerHeight = 18;
 
-      let position = 22;
-      let remainingHeight = imgHeight;
-      if (imgHeight <= pdfHeight - position) {
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      } else {
-        let sY = 0;
-        const pageContentHeight = pdfHeight - position;
-        const ratio = canvas.width / imgWidth;
-        while (remainingHeight > 0) {
-          const sliceHeight = Math.min(pageContentHeight, remainingHeight);
-          const sourceSliceHeight = sliceHeight * ratio;
-          const pageCanvas = document.createElement('canvas');
-          pageCanvas.width = canvas.width;
-          pageCanvas.height = sourceSliceHeight;
-          const ctx = pageCanvas.getContext('2d');
-          ctx?.drawImage(canvas, 0, sY, canvas.width, sourceSliceHeight, 0, 0, canvas.width, sourceSliceHeight);
-          pdf.addImage(pageCanvas.toDataURL('image/png'), 'PNG', 0, position, imgWidth, sliceHeight);
-          remainingHeight -= sliceHeight;
-          sY += sourceSliceHeight;
-          if (remainingHeight > 0) {
-            pdf.addPage();
-            position = 10;
-          }
-        }
-      }
+      const renderSection = async (el: HTMLElement, isFirst: boolean) => {
+        const canvas = await html2canvas(el, { scale: 2, backgroundColor: '#ffffff', useCORS: true });
+        const availableWidth = pdfWidth - margin * 2;
+        const availableHeight = pdfHeight - headerHeight - margin;
+        const ratio = Math.min(availableWidth / (canvas.width / 2), availableHeight / (canvas.height / 2));
+        const imgWidth = (canvas.width / 2) * ratio;
+        const imgHeight = (canvas.height / 2) * ratio;
+        if (!isFirst) pdf.addPage();
+        pdf.setFontSize(14);
+        pdf.text(`${restaurantName} – Analytics`, margin, 10);
+        pdf.setFontSize(10);
+        pdf.text(dateLabel, margin, 16);
+        const x = (pdfWidth - imgWidth) / 2;
+        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', x, headerHeight, imgWidth, imgHeight);
+      };
+
+      await renderSection(page1Ref.current, true);
+      await renderSection(page2Ref.current, false);
+
       pdf.save(`analytics-${restaurantName}-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
       toast({ title: 'Downloaded', description: 'Analytics report saved.' });
     } catch (e) {
