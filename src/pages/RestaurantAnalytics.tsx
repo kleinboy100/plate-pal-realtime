@@ -345,6 +345,17 @@ export default function RestaurantAnalytics() {
               ))}
             </SelectContent>
           </Select>
+
+          <Select value={fulfillmentFilter} onValueChange={setFulfillmentFilter}>
+            <SelectTrigger className="w-full sm:w-44">
+              <SelectValue placeholder="Filter by type" />
+            </SelectTrigger>
+            <SelectContent>
+              {FULFILLMENT_FILTER_OPTIONS.map(opt => (
+                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {loading ? (
