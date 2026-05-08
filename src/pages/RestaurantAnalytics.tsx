@@ -61,6 +61,8 @@ const STATUS_FILTER_OPTIONS = [
   { value: 'delivered', label: 'Delivered' },
   { value: 'cancelled', label: 'Cancelled' },
   { value: 'declined', label: 'Declined' },
+  { value: 'delivery', label: 'Deliveries' },
+  { value: 'collection', label: 'Collection' },
 ];
 
 const PAYMENT_FILTER_OPTIONS = [
@@ -130,13 +132,17 @@ export default function RestaurantAnalytics() {
 
     let query = supabase
       .from('orders')
-      .select('id, total_amount, status, created_at')
+      .select('id, total_amount, status, created_at, order_type')
       .eq('restaurant_id', selectedRestaurant)
       .gte('created_at', from.toISOString())
       .lte('created_at', to.toISOString());
 
     if (statusFilter !== 'all') {
-      query = query.eq('status', statusFilter);
+      if (statusFilter === 'delivery' || statusFilter === 'collection') {
+        query = query.eq('order_type', statusFilter);
+      } else {
+        query = query.eq('status', statusFilter);
+      }
     }
     if (paymentFilter !== 'all') {
       query = query.eq('payment_method', paymentFilter);
