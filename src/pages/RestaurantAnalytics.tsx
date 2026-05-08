@@ -101,6 +101,7 @@ export default function RestaurantAnalytics() {
   const [stats, setStats] = useState<OrderStats>({
     totalOrders: 0,
     totalRevenue: 0,
+    deliveriesRevenue: 0,
     averageOrderValue: 0,
     pendingOrders: 0,
     completedOrders: 0,
