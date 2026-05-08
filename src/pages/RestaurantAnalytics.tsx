@@ -61,14 +61,18 @@ const STATUS_FILTER_OPTIONS = [
   { value: 'delivered', label: 'Delivered' },
   { value: 'cancelled', label: 'Cancelled' },
   { value: 'declined', label: 'Declined' },
-  { value: 'delivery', label: 'Deliveries' },
-  { value: 'collection', label: 'Collection' },
 ];
 
 const PAYMENT_FILTER_OPTIONS = [
   { value: 'all', label: 'All payments' },
   { value: 'online', label: 'Online payment' },
   { value: 'cash', label: 'Cash on delivery' },
+];
+
+const FULFILLMENT_FILTER_OPTIONS = [
+  { value: 'all', label: 'All types' },
+  { value: 'delivery', label: 'Deliveries' },
+  { value: 'collection', label: 'Collection' },
 ];
 
 export default function RestaurantAnalytics() {
@@ -80,6 +84,7 @@ export default function RestaurantAnalytics() {
   const [selectedRestaurant, setSelectedRestaurant] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [paymentFilter, setPaymentFilter] = useState<string>('all');
+  const [fulfillmentFilter, setFulfillmentFilter] = useState<string>('all');
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: subDays(new Date(), 6),
     to: new Date(),
@@ -111,7 +116,7 @@ export default function RestaurantAnalytics() {
 
   useEffect(() => {
     if (selectedRestaurant && dateRange?.from) fetchAnalytics();
-  }, [selectedRestaurant, dateRange, statusFilter, paymentFilter]);
+  }, [selectedRestaurant, dateRange, statusFilter, paymentFilter, fulfillmentFilter]);
 
   const fetchRestaurants = async () => {
     const { data } = await supabase
@@ -138,14 +143,13 @@ export default function RestaurantAnalytics() {
       .lte('created_at', to.toISOString());
 
     if (statusFilter !== 'all') {
-      if (statusFilter === 'delivery' || statusFilter === 'collection') {
-        query = query.eq('order_type', statusFilter);
-      } else {
-        query = query.eq('status', statusFilter);
-      }
+      query = query.eq('status', statusFilter);
     }
     if (paymentFilter !== 'all') {
       query = query.eq('payment_method', paymentFilter);
+    }
+    if (fulfillmentFilter !== 'all') {
+      query = query.eq('order_type', fulfillmentFilter);
     }
 
     const { data: orders, error } = await query;
@@ -337,6 +341,17 @@ export default function RestaurantAnalytics() {
             </SelectTrigger>
             <SelectContent>
               {PAYMENT_FILTER_OPTIONS.map(opt => (
+                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={fulfillmentFilter} onValueChange={setFulfillmentFilter}>
+            <SelectTrigger className="w-full sm:w-44">
+              <SelectValue placeholder="Filter by type" />
+            </SelectTrigger>
+            <SelectContent>
+              {FULFILLMENT_FILTER_OPTIONS.map(opt => (
                 <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
               ))}
             </SelectContent>
