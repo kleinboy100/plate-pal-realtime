@@ -116,7 +116,7 @@ export default function RestaurantAnalytics() {
 
   useEffect(() => {
     if (selectedRestaurant && dateRange?.from) fetchAnalytics();
-  }, [selectedRestaurant, dateRange, statusFilter, paymentFilter]);
+  }, [selectedRestaurant, dateRange, statusFilter, paymentFilter, fulfillmentFilter]);
 
   const fetchRestaurants = async () => {
     const { data } = await supabase
