@@ -22,11 +22,14 @@ import { cn } from '@/lib/utils';
 interface OrderStats {
   totalOrders: number;
   totalRevenue: number;
+  deliveriesRevenue: number;
   averageOrderValue: number;
   pendingOrders: number;
   completedOrders: number;
   cancelledOrders: number;
 }
+
+const DELIVERY_FEE = 25;
 
 interface DailyData {
   date: string;
