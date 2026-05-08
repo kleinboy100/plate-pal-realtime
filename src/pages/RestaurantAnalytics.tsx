@@ -22,11 +22,14 @@ import { cn } from '@/lib/utils';
 interface OrderStats {
   totalOrders: number;
   totalRevenue: number;
+  deliveriesRevenue: number;
   averageOrderValue: number;
   pendingOrders: number;
   completedOrders: number;
   cancelledOrders: number;
 }
+
+const DELIVERY_FEE = 25;
 
 interface DailyData {
   date: string;
@@ -98,6 +101,7 @@ export default function RestaurantAnalytics() {
   const [stats, setStats] = useState<OrderStats>({
     totalOrders: 0,
     totalRevenue: 0,
+    deliveriesRevenue: 0,
     averageOrderValue: 0,
     pendingOrders: 0,
     completedOrders: 0,
@@ -162,9 +166,12 @@ export default function RestaurantAnalytics() {
 
     const orderList = orders || [];
 
-    const totalRevenue = orderList
-      .filter(o => o.status !== 'cancelled' && o.status !== 'declined')
-      .reduce((sum, o) => sum + Number(o.total_amount), 0);
+    const nonCancelled = orderList.filter(o => o.status !== 'cancelled' && o.status !== 'declined');
+    const grossRevenue = nonCancelled.reduce((sum, o) => sum + Number(o.total_amount), 0);
+    const deliveriesRevenue = nonCancelled
+      .filter(o => o.order_type === 'delivery')
+      .length * DELIVERY_FEE;
+    const totalRevenue = grossRevenue - deliveriesRevenue;
     const completedOrders = orderList.filter(o => o.status === 'delivered').length;
     const cancelledOrders = orderList.filter(o => o.status === 'cancelled' || o.status === 'declined').length;
     const pendingOrders = orderList.filter(o =>
@@ -175,6 +182,7 @@ export default function RestaurantAnalytics() {
     setStats({
       totalOrders: orderList.length,
       totalRevenue,
+      deliveriesRevenue,
       averageOrderValue: revenueOrders > 0 ? totalRevenue / revenueOrders : 0,
       pendingOrders,
       completedOrders,
@@ -192,7 +200,8 @@ export default function RestaurantAnalytics() {
       if (existing) {
         existing.orders += 1;
         if (order.status !== 'cancelled' && order.status !== 'declined') {
-          existing.revenue += Number(order.total_amount);
+          const fee = order.order_type === 'delivery' ? DELIVERY_FEE : 0;
+          existing.revenue += Number(order.total_amount) - fee;
         }
       }
     });
@@ -365,7 +374,7 @@ export default function RestaurantAnalytics() {
         ) : (
           <>
           <div ref={page1Ref} className="bg-background p-2">
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4 mb-6">
               <Card><CardContent className="p-4 md:p-6">
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-lg bg-primary/10"><ShoppingBag size={20} className="text-primary" /></div>
@@ -381,6 +390,15 @@ export default function RestaurantAnalytics() {
                   <div>
                     <p className="text-xs md:text-sm text-muted-foreground">Revenue</p>
                     <p className="text-xl md:text-2xl font-bold">R{stats.totalRevenue.toFixed(0)}</p>
+                  </div>
+                </div>
+              </CardContent></Card>
+              <Card><CardContent className="p-4 md:p-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-orange-500/10"><DollarSign size={20} className="text-orange-600" /></div>
+                  <div>
+                    <p className="text-xs md:text-sm text-muted-foreground">Deliveries Revenue</p>
+                    <p className="text-xl md:text-2xl font-bold">R{stats.deliveriesRevenue.toFixed(0)}</p>
                   </div>
                 </div>
               </CardContent></Card>
