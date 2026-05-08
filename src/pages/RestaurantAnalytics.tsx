@@ -61,14 +61,18 @@ const STATUS_FILTER_OPTIONS = [
   { value: 'delivered', label: 'Delivered' },
   { value: 'cancelled', label: 'Cancelled' },
   { value: 'declined', label: 'Declined' },
-  { value: 'delivery', label: 'Deliveries' },
-  { value: 'collection', label: 'Collection' },
 ];
 
 const PAYMENT_FILTER_OPTIONS = [
   { value: 'all', label: 'All payments' },
   { value: 'online', label: 'Online payment' },
   { value: 'cash', label: 'Cash on delivery' },
+];
+
+const FULFILLMENT_FILTER_OPTIONS = [
+  { value: 'all', label: 'All types' },
+  { value: 'delivery', label: 'Deliveries' },
+  { value: 'collection', label: 'Collection' },
 ];
 
 export default function RestaurantAnalytics() {
