@@ -61,6 +61,8 @@ const STATUS_FILTER_OPTIONS = [
   { value: 'delivered', label: 'Delivered' },
   { value: 'cancelled', label: 'Cancelled' },
   { value: 'declined', label: 'Declined' },
+  { value: 'delivery', label: 'Deliveries' },
+  { value: 'collection', label: 'Collection' },
 ];
 
 const PAYMENT_FILTER_OPTIONS = [
