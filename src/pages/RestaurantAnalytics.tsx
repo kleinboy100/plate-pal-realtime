@@ -166,9 +166,12 @@ export default function RestaurantAnalytics() {
 
     const orderList = orders || [];
 
-    const totalRevenue = orderList
-      .filter(o => o.status !== 'cancelled' && o.status !== 'declined')
-      .reduce((sum, o) => sum + Number(o.total_amount), 0);
+    const nonCancelled = orderList.filter(o => o.status !== 'cancelled' && o.status !== 'declined');
+    const grossRevenue = nonCancelled.reduce((sum, o) => sum + Number(o.total_amount), 0);
+    const deliveriesRevenue = nonCancelled
+      .filter(o => o.order_type === 'delivery')
+      .length * DELIVERY_FEE;
+    const totalRevenue = grossRevenue - deliveriesRevenue;
     const completedOrders = orderList.filter(o => o.status === 'delivered').length;
     const cancelledOrders = orderList.filter(o => o.status === 'cancelled' || o.status === 'declined').length;
     const pendingOrders = orderList.filter(o =>
@@ -179,6 +182,7 @@ export default function RestaurantAnalytics() {
     setStats({
       totalOrders: orderList.length,
       totalRevenue,
+      deliveriesRevenue,
       averageOrderValue: revenueOrders > 0 ? totalRevenue / revenueOrders : 0,
       pendingOrders,
       completedOrders,
