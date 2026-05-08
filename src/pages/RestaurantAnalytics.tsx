@@ -84,6 +84,7 @@ export default function RestaurantAnalytics() {
   const [selectedRestaurant, setSelectedRestaurant] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [paymentFilter, setPaymentFilter] = useState<string>('all');
+  const [fulfillmentFilter, setFulfillmentFilter] = useState<string>('all');
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: subDays(new Date(), 6),
     to: new Date(),
