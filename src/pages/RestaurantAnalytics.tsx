@@ -374,7 +374,7 @@ export default function RestaurantAnalytics() {
         ) : (
           <>
           <div ref={page1Ref} className="bg-background p-2">
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4 mb-6">
               <Card><CardContent className="p-4 md:p-6">
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-lg bg-primary/10"><ShoppingBag size={20} className="text-primary" /></div>
@@ -390,6 +390,15 @@ export default function RestaurantAnalytics() {
                   <div>
                     <p className="text-xs md:text-sm text-muted-foreground">Revenue</p>
                     <p className="text-xl md:text-2xl font-bold">R{stats.totalRevenue.toFixed(0)}</p>
+                  </div>
+                </div>
+              </CardContent></Card>
+              <Card><CardContent className="p-4 md:p-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-orange-500/10"><DollarSign size={20} className="text-orange-600" /></div>
+                  <div>
+                    <p className="text-xs md:text-sm text-muted-foreground">Deliveries Revenue</p>
+                    <p className="text-xl md:text-2xl font-bold">R{stats.deliveriesRevenue.toFixed(0)}</p>
                   </div>
                 </div>
               </CardContent></Card>
