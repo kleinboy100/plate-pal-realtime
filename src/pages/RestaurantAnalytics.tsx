@@ -143,14 +143,13 @@ export default function RestaurantAnalytics() {
       .lte('created_at', to.toISOString());
 
     if (statusFilter !== 'all') {
-      if (statusFilter === 'delivery' || statusFilter === 'collection') {
-        query = query.eq('order_type', statusFilter);
-      } else {
-        query = query.eq('status', statusFilter);
-      }
+      query = query.eq('status', statusFilter);
     }
     if (paymentFilter !== 'all') {
       query = query.eq('payment_method', paymentFilter);
+    }
+    if (fulfillmentFilter !== 'all') {
+      query = query.eq('order_type', fulfillmentFilter);
     }
 
     const { data: orders, error } = await query;
