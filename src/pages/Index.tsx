@@ -151,7 +151,7 @@ export default function Index() {
                 isOpen ? "bg-success" : "bg-muted-foreground"
               )} />
               <Clock className="w-4 h-4" />
-              <span className="font-semibold">{isOpen ? "We're open!" : "We're closed"}</span>
+              <span className="font-semibold">{isOpen ? "We're open!" : "Open 10AM to 6PM"}</span>
             </div>
             <div className="flex-1 flex justify-end">
               <img
