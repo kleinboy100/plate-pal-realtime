@@ -82,17 +82,17 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Don't allow adding the owner as staff
+    // Don't allow adding the owner to their own role tables
     if (targetUser.id === caller.id) {
-      return new Response(JSON.stringify({ success: false, error: "You cannot add yourself as staff — you are the owner." }), {
+      return new Response(JSON.stringify({ success: false, error: `You cannot add yourself as ${roleLabel} — you are the owner.` }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Insert staff record using service role (bypasses RLS for the insert)
+    // Insert role record using service role (bypasses RLS for the insert)
     const { error: insertError } = await adminClient
-      .from("restaurant_staff")
+      .from(targetTable)
       .insert({
         restaurant_id,
         user_id: targetUser.id,
@@ -101,12 +101,12 @@ Deno.serve(async (req) => {
 
     if (insertError) {
       if (insertError.code === "23505") {
-        return new Response(JSON.stringify({ success: false, error: "This user is already a staff member." }), {
+        return new Response(JSON.stringify({ success: false, error: `This user is already a ${roleLabel}.` }), {
           status: 409,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      return new Response(JSON.stringify({ success: false, error: "Failed to add staff member" }), {
+      return new Response(JSON.stringify({ success: false, error: `Failed to add ${roleLabel}` }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
