@@ -34,7 +34,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { email, restaurant_id } = await req.json();
+    const { email, restaurant_id, role = "staff" } = await req.json();
 
     if (!email || !restaurant_id) {
       return new Response(JSON.stringify({ success: false, error: "Email and restaurant_id required" }), {
@@ -42,6 +42,9 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    const targetTable = role === "driver" ? "restaurant_drivers" : "restaurant_staff";
+    const roleLabel = role === "driver" ? "driver" : "staff member";
 
     // Use service role to verify caller owns this restaurant
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
