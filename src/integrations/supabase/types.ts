@@ -14,45 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      conversation_logs: {
-        Row: {
-          conversation_date: string
-          conversation_time: string
-          created_at: string
-          email: string | null
-          id: string
-          messages: string
-          order_id: string | null
-          order_number: number | null
-          restaurant_id: string
-          updated_at: string
-        }
-        Insert: {
-          conversation_date?: string
-          conversation_time?: string
-          created_at?: string
-          email?: string | null
-          id?: string
-          messages?: string
-          order_id?: string | null
-          order_number?: number | null
-          restaurant_id: string
-          updated_at?: string
-        }
-        Update: {
-          conversation_date?: string
-          conversation_time?: string
-          created_at?: string
-          email?: string | null
-          id?: string
-          messages?: string
-          order_id?: string | null
-          order_number?: number | null
-          restaurant_id?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       events: {
         Row: {
           event_date: string
