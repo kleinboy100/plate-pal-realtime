@@ -66,17 +66,25 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Look up user by email using admin API
-    const { data: { users }, error: listError } = await adminClient.auth.admin.listUsers();
-    
-    if (listError) {
-      return new Response(JSON.stringify({ success: false, error: "Could not look up users" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    // Look up user by email across paginated admin list
+    const emailLower = email.toLowerCase().trim();
+    let targetUser: any = null;
+    let page = 1;
+    const perPage = 1000;
+    // up to 10,000 users
+    for (let i = 0; i < 10 && !targetUser; i++) {
+      const { data, error: listError } = await adminClient.auth.admin.listUsers({ page, perPage });
+      if (listError) {
+        return new Response(JSON.stringify({ success: false, error: "Could not look up users" }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const users = data?.users || [];
+      targetUser = users.find((u: any) => u.email?.toLowerCase() === emailLower);
+      if (users.length < perPage) break;
+      page += 1;
     }
-
-    const targetUser = users.find((u) => u.email?.toLowerCase() === email.toLowerCase());
 
     if (!targetUser) {
       return new Response(JSON.stringify({ success: false, error: "No account found with that email. The user must sign up first." }), {
