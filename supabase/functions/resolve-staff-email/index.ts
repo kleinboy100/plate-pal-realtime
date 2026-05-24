@@ -22,17 +22,20 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    // Verify the caller is authenticated
+    // Verify the caller is authenticated using getClaims (compatible with signing keys)
     const anonClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
       global: { headers: { Authorization: authHeader } },
     });
-    const { data: { user: caller }, error: authError } = await anonClient.auth.getUser();
-    if (authError || !caller) {
+    const token = authHeader.replace(/^Bearer\s+/i, "");
+    const { data: claimsData, error: authError } = await anonClient.auth.getClaims(token);
+    const callerId = claimsData?.claims?.sub as string | undefined;
+    if (authError || !callerId) {
       return new Response(JSON.stringify({ success: false, error: "Not authenticated" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    const caller = { id: callerId };
 
     const { email, restaurant_id, role = "staff" } = await req.json();
 

@@ -156,6 +156,8 @@ serve(async (req) => {
           distanceMeters: route.meters,
           durationMinutes: Math.max(1, Math.ceil(route.seconds / 60)),
           fee,
+          customerCoords: cc,
+          restaurantCoords: rc,
           method: "google-routes",
         }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
@@ -169,6 +171,8 @@ serve(async (req) => {
       distanceMeters: meters,
       durationMinutes: Math.max(5, Math.ceil(km * 2.5)),
       fee: feeFromMeters(meters),
+      customerCoords: cc,
+      restaurantCoords: rc,
       method: "haversine",
     }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (e) {
