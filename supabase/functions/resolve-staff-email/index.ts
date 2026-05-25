@@ -22,20 +22,17 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    // Verify the caller is authenticated using getClaims (compatible with signing keys)
+    // Verify the caller is authenticated
     const anonClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
       global: { headers: { Authorization: authHeader } },
     });
-    const token = authHeader.replace(/^Bearer\s+/i, "");
-    const { data: claimsData, error: authError } = await anonClient.auth.getClaims(token);
-    const callerId = claimsData?.claims?.sub as string | undefined;
-    if (authError || !callerId) {
+    const { data: { user: caller }, error: authError } = await anonClient.auth.getUser();
+    if (authError || !caller) {
       return new Response(JSON.stringify({ success: false, error: "Not authenticated" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const caller = { id: callerId };
 
     const { email, restaurant_id, role = "staff" } = await req.json();
 
@@ -66,25 +63,17 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Look up user by email across paginated admin list
-    const emailLower = email.toLowerCase().trim();
-    let targetUser: any = null;
-    let page = 1;
-    const perPage = 1000;
-    // up to 10,000 users
-    for (let i = 0; i < 10 && !targetUser; i++) {
-      const { data, error: listError } = await adminClient.auth.admin.listUsers({ page, perPage });
-      if (listError) {
-        return new Response(JSON.stringify({ success: false, error: "Could not look up users" }), {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      const users = data?.users || [];
-      targetUser = users.find((u: any) => u.email?.toLowerCase() === emailLower);
-      if (users.length < perPage) break;
-      page += 1;
+    // Look up user by email using admin API
+    const { data: { users }, error: listError } = await adminClient.auth.admin.listUsers();
+    
+    if (listError) {
+      return new Response(JSON.stringify({ success: false, error: "Could not look up users" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
+
+    const targetUser = users.find((u) => u.email?.toLowerCase() === email.toLowerCase());
 
     if (!targetUser) {
       return new Response(JSON.stringify({ success: false, error: "No account found with that email. The user must sign up first." }), {

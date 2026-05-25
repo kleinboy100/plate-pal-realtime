@@ -93,30 +93,29 @@ export default function DriverDashboard() {
     };
   }, [driverRestaurantId]);
 
-  // Geocode delivery addresses for active orders via Google Maps (precise)
+  // Geocode delivery addresses for active orders
   useEffect(() => {
     const toGeocode = orders.filter(
       (o) => o.driver_id === user?.id && o.status === 'out_for_delivery' && !destCoords[o.id],
     );
     toGeocode.forEach(async (o) => {
       try {
-        const { data, error } = await supabase.functions.invoke('calculate-distance', {
-          body: {
-            customerAddress: o.delivery_address,
-            restaurantCoords: restaurant?.latitude && restaurant?.longitude
-              ? { lat: Number(restaurant.latitude), lng: Number(restaurant.longitude) }
-              : undefined,
-            restaurantAddress: restaurant?.address,
-          },
-        });
-        if (!error && data?.customerCoords) {
-          setDestCoords((prev) => ({ ...prev, [o.id]: data.customerCoords }));
+        const r = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(o.delivery_address)}&countrycodes=za&limit=1`,
+          { headers: { 'User-Agent': 'Nosty/1.0' } },
+        );
+        const d = await r.json();
+        if (d?.[0]) {
+          setDestCoords((prev) => ({
+            ...prev,
+            [o.id]: { lat: parseFloat(d[0].lat), lng: parseFloat(d[0].lon) },
+          }));
         }
       } catch (e) {
         console.warn('Geocode driver dest failed', e);
       }
     });
-  }, [orders, user?.id, destCoords, restaurant]);
+  }, [orders, user?.id, destCoords]);
 
   const accept = async (id: string) => {
     setBusyId(id);
@@ -251,9 +250,9 @@ export default function DriverDashboard() {
                         <p className="font-bold text-primary">R{Number(o.total_amount).toFixed(2)}</p>
                       </div>
                       {dc ? (
-                        <DriverMap destination={dc} restaurant={rest} className="h-[480px] md:h-[560px]" />
+                        <DriverMap destination={dc} restaurant={rest} className="h-72" />
                       ) : (
-                        <div className="bg-muted rounded-xl h-[480px] md:h-[560px] flex items-center justify-center text-sm text-muted-foreground">
+                        <div className="bg-muted rounded-xl h-32 flex items-center justify-center text-sm text-muted-foreground">
                           <Loader2 className="w-4 h-4 animate-spin mr-2" /> Locating customer...
                         </div>
                       )}

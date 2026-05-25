@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 const GATEWAY_URL = "https://connector-gateway.lovable.dev/google_maps";
-const RATE_PER_100M = 0.50; // ZAR
+const RATE_PER_100M = 0.70; // ZAR
 
 interface Coord { lat: number; lng: number; }
 interface RequestBody {
@@ -156,8 +156,6 @@ serve(async (req) => {
           distanceMeters: route.meters,
           durationMinutes: Math.max(1, Math.ceil(route.seconds / 60)),
           fee,
-          customerCoords: cc,
-          restaurantCoords: rc,
           method: "google-routes",
         }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
@@ -171,8 +169,6 @@ serve(async (req) => {
       distanceMeters: meters,
       durationMinutes: Math.max(5, Math.ceil(km * 2.5)),
       fee: feeFromMeters(meters),
-      customerCoords: cc,
-      restaurantCoords: rc,
       method: "haversine",
     }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (e) {
