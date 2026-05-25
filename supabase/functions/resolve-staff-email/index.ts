@@ -34,7 +34,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { email, restaurant_id, role = "staff" } = await req.json();
+    const { email, restaurant_id } = await req.json();
 
     if (!email || !restaurant_id) {
       return new Response(JSON.stringify({ success: false, error: "Email and restaurant_id required" }), {
@@ -42,9 +42,6 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-
-    const targetTable = role === "driver" ? "restaurant_drivers" : "restaurant_staff";
-    const roleLabel = role === "driver" ? "driver" : "staff member";
 
     // Use service role to verify caller owns this restaurant
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
@@ -82,17 +79,17 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Don't allow adding the owner to their own role tables
+    // Don't allow adding the owner as staff
     if (targetUser.id === caller.id) {
-      return new Response(JSON.stringify({ success: false, error: `You cannot add yourself as ${roleLabel} — you are the owner.` }), {
+      return new Response(JSON.stringify({ success: false, error: "You cannot add yourself as staff — you are the owner." }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Insert role record using service role (bypasses RLS for the insert)
+    // Insert staff record using service role (bypasses RLS for the insert)
     const { error: insertError } = await adminClient
-      .from(targetTable)
+      .from("restaurant_staff")
       .insert({
         restaurant_id,
         user_id: targetUser.id,
@@ -101,12 +98,12 @@ Deno.serve(async (req) => {
 
     if (insertError) {
       if (insertError.code === "23505") {
-        return new Response(JSON.stringify({ success: false, error: `This user is already a ${roleLabel}.` }), {
+        return new Response(JSON.stringify({ success: false, error: "This user is already a staff member." }), {
           status: 409,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      return new Response(JSON.stringify({ success: false, error: `Failed to add ${roleLabel}` }), {
+      return new Response(JSON.stringify({ success: false, error: "Failed to add staff member" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
