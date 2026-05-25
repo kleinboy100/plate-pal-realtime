@@ -10,6 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRestaurantOperatingStatus } from '@/hooks/useRestaurantOperatingStatus';
 import { useIsRestaurantOwner } from '@/hooks/useIsRestaurantOwner';
 import { useIsRestaurantStaff } from '@/hooks/useIsRestaurantStaff';
+import { useIsRestaurantDriver } from '@/hooks/useIsRestaurantDriver';
 import { cn } from '@/lib/utils';
 import proudlySaLogo from '@/assets/proudly-sa.png';
 import africanPattern from '@/assets/african-pattern.jpg';
@@ -38,6 +39,7 @@ export default function Index() {
   const { user } = useAuth();
   const { isOwner, loading: ownerLoading } = useIsRestaurantOwner();
   const { isStaff, loading: staffLoading } = useIsRestaurantStaff();
+  const { isDriver, loading: driverLoading } = useIsRestaurantDriver();
   const [menuItems, setMenuItems] = useState<MenuItemType[]>([]);
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [loading, setLoading] = useState(true);
@@ -68,12 +70,12 @@ export default function Index() {
     navigate('/auth');
   };
 
-  // Redirect restaurant owners and staff to dashboard
+  // Redirect restaurant owners, staff, and drivers to their dashboards
   useEffect(() => {
-    if (!ownerLoading && !staffLoading && (isOwner || isStaff)) {
-      navigate('/restaurant/dashboard', { replace: true });
-    }
-  }, [isOwner, isStaff, ownerLoading, staffLoading, navigate]);
+    if (ownerLoading || staffLoading || driverLoading) return;
+    if (isDriver) navigate('/driver/dashboard', { replace: true });
+    else if (isOwner || isStaff) navigate('/restaurant/dashboard', { replace: true });
+  }, [isOwner, isStaff, isDriver, ownerLoading, staffLoading, driverLoading, navigate]);
 
   useEffect(() => {
     fetchData();

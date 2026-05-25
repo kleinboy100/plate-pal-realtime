@@ -21,6 +21,7 @@ import RestaurantAnalytics from "./pages/RestaurantAnalytics";
 import { OAuthCallback } from "./pages/OAuthCallback";
 import Install from "./pages/Install";
 import Privacy from "./pages/Privacy";
+import DriverDashboard from "./pages/DriverDashboard";
 
 const queryClient = new QueryClient();
 
@@ -44,6 +45,7 @@ const App = () => (
                 <Route path="/restaurant/register" element={<RestaurantRegister />} />
                 <Route path="/restaurant/dashboard" element={<RestaurantDashboard />} />
                  <Route path="/restaurant/analytics" element={<RestaurantAnalytics />} />
+                <Route path="/driver/dashboard" element={<DriverDashboard />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/~oauth" element={<OAuthCallback />} />
                 <Route path="/install" element={<Install />} />

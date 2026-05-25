@@ -310,7 +310,11 @@ export type Database = {
       orders: {
         Row: {
           created_at: string
+          delivered_at: string | null
           delivery_address: string
+          distance_meters: number | null
+          driver_accepted_at: string | null
+          driver_id: string | null
           id: string
           notes: string | null
           order_number: number
@@ -319,13 +323,18 @@ export type Database = {
           payment_method: string | null
           restaurant_id: string
           status: string
+          tip_amount: number
           total_amount: number
           updated_at: string
           user_id: string
         }
         Insert: {
           created_at?: string
+          delivered_at?: string | null
           delivery_address: string
+          distance_meters?: number | null
+          driver_accepted_at?: string | null
+          driver_id?: string | null
           id?: string
           notes?: string | null
           order_number: number
@@ -334,13 +343,18 @@ export type Database = {
           payment_method?: string | null
           restaurant_id: string
           status?: string
+          tip_amount?: number
           total_amount: number
           updated_at?: string
           user_id: string
         }
         Update: {
           created_at?: string
+          delivered_at?: string | null
           delivery_address?: string
+          distance_meters?: number | null
+          driver_accepted_at?: string | null
+          driver_id?: string | null
           id?: string
           notes?: string | null
           order_number?: number
@@ -349,6 +363,7 @@ export type Database = {
           payment_method?: string | null
           restaurant_id?: string
           status?: string
+          tip_amount?: number
           total_amount?: number
           updated_at?: string
           user_id?: string
@@ -435,6 +450,30 @@ export type Database = {
           is_restaurant_owner?: boolean | null
           phone?: string | null
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      restaurant_drivers: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          restaurant_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          restaurant_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          restaurant_id?: string
           user_id?: string
         }
         Relationships: []
@@ -526,6 +565,7 @@ export type Database = {
           average_prep_time: number | null
           created_at: string
           cuisine_type: string
+          delivery_rate_per_100m: number
           description: string | null
           id: string
           image_url: string | null
@@ -546,6 +586,7 @@ export type Database = {
           average_prep_time?: number | null
           created_at?: string
           cuisine_type: string
+          delivery_rate_per_100m?: number
           description?: string | null
           id?: string
           image_url?: string | null
@@ -566,6 +607,7 @@ export type Database = {
           average_prep_time?: number | null
           created_at?: string
           cuisine_type?: string
+          delivery_rate_per_100m?: number
           description?: string | null
           id?: string
           image_url?: string | null
@@ -876,6 +918,11 @@ export type Database = {
       }
     }
     Functions: {
+      add_tip: {
+        Args: { p_amount: number; p_order_id: string }
+        Returns: boolean
+      }
+      claim_delivery_order: { Args: { p_order_id: string }; Returns: boolean }
       confirm_cod_payment: { Args: { p_order_id: string }; Returns: boolean }
       create_validated_order:
         | {
@@ -911,12 +958,28 @@ export type Database = {
             }
             Returns: string
           }
+        | {
+            Args: {
+              p_delivery_address: string
+              p_delivery_fee?: number
+              p_items: Json
+              p_notes: string
+              p_order_type?: string
+              p_payment_method: string
+              p_restaurant_id: string
+              p_tip_amount?: number
+            }
+            Returns: string
+          }
+      driver_restaurant_id: { Args: { p_user: string }; Returns: string }
       is_any_restaurant_owner: { Args: never; Returns: boolean }
+      is_restaurant_driver: { Args: never; Returns: boolean }
       is_restaurant_owner: {
         Args: { p_restaurant_id: string }
         Returns: boolean
       }
       is_restaurant_staff: { Args: never; Returns: boolean }
+      mark_order_delivered: { Args: { p_order_id: string }; Returns: boolean }
       owner_has_payment_keys: {
         Args: { p_restaurant_id: string }
         Returns: boolean
