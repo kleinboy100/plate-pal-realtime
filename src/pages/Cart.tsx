@@ -16,7 +16,7 @@ import { cn } from '@/lib/utils';
 
 const MAX_NOTES_LENGTH = 1000;
 const MAX_ADDRESS_LENGTH = 500;
-const RATE_PER_100M = 0.50; // R0.50 per 100m => R5 per km
+const RATE_PER_100M = 0.70; // R0.70 per 100m => R7 per km
 
 export default function Cart() {
   const { items, updateQuantity, removeItem, clearCart, total, restaurantId } = useCart();
@@ -35,8 +35,6 @@ export default function Cart() {
   const [restaurantAddress, setRestaurantAddress] = useState<string>('');
   const [distanceKm, setDistanceKm] = useState<number | null>(null);
   const [calculatingFee, setCalculatingFee] = useState(false);
-  const [tipAmount, setTipAmount] = useState<number>(0);
-  const [customTip, setCustomTip] = useState<string>('');
 
   useEffect(() => {
     if (!restaurantId) return;
@@ -171,7 +169,6 @@ export default function Cart() {
         })),
         p_order_type: orderType,
         p_delivery_fee: orderType === 'delivery' ? deliveryFee : null,
-        p_tip_amount: orderType === 'delivery' ? tipAmount : 0,
       } as any);
 
       if (orderError) {
@@ -397,51 +394,9 @@ export default function Cart() {
                     </span>
                   </div>
                 )}
-                {orderType === 'delivery' && (
-                  <div className="space-y-2 pt-2">
-                    <Label className="text-sm font-semibold">Tip your driver (optional)</Label>
-                    <div className="flex flex-wrap gap-2">
-                      {[0, 5, 10, 20].map((v) => (
-                        <button
-                          key={v}
-                          type="button"
-                          onClick={() => { setTipAmount(v); setCustomTip(''); }}
-                          className={cn(
-                            'px-3 py-1.5 rounded-xl text-sm font-semibold border transition-colors',
-                            tipAmount === v && !customTip
-                              ? 'bg-primary text-primary-foreground border-primary'
-                              : 'bg-muted border-border/50 text-foreground hover:bg-muted/70'
-                          )}
-                        >
-                          {v === 0 ? 'No tip' : `R${v}`}
-                        </button>
-                      ))}
-                      <input
-                        type="number"
-                        min={0}
-                        max={1000}
-                        placeholder="Custom"
-                        value={customTip}
-                        onChange={(e) => {
-                          const raw = e.target.value;
-                          setCustomTip(raw);
-                          const n = parseFloat(raw);
-                          setTipAmount(isFinite(n) && n >= 0 ? Math.min(1000, n) : 0);
-                        }}
-                        className="w-24 px-3 py-1.5 rounded-xl text-sm border border-border/50 bg-muted"
-                      />
-                    </div>
-                  </div>
-                )}
-                {orderType === 'delivery' && tipAmount > 0 && (
-                  <div className="flex justify-between text-sm text-muted-foreground">
-                    <span>Driver tip</span>
-                    <span>R{tipAmount.toFixed(2)}</span>
-                  </div>
-                )}
                 <div className="flex justify-between font-bold text-foreground text-lg pt-3 border-t border-border/50">
                   <span>Total</span>
-                  <span className="text-primary">R{(orderType === 'delivery' ? total + deliveryFee + tipAmount : total).toFixed(2)}</span>
+                  <span className="text-primary">R{(orderType === 'delivery' ? total + deliveryFee : total).toFixed(2)}</span>
                 </div>
               </div>
 

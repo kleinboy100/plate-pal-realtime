@@ -105,7 +105,7 @@ export function KFCMenuItem({
           {name}
         </h4>
         {description && (
-          <p className="text-muted-foreground text-xs mt-1 leading-relaxed whitespace-normal break-words">
+          <p className="text-muted-foreground text-xs line-clamp-1 mt-1 leading-relaxed">
             {description}
           </p>
         )}

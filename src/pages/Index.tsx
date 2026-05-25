@@ -10,7 +10,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRestaurantOperatingStatus } from '@/hooks/useRestaurantOperatingStatus';
 import { useIsRestaurantOwner } from '@/hooks/useIsRestaurantOwner';
 import { useIsRestaurantStaff } from '@/hooks/useIsRestaurantStaff';
-import { useIsRestaurantDriver } from '@/hooks/useIsRestaurantDriver';
 import { cn } from '@/lib/utils';
 import proudlySaLogo from '@/assets/proudly-sa.png';
 import africanPattern from '@/assets/african-pattern.jpg';
@@ -39,7 +38,6 @@ export default function Index() {
   const { user } = useAuth();
   const { isOwner, loading: ownerLoading } = useIsRestaurantOwner();
   const { isStaff, loading: staffLoading } = useIsRestaurantStaff();
-  const { isDriver, loading: driverLoading } = useIsRestaurantDriver();
   const [menuItems, setMenuItems] = useState<MenuItemType[]>([]);
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [loading, setLoading] = useState(true);
@@ -70,12 +68,12 @@ export default function Index() {
     navigate('/auth');
   };
 
-  // Redirect restaurant owners, staff, and drivers to their dashboards
+  // Redirect restaurant owners and staff to dashboard
   useEffect(() => {
-    if (ownerLoading || staffLoading || driverLoading) return;
-    if (isDriver) navigate('/driver/dashboard', { replace: true });
-    else if (isOwner || isStaff) navigate('/restaurant/dashboard', { replace: true });
-  }, [isOwner, isStaff, isDriver, ownerLoading, staffLoading, driverLoading, navigate]);
+    if (!ownerLoading && !staffLoading && (isOwner || isStaff)) {
+      navigate('/restaurant/dashboard', { replace: true });
+    }
+  }, [isOwner, isStaff, ownerLoading, staffLoading, navigate]);
 
   useEffect(() => {
     fetchData();
@@ -153,7 +151,7 @@ export default function Index() {
                 isOpen ? "bg-success" : "bg-muted-foreground"
               )} />
               <Clock className="w-4 h-4" />
-              <span className="font-semibold">{isOpen ? "We're open!" : "Open 10AM to 6PM"}</span>
+              <span className="font-semibold">{isOpen ? "We're open!" : "We're closed"}</span>
             </div>
             <div className="flex-1 flex justify-end">
               <img

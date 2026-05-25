@@ -10,7 +10,6 @@ import { YocoSettings } from '@/components/YocoSettings';
 import { MenuManager } from '@/components/MenuManager';
 import { OperatingHoursSettings } from '@/components/OperatingHoursSettings';
 import { StaffManager } from '@/components/StaffManager';
-import { DriverManager } from '@/components/DriverManager';
 import { Store, Bell, Volume2, Settings, UtensilsCrossed, BarChart3, ExternalLink, ChefHat, Package } from 'lucide-react';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { useIsRestaurantOwner } from '@/hooks/useIsRestaurantOwner';
@@ -338,10 +337,6 @@ export default function RestaurantDashboard() {
                       <div>
                         <h2 className="font-semibold text-lg mb-4">Staff Management</h2>
                         <StaffManager restaurantId={selectedRestaurant} />
-                      </div>
-                      <div>
-                        <h2 className="font-semibold text-lg mb-4">Driver Management</h2>
-                        <DriverManager restaurantId={selectedRestaurant} />
                       </div>
                     </div>
                   </TabsContent>
