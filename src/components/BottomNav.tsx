@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
 import { useIsRestaurantOwner } from '@/hooks/useIsRestaurantOwner';
 import { useIsRestaurantStaff } from '@/hooks/useIsRestaurantStaff';
+import { useIsRestaurantDriver } from '@/hooks/useIsRestaurantDriver';
 import { cn } from '@/lib/utils';
 
 export function BottomNav() {
@@ -12,9 +13,10 @@ export function BottomNav() {
   const location = useLocation();
   const { isOwner } = useIsRestaurantOwner();
   const { isStaff } = useIsRestaurantStaff();
+  const { isDriver } = useIsRestaurantDriver();
 
-  // Hide bottom nav for restaurant owners and staff
-  if (isOwner || isStaff) {
+  // Hide bottom nav for restaurant owners, staff, and drivers
+  if (isOwner || isStaff || isDriver) {
     return null;
   }
 
