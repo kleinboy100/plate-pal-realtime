@@ -1,14 +1,16 @@
 // Singleton loader for Google Maps JS API
-let loadPromise: Promise<any> | null = null;
+let loadPromise: Promise<unknown> | null = null;
+
+type GoogleMapsWindow = { maps?: unknown };
 
 declare global {
   interface Window {
     __nostyInitMap?: () => void;
-    google: any;
+    google?: GoogleMapsWindow;
   }
 }
 
-export function loadGoogleMaps(): Promise<any> {
+export function loadGoogleMaps(): Promise<unknown> {
   if (typeof window === 'undefined') return Promise.reject(new Error('No window'));
   if (window.google?.maps) return Promise.resolve(window.google);
   if (loadPromise) return loadPromise;
@@ -24,7 +26,7 @@ export function loadGoogleMaps(): Promise<any> {
     s.async = true;
     s.defer = true;
     const channelParam = channel ? `&channel=${encodeURIComponent(channel)}` : '';
-    s.src = `https://maps.googleapis.com/maps/api/js?key=${browserKey}&libraries=geometry&loading=async&callback=__nostyInitMap${channelParam}`;
+    s.src = `https://maps.googleapis.com/maps/api/js?key=${browserKey}&v=weekly&libraries=geometry,places&loading=async&callback=__nostyInitMap${channelParam}`;
     s.onerror = () => reject(new Error('Failed to load Google Maps'));
     document.head.appendChild(s);
   });

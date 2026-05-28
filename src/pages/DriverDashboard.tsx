@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useIsRestaurantDriver } from '@/hooks/useIsRestaurantDriver';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { Loader2, CheckCircle, XCircle, MapPin, Package, Truck, ClipboardCheck } from 'lucide-react';
+import { Loader2, CheckCircle, XCircle, MapPin, Package, Truck, ClipboardCheck, type LucideIcon } from 'lucide-react';
 import { DriverMap } from '@/components/DriverMap';
 import { useNavigate } from 'react-router-dom';
 
@@ -16,6 +16,10 @@ type Order = {
   total_amount: number;
   tip_amount: number;
   delivery_address: string;
+  delivery_latitude: number | null;
+  delivery_longitude: number | null;
+  delivery_location_accuracy_m: number | null;
+  delivery_address_source: string | null;
   status: string;
   order_type: string;
   driver_id: string | null;
@@ -38,6 +42,7 @@ export default function DriverDashboard() {
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [destCoords, setDestCoords] = useState<Record<string, { lat: number; lng: number }>>({});
+  const [destErrors, setDestErrors] = useState<Set<string>>(new Set());
   const [declined, setDeclined] = useState<Set<string>>(new Set());
   const [busyId, setBusyId] = useState<string | null>(null);
   const polledRef = useRef<NodeJS.Timeout | null>(null);
@@ -59,7 +64,7 @@ export default function DriverDashboard() {
         .select('id, name, address, latitude, longitude')
         .eq('id', driverRestaurantId)
         .maybeSingle();
-      setRestaurant(data as any);
+      setRestaurant(data as Restaurant | null);
     })();
   }, [driverRestaurantId]);
 
@@ -69,11 +74,11 @@ export default function DriverDashboard() {
     const fetchOrders = async () => {
       const { data } = await supabase
         .from('orders')
-        .select('id, order_number, restaurant_id, total_amount, tip_amount, delivery_address, status, order_type, driver_id, delivered_at, created_at')
+        .select('id, order_number, restaurant_id, total_amount, tip_amount, delivery_address, delivery_latitude, delivery_longitude, delivery_location_accuracy_m, delivery_address_source, status, order_type, driver_id, delivered_at, created_at')
         .eq('restaurant_id', driverRestaurantId)
         .eq('order_type', 'delivery')
         .order('created_at', { ascending: false });
-      setOrders((data as any) || []);
+      setOrders((data as Order[] | null) || []);
     };
     fetchOrders();
     const ch = supabase
@@ -93,12 +98,17 @@ export default function DriverDashboard() {
     };
   }, [driverRestaurantId]);
 
-  // Geocode delivery addresses for active orders via Google Maps (precise)
+  // Use saved precise coordinates first; geocode older orders as a fallback.
   useEffect(() => {
     const toGeocode = orders.filter(
-      (o) => o.driver_id === user?.id && o.status === 'out_for_delivery' && !destCoords[o.id],
+      (o) => o.driver_id === user?.id && o.status === 'out_for_delivery' && !destCoords[o.id] && !destErrors.has(o.id),
     );
     toGeocode.forEach(async (o) => {
+      if (o.delivery_latitude != null && o.delivery_longitude != null) {
+        setDestCoords((prev) => ({ ...prev, [o.id]: { lat: Number(o.delivery_latitude), lng: Number(o.delivery_longitude) } }));
+        return;
+      }
+
       try {
         const { data, error } = await supabase.functions.invoke('calculate-distance', {
           body: {
@@ -111,12 +121,15 @@ export default function DriverDashboard() {
         });
         if (!error && data?.customerCoords) {
           setDestCoords((prev) => ({ ...prev, [o.id]: data.customerCoords }));
+        } else {
+          setDestErrors((prev) => new Set([...prev, o.id]));
         }
       } catch (e) {
         console.warn('Geocode driver dest failed', e);
+        setDestErrors((prev) => new Set([...prev, o.id]));
       }
     });
-  }, [orders, user?.id, destCoords, restaurant]);
+  }, [orders, user?.id, destCoords, destErrors, restaurant]);
 
   const accept = async (id: string) => {
     setBusyId(id);
@@ -252,6 +265,11 @@ export default function DriverDashboard() {
                       </div>
                       {dc ? (
                         <DriverMap destination={dc} restaurant={rest} className="h-[480px] md:h-[560px]" />
+                      ) : destErrors.has(o.id) ? (
+                        <div className="bg-muted rounded-xl h-[480px] md:h-[560px] flex flex-col items-center justify-center gap-2 px-6 text-center text-sm text-muted-foreground">
+                          <MapPin className="h-8 w-8" />
+                          <span>Customer location could not be found. Use the written address above.</span>
+                        </div>
                       ) : (
                         <div className="bg-muted rounded-xl h-[480px] md:h-[560px] flex items-center justify-center text-sm text-muted-foreground">
                           <Loader2 className="w-4 h-4 animate-spin mr-2" /> Locating customer...
@@ -300,7 +318,7 @@ export default function DriverDashboard() {
   );
 }
 
-function EmptyState({ icon: Icon, msg }: { icon: any; msg: string }) {
+function EmptyState({ icon: Icon, msg }: { icon: LucideIcon; msg: string }) {
   return (
     <div className="text-center py-12 card-elevated">
       <Icon className="w-10 h-10 mx-auto mb-3 text-muted-foreground/60" />

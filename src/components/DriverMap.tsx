@@ -9,11 +9,31 @@ interface DriverMapProps {
   onEta?: (etaMinutes: number, distanceKm: number) => void;
 }
 
+type LatLngLiteral = { lat: number; lng: number };
+type LatLng = { lat: () => number; lng: () => number };
+type GoogleMapInstance = {
+  setCenter: (position: LatLngLiteral) => void;
+  setZoom: (zoom: number) => void;
+  fitBounds: (bounds: unknown, padding?: number) => void;
+};
+type GoogleMarkerInstance = { setPosition: (position: LatLngLiteral) => void; setMap?: (map: null) => void };
+type GooglePolylineInstance = { setMap: (map: null) => void };
+type GoogleMapsApi = {
+  maps: {
+    Map: new (element: HTMLElement, options: Record<string, unknown>) => GoogleMapInstance;
+    Marker: new (options: Record<string, unknown>) => GoogleMarkerInstance;
+    Polyline: new (options: Record<string, unknown>) => GooglePolylineInstance;
+    LatLngBounds: new () => { extend: (position: LatLngLiteral) => void };
+    SymbolPath: { CIRCLE: unknown; FORWARD_CLOSED_ARROW: unknown };
+    geometry?: { encoding?: { decodePath?: (encoded: string) => LatLng[] } };
+  };
+};
+
 export function DriverMap({ destination, restaurant, className, onEta }: DriverMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<any>(null);
-  const driverMarkerRef = useRef<any>(null);
-  const routePolylineRef = useRef<any>(null);
+  const mapRef = useRef<GoogleMapInstance | null>(null);
+  const driverMarkerRef = useRef<GoogleMarkerInstance | null>(null);
+  const routePolylineRef = useRef<GooglePolylineInstance | null>(null);
   const fittedRef = useRef(false);
   const [ready, setReady] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -28,7 +48,7 @@ export function DriverMap({ destination, restaurant, className, onEta }: DriverM
 
     const init = async () => {
       try {
-        const g = await loadGoogleMaps();
+        const g = await loadGoogleMaps() as GoogleMapsApi;
         if (cancelled) return;
 
         // Wait for container to be in DOM with size
@@ -117,14 +137,21 @@ export function DriverMap({ destination, restaurant, className, onEta }: DriverM
     return () => navigator.geolocation.clearWatch(watchId);
   }, []);
 
-  // Update driver marker + real route (via Routes API) + ETA
+  // Draw pickup-to-customer route immediately, then switch to driver-to-customer once GPS is available.
   useEffect(() => {
     if (!ready) return;
     const map = mapRef.current;
-    const g = (window as any).google;
-    if (!map || !driverPos || !g) return;
+    const g = window.google as unknown as GoogleMapsApi | undefined;
+    if (!map || !g) return;
 
-    if (!driverMarkerRef.current) {
+    const origin = driverPos || restaurant;
+    if (!origin) {
+      map.setCenter(destination);
+      map.setZoom(16);
+      return;
+    }
+
+    if (driverPos && !driverMarkerRef.current) {
       driverMarkerRef.current = new g.maps.Marker({
         map,
         position: driverPos,
@@ -138,7 +165,7 @@ export function DriverMap({ destination, restaurant, className, onEta }: DriverM
           strokeWeight: 2,
         },
       });
-    } else {
+    } else if (driverPos) {
       driverMarkerRef.current.setPosition(driverPos);
     }
 
@@ -147,7 +174,7 @@ export function DriverMap({ destination, restaurant, className, onEta }: DriverM
       try {
         const { supabase } = await import('@/integrations/supabase/client');
         const { data } = await supabase.functions.invoke('calculate-distance', {
-          body: { restaurantCoords: driverPos, customerCoords: destination },
+          body: { restaurantCoords: origin, customerCoords: destination },
         });
         if (data?.distanceKm != null && data?.durationMinutes != null) {
           const next = { km: data.distanceKm, min: data.durationMinutes };
@@ -159,9 +186,9 @@ export function DriverMap({ destination, restaurant, className, onEta }: DriverM
         let path: { lat: number; lng: number }[] | null = null;
         if (encoded && g.maps.geometry?.encoding?.decodePath) {
           const decoded = g.maps.geometry.encoding.decodePath(encoded);
-          path = decoded.map((p: any) => ({ lat: p.lat(), lng: p.lng() }));
+          path = decoded.map((p) => ({ lat: p.lat(), lng: p.lng() }));
         }
-        if (!path) path = [driverPos, destination];
+        if (!path) path = [origin, destination];
 
         if (routePolylineRef.current) routePolylineRef.current.setMap(null);
         routePolylineRef.current = new g.maps.Polyline({
@@ -177,7 +204,7 @@ export function DriverMap({ destination, restaurant, className, onEta }: DriverM
           const bounds = new g.maps.LatLngBounds();
           path.forEach((p) => bounds.extend(p));
           bounds.extend(destination);
-          bounds.extend(driverPos);
+          bounds.extend(origin);
           map.fitBounds(bounds, 60);
           fittedRef.current = true;
         }
@@ -186,7 +213,7 @@ export function DriverMap({ destination, restaurant, className, onEta }: DriverM
       }
     };
     fetchRoute();
-  }, [ready, driverPos, destination, onEta]);
+  }, [ready, driverPos, restaurant, destination, onEta]);
 
   if (error) {
     return (

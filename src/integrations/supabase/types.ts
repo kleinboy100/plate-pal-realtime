@@ -312,6 +312,11 @@ export type Database = {
           created_at: string
           delivered_at: string | null
           delivery_address: string
+          delivery_address_source: string | null
+          delivery_latitude: number | null
+          delivery_location_accuracy_m: number | null
+          delivery_longitude: number | null
+          delivery_place_id: string | null
           distance_meters: number | null
           driver_accepted_at: string | null
           driver_id: string | null
@@ -332,6 +337,11 @@ export type Database = {
           created_at?: string
           delivered_at?: string | null
           delivery_address: string
+          delivery_address_source?: string | null
+          delivery_latitude?: number | null
+          delivery_location_accuracy_m?: number | null
+          delivery_longitude?: number | null
+          delivery_place_id?: string | null
           distance_meters?: number | null
           driver_accepted_at?: string | null
           driver_id?: string | null
@@ -352,6 +362,11 @@ export type Database = {
           created_at?: string
           delivered_at?: string | null
           delivery_address?: string
+          delivery_address_source?: string | null
+          delivery_latitude?: number | null
+          delivery_location_accuracy_m?: number | null
+          delivery_longitude?: number | null
+          delivery_place_id?: string | null
           distance_meters?: number | null
           driver_accepted_at?: string | null
           driver_id?: string | null
@@ -924,53 +939,24 @@ export type Database = {
       }
       claim_delivery_order: { Args: { p_order_id: string }; Returns: boolean }
       confirm_cod_payment: { Args: { p_order_id: string }; Returns: boolean }
-      create_validated_order:
-        | {
-            Args: {
-              p_delivery_address: string
-              p_items: Json
-              p_notes: string
-              p_payment_method: string
-              p_restaurant_id: string
-            }
-            Returns: string
-          }
-        | {
-            Args: {
-              p_delivery_address: string
-              p_items: Json
-              p_notes: string
-              p_order_type?: string
-              p_payment_method: string
-              p_restaurant_id: string
-            }
-            Returns: string
-          }
-        | {
-            Args: {
-              p_delivery_address: string
-              p_delivery_fee?: number
-              p_items: Json
-              p_notes: string
-              p_order_type?: string
-              p_payment_method: string
-              p_restaurant_id: string
-            }
-            Returns: string
-          }
-        | {
-            Args: {
-              p_delivery_address: string
-              p_delivery_fee?: number
-              p_items: Json
-              p_notes: string
-              p_order_type?: string
-              p_payment_method: string
-              p_restaurant_id: string
-              p_tip_amount?: number
-            }
-            Returns: string
-          }
+      create_validated_order: {
+        Args: {
+          p_delivery_address: string
+          p_delivery_address_source?: string
+          p_delivery_fee?: number
+          p_delivery_latitude?: number
+          p_delivery_location_accuracy_m?: number
+          p_delivery_longitude?: number
+          p_delivery_place_id?: string
+          p_items: Json
+          p_notes: string
+          p_order_type?: string
+          p_payment_method: string
+          p_restaurant_id: string
+          p_tip_amount?: number
+        }
+        Returns: string
+      }
       driver_restaurant_id: { Args: { p_user: string }; Returns: string }
       is_any_restaurant_owner: { Args: never; Returns: boolean }
       is_restaurant_driver: { Args: never; Returns: boolean }
