@@ -1,64 +1,48 @@
+# Switch Maps to Leaflet + OpenStreetMap
 
-## 1. Google Maps connector
+## Why
 
-Connect the Google Maps Platform connector. We use the gateway server-side (Routes API for distance/ETA) and the browser key client-side (Maps JS for live driver tracking).
+The Lovable-managed Google Maps key is referrer-restricted by Google to `*.lovable.app` / `*.lovableproject.com`. It cannot be used on your Netlify domain, which is why the map breaks once deployed. Lifting that restriction requires either your own Google Cloud API key + billing, or switching providers.
 
-## 2. Database
+We will switch back to Leaflet + OpenStreetMap (Nominatim for address search, OSRM for routing). This matches your original project rule ("OpenStreetMap & OSRM exclusively. No external API keys.") and works on any domain — Netlify, custom domains, or Lovable — with no secrets, no billing, and nothing to expose.
 
-New table `restaurant_drivers` (mirrors `restaurant_staff`): `id, restaurant_id, user_id, email, created_at`. RLS: owner manages, driver views own.
+## What changes
 
-Add columns to `orders`:
-- `driver_id uuid` — assigned driver
-- `driver_accepted_at timestamptz`
-- `delivered_at timestamptz`
-- `tip_amount numeric default 0`
-- `distance_meters integer`
+### Frontend
 
-Add column to `restaurants`: `delivery_rate_per_100m numeric default 0.70`.
+- **Install Leaflet**: add `leaflet` and `@types/leaflet` (Mapbox GL is already in package.json but we won't use it — Leaflet is lighter and matches the OSM stack).
+- **`src/components/DriverMap.tsx`**: rewrite to use Leaflet. Same props (`destination`, `restaurant`, `onEta`, `className`). Renders OSM tiles, customer marker (green), restaurant marker (orange), driver marker (blue arrow) updated from `navigator.geolocation.watchPosition`. Calls the `calculate-distance` edge function for the route polyline and ETA.
+- **`src/components/AddressAutocomplete.tsx`**: rewrite to use Nominatim only.
+  - Search suggestions: Nominatim `/search` with `addressdetails=1`, `zoom=18`, viewbox biased to Klerksdorp/Jouberton, `bounded=1`, returning street-level results (your latest preference for exact location, not municipal).
+  - "Use current location": browser GPS + Nominatim reverse geocode.
+  - "Drop a pin": Leaflet map dialog with a draggable marker; on confirm, reverse-geocode the marker position.
+  - Same `AddressLocation` shape and callbacks as today, so callers (`Cart.tsx`, `RestaurantRegister.tsx`, `Profile`, etc.) don't change.
+- **Delete `src/lib/googleMapsLoader.ts`** — no longer needed.
 
-New helper `is_restaurant_driver()` (SECURITY DEFINER) and RLS additions on `orders`:
-- Drivers can SELECT delivery orders at their restaurant where status in ('ready','out_for_delivery','delivered') (pool + own).
-- Drivers can UPDATE orders where `driver_id = auth.uid()` OR (claim) `driver_id IS NULL AND status='ready'`.
+### Backend (edge functions)
 
-New RPC `claim_delivery_order(order_id)` — atomically sets driver_id, status='out_for_delivery', driver_accepted_at; only when unassigned + status='ready' + caller is driver at that restaurant.
+- **`supabase/functions/calculate-distance/index.ts`**: replace Google Routes/Geocoding paths with:
+  - Geocoding fallback via Nominatim.
+  - Routing via OSRM public endpoint `https://router.project-osrm.org/route/v1/driving/{lng1},{lat1};{lng2},{lat2}?overview=full&geometries=polyline`.
+  - Keeps the existing response shape (`distanceKm`, `durationMinutes`, `encodedPolyline`, `fee`) so the frontend doesn't change. Keeps the 5 km / 15 min haversine fallback.
+- **Delete `supabase/functions/get-maps-key/index.ts`** and remove its `[functions.get-maps-key]` block from `supabase/config.toml`.
 
-New RPC `mark_order_delivered(order_id)` — driver_id must match auth.uid(); sets status='delivered', delivered_at.
+### Secrets / env
 
-Update `create_validated_order` signature to accept `p_tip_amount numeric default 0`; add to total; persist on order. Delivery fee already passed in by client (validated 0–5000).
+- Remove `VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY` and `VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_TRACKING_ID` from `.env`.
+- Optionally disconnect the Google Maps connector afterwards (you can do this from Connectors → Google Maps; not required for the app to work).
 
-## 3. Edge function: `compute-delivery-quote`
+## Trade-offs to know
 
-Replaces OSRM call. Input: restaurant_id, destination address or lat/lng. Uses Google Routes API via gateway to compute meters + duration. Returns `{ distance_meters, duration_seconds, fee }` where `fee = round((distance_meters / 100) * rate_per_100m, 2)`. Fallback: Haversine × R0.70/100m if Routes fails.
+- **Nominatim suggestions** are less precise than Google Places, especially for informal addresses. We bias hard to the Klerksdorp/Jouberton viewbox and use `zoom=18` to keep results street-level — but for very specific spots, the "drop a pin" flow is the most reliable.
+- **Nominatim usage policy** requires a descriptive User-Agent (we already send `PlatePal-Delivery-App/1.0`) and asks apps to debounce requests — we debounce to 1 every 400 ms.
+- **OSRM public server** is best-effort. If it ever rate-limits, the edge function falls back to the existing 5 km / 15 min estimate so checkout never blocks.
 
-## 4. Frontend
+## Verification
 
-**Cart / checkout**
-- Replace flat R25 logic. Call `compute-delivery-quote` after address is set; show breakdown (distance, fee).
-- Tip selector: chips (R0, R5, R10, R20, custom). Passed to `create_validated_order` and to Yoco amount.
-
-**OrderDetail (customer)**
-- "Tip your driver" button once `status='delivered'` and `tip_amount=0`. Increments via RPC `add_tip(order_id, amount)` (new, SECURITY DEFINER, customer only).
-
-**Owner dashboard**
-- New `DriverManager` component (clone of `StaffManager`) using `resolve-staff-email` flow → inserts into `restaurant_drivers`.
-
-**Driver dashboard** (`/driver/dashboard`)
-- Hook `useIsRestaurantDriver` (mirrors staff hook). Auth redirect added in `Auth.tsx` / role-based redirector.
-- 3 tabs:
-  1. **Ready for pickup** — delivery orders, `status='ready'`, `driver_id IS NULL`. Accept (calls `claim_delivery_order`) / Decline (local hide only; pool stays open).
-  2. **Active delivery** — orders where `driver_id = me AND status='out_for_delivery'`. Google Map (Maps JS): driver's `watchPosition`, restaurant marker, destination marker, Routes API polyline + ETA. "Mark delivered" button.
-  3. **Delivered** — orders where `driver_id = me AND status='delivered'` (last 30 days), showing tip if any.
-
-**Navbar / routing**
-- Add `/driver/dashboard` route, role-based redirect (driver → driver dashboard, hide bottom nav like staff).
-
-## 5. Memory updates
-
-Update Core: pricing now R0.70 per 100m via Google Routes (was OSRM/R25 flat). Add memory entries for driver role, tips, Google Maps integration.
-
-## Technical notes
-
-- Driver realtime location stays client-side only (no DB write) per request — "see his current location to destination" is on the driver's own device. (If you want the customer to also see the driver moving, say so and I'll add a `driver_locations` table + Supabase Realtime broadcast.)
-- Google Routes API gateway path: `routes/directions/v2:computeRoutes`.
-- Browser Maps JS uses `VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY` with `loading=async` + `callback=initMap`, no `mapId`, classic `google.maps.Marker`.
-- Existing Mapbox `DeliveryMap` stays for the customer order page (or we can swap it later).
+After implementation:
+1. Address search returns street-level suggestions in Klerksdorp/Jouberton.
+2. "Drop a pin" opens a Leaflet map, marker is draggable, confirm fills the address.
+3. Driver tracking map renders OSM tiles, shows the route polyline and ETA.
+4. `.env` no longer contains any Google Maps keys.
+5. Works identically on Lovable preview and Netlify production.
