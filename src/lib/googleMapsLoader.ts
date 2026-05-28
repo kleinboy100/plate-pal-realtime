@@ -1,14 +1,14 @@
 // Singleton loader for Google Maps JS API
-let loadPromise: Promise<any> | null = null;
+let loadPromise: Promise<unknown> | null = null;
 
 declare global {
   interface Window {
     __nostyInitMap?: () => void;
-    google: any;
+    google: unknown;
   }
 }
 
-export function loadGoogleMaps(): Promise<any> {
+export function loadGoogleMaps(): Promise<unknown> {
   if (typeof window === 'undefined') return Promise.reject(new Error('No window'));
   if (window.google?.maps) return Promise.resolve(window.google);
   if (loadPromise) return loadPromise;

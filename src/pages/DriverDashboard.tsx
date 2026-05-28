@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useIsRestaurantDriver } from '@/hooks/useIsRestaurantDriver';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { Loader2, CheckCircle, XCircle, MapPin, Package, Truck, ClipboardCheck } from 'lucide-react';
+import { Loader2, CheckCircle, XCircle, MapPin, Package, Truck, ClipboardCheck, type LucideIcon } from 'lucide-react';
 import { DriverMap } from '@/components/DriverMap';
 import { useNavigate } from 'react-router-dom';
 
@@ -64,7 +64,7 @@ export default function DriverDashboard() {
         .select('id, name, address, latitude, longitude')
         .eq('id', driverRestaurantId)
         .maybeSingle();
-      setRestaurant(data as any);
+      setRestaurant(data as Restaurant | null);
     })();
   }, [driverRestaurantId]);
 
@@ -78,7 +78,7 @@ export default function DriverDashboard() {
         .eq('restaurant_id', driverRestaurantId)
         .eq('order_type', 'delivery')
         .order('created_at', { ascending: false });
-      setOrders((data as any) || []);
+      setOrders((data as Order[] | null) || []);
     };
     fetchOrders();
     const ch = supabase
@@ -318,7 +318,7 @@ export default function DriverDashboard() {
   );
 }
 
-function EmptyState({ icon: Icon, msg }: { icon: any; msg: string }) {
+function EmptyState({ icon: Icon, msg }: { icon: LucideIcon; msg: string }) {
   return (
     <div className="text-center py-12 card-elevated">
       <Icon className="w-10 h-10 mx-auto mb-3 text-muted-foreground/60" />

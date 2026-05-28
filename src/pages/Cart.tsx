@@ -160,7 +160,7 @@ export default function Cart() {
     setLoading(true);
 
     try {
-      const { data: orderId, error: orderError } = await supabase.rpc('create_validated_order', {
+      const orderPayload = {
         p_restaurant_id: restaurantId,
         p_delivery_address: orderType === 'delivery' ? deliveryAddress : 'Collection at store',
         p_notes: notes || null,
@@ -177,7 +177,9 @@ export default function Cart() {
         p_delivery_location_accuracy_m: orderType === 'delivery' ? deliveryCoords?.accuracy ?? null : null,
         p_delivery_place_id: orderType === 'delivery' ? deliveryCoords?.placeId ?? null : null,
         p_delivery_address_source: orderType === 'delivery' ? deliveryCoords?.source ?? 'manual' : null,
-      } as any);
+      };
+
+      const { data: orderId, error: orderError } = await supabase.rpc('create_validated_order', orderPayload as never);
 
       if (orderError) {
         console.error('Order error:', orderError);
