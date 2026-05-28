@@ -10,8 +10,11 @@ declare global {
   interface Window {
     __nostyInitMap?: () => void;
     google?: GoogleMapsWindow;
+    gm_authFailure?: () => void;
+    __nostyMapsAuthFailed?: boolean;
   }
 }
+
 
 async function fetchKey(): Promise<{ key: string; channel: string }> {
   if (keyPromise) return keyPromise;
