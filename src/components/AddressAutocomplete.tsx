@@ -32,8 +32,24 @@ interface Suggestion {
   lat?: string;
   lon?: string;
   placeId?: string;
-  placePrediction?: any;
+  placePrediction?: PlacePrediction;
 }
+
+type LatLngLiteral = { lat: number; lng: number };
+type LatLng = { lat: () => number; lng: () => number };
+type PlaceDetails = { id?: string; displayName?: string; formattedAddress?: string; location?: LatLng; fetchFields: (options: { fields: string[] }) => Promise<void> };
+type PlacePrediction = { placeId?: string; text?: { toString: () => string }; mainText?: { toString: () => string }; toPlace: () => PlaceDetails };
+type PlacesSuggestion = { placePrediction?: PlacePrediction };
+type PlacesLibrary = {
+  AutocompleteSessionToken: new () => unknown;
+  AutocompleteSuggestion: {
+    fetchAutocompleteSuggestions: (options: { input: string; includedRegionCodes: string[]; locationBias: { center: LatLngLiteral; radius: number }; sessionToken: unknown }) => Promise<{ suggestions?: PlacesSuggestion[] }>;
+  };
+};
+type GooglePlacesApi = { maps: { importLibrary: (library: 'places') => Promise<PlacesLibrary> } };
+type GoogleMapInstance = { addListener: (event: string, callback: (event: { latLng?: LatLng }) => void) => void; panTo: (position: LatLng) => void; setCenter: (position: LatLngLiteral) => void; setZoom: (zoom: number) => void };
+type GoogleMarkerInstance = { addListener: (event: string, callback: () => void) => void; getPosition: () => LatLng | null; setPosition: (position: LatLng | LatLngLiteral) => void; setMap: (map: null) => void };
+type GoogleMapConstructorApi = GooglePlacesApi & { maps: GooglePlacesApi['maps'] & { Map: new (element: HTMLElement, options: Record<string, unknown>) => GoogleMapInstance; Marker: new (options: Record<string, unknown>) => GoogleMarkerInstance } };
 
 // Klerksdorp / Jouberton bounding box (approx)
 // left,top,right,bottom => west,north,east,south (lon,lat,lon,lat)
@@ -73,7 +89,7 @@ export function AddressAutocomplete({
   const [pinOpen, setPinOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<AddressLocation | null>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
-  const sessionTokenRef = useRef<any>(null);
+  const sessionTokenRef = useRef<unknown>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -105,7 +121,7 @@ export function AddressAutocomplete({
   };
 
   const searchGooglePlaces = async (searchQuery: string): Promise<Suggestion[]> => {
-    const google = await loadGoogleMaps();
+    const google = await loadGoogleMaps() as GooglePlacesApi;
     const places = await google.maps.importLibrary('places');
     if (!sessionTokenRef.current) sessionTokenRef.current = new places.AutocompleteSessionToken();
     const { suggestions } = await places.AutocompleteSuggestion.fetchAutocompleteSuggestions({
@@ -116,10 +132,10 @@ export function AddressAutocomplete({
     });
 
     return (suggestions || [])
-      .filter((suggestion: any) => suggestion.placePrediction)
+      .filter((suggestion): suggestion is { placePrediction: PlacePrediction } => Boolean(suggestion.placePrediction))
       .slice(0, 8)
-      .map((suggestion: any) => ({
-        display_name: suggestion.placePrediction.text?.toString?.() || suggestion.placePrediction.mainText?.toString?.() || 'Selected location',
+      .map((suggestion) => ({
+        display_name: suggestion.placePrediction.text?.toString() || suggestion.placePrediction.mainText?.toString() || 'Selected location',
         placeId: suggestion.placePrediction.placeId,
         placePrediction: suggestion.placePrediction,
       }));
@@ -201,11 +217,11 @@ export function AddressAutocomplete({
       // Sort by proximity to Klerksdorp center so local matches surface first
       results.sort((a, b) => {
         const da =
-          Math.abs(parseFloat(a.lat) - KLERKSDORP_CENTER.lat) +
-          Math.abs(parseFloat(a.lon) - KLERKSDORP_CENTER.lon);
+          Math.abs(parseFloat(a.lat || '0') - KLERKSDORP_CENTER.lat) +
+          Math.abs(parseFloat(a.lon || '0') - KLERKSDORP_CENTER.lon);
         const db =
-          Math.abs(parseFloat(b.lat) - KLERKSDORP_CENTER.lat) +
-          Math.abs(parseFloat(b.lon) - KLERKSDORP_CENTER.lon);
+          Math.abs(parseFloat(b.lat || '0') - KLERKSDORP_CENTER.lat) +
+          Math.abs(parseFloat(b.lon || '0') - KLERKSDORP_CENTER.lon);
         return da - db;
       });
 
@@ -305,7 +321,7 @@ export function AddressAutocomplete({
       setSelectedLocation(location);
       onCoordinatesChange?.(location);
       setPinOpen(true);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error getting current location:', error);
     } finally {
       setGettingLocation(false);
@@ -428,8 +444,8 @@ function PinPickerDialog({
   onConfirm: (location: AddressLocation) => void;
 }) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<any>(null);
-  const markerRef = useRef<any>(null);
+  const mapRef = useRef<GoogleMapInstance | null>(null);
+  const markerRef = useRef<GoogleMarkerInstance | null>(null);
   const [picked, setPicked] = useState<AddressLocation>(
     initialLocation || { ...KLERKSDORP_MAP_CENTER, address: fallbackAddress, source: 'pin' }
   );
@@ -463,7 +479,7 @@ function PinPickerDialog({
       setMapLoading(true);
       setMapError(null);
       try {
-        const google = await loadGoogleMaps();
+        const google = await loadGoogleMaps() as GoogleMapConstructorApi;
         const waitForContainer = () => new Promise<void>((resolve) => {
           const check = () => {
             const el = mapContainerRef.current;
@@ -476,7 +492,7 @@ function PinPickerDialog({
         await waitForContainer();
         if (cancelled || !mapContainerRef.current) return;
 
-        const center = initialLocation || picked;
+        const center = initialLocation || { ...KLERKSDORP_MAP_CENTER, address: fallbackAddress, source: 'pin' as const };
         const map = new google.maps.Map(mapContainerRef.current, {
           center,
           zoom: initialLocation ? 18 : 14,
@@ -501,7 +517,7 @@ function PinPickerDialog({
           updatePickedFromLatLng(pos.lat(), pos.lng());
         });
 
-        map.addListener('click', (event: any) => {
+        map.addListener('click', (event) => {
           const latLng = event.latLng;
           if (!latLng) return;
           marker.setPosition(latLng);
@@ -527,7 +543,7 @@ function PinPickerDialog({
       markerRef.current = null;
       mapRef.current = null;
     };
-  }, [open, initialLocation]);
+  }, [open, initialLocation, fallbackAddress]);
 
   const useGpsInMap = async () => {
     if (!navigator.geolocation) return;
