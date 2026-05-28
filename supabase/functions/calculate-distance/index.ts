@@ -160,6 +160,7 @@ serve(async (req) => {
           fee,
           customerCoords: cc,
           restaurantCoords: rc,
+          encodedPolyline: route.encodedPolyline ?? null,
           method: "google-routes",
         }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
