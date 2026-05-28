@@ -9,7 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { useRestaurantOperatingStatus } from '@/hooks/useRestaurantOperatingStatus';
-import { AddressAutocomplete } from '@/components/AddressAutocomplete';
+import { AddressAutocomplete, type AddressLocation } from '@/components/AddressAutocomplete';
 import { OrderTypeSelector } from '@/components/OrderTypeSelector';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
@@ -28,7 +28,7 @@ export default function Cart() {
   
   const [orderType, setOrderType] = useState<'delivery' | 'collection'>('delivery');
   const [deliveryAddress, setDeliveryAddress] = useState('');
-  const [deliveryCoords, setDeliveryCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [deliveryCoords, setDeliveryCoords] = useState<AddressLocation | null>(null);
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const [restaurantCoords, setRestaurantCoords] = useState<{ lat: number; lng: number } | null>(null);
@@ -172,6 +172,11 @@ export default function Cart() {
         p_order_type: orderType,
         p_delivery_fee: orderType === 'delivery' ? deliveryFee : null,
         p_tip_amount: orderType === 'delivery' ? tipAmount : 0,
+        p_delivery_latitude: orderType === 'delivery' ? deliveryCoords?.lat ?? null : null,
+        p_delivery_longitude: orderType === 'delivery' ? deliveryCoords?.lng ?? null : null,
+        p_delivery_location_accuracy_m: orderType === 'delivery' ? deliveryCoords?.accuracy ?? null : null,
+        p_delivery_place_id: orderType === 'delivery' ? deliveryCoords?.placeId ?? null : null,
+        p_delivery_address_source: orderType === 'delivery' ? deliveryCoords?.source ?? 'manual' : null,
       } as any);
 
       if (orderError) {
