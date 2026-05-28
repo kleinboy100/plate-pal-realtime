@@ -10,7 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { MenuItemForm, MenuItemData } from '@/components/MenuItemForm';
 import { DocumentUpload } from '@/components/DocumentUpload';
-import { AddressAutocomplete } from '@/components/AddressAutocomplete';
+import { AddressAutocomplete, type AddressLocation } from '@/components/AddressAutocomplete';
 import { ChevronLeft, ChevronRight, Store, UtensilsCrossed, Check, ShieldCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -41,7 +41,7 @@ export default function RestaurantRegister() {
   const [idDocument, setIdDocument] = useState<File | null>(null);
   const [selfiePhoto, setSelfiePhoto] = useState<File | null>(null);
   const [proofOfAddress, setProofOfAddress] = useState<File | null>(null);
-  const [addressCoords, setAddressCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [addressCoords, setAddressCoords] = useState<AddressLocation | null>(null);
 
   const validateStep1 = () => {
     if (!form.name || !form.cuisine_type || !form.address) {
