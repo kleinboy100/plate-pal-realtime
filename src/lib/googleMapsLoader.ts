@@ -10,8 +10,11 @@ declare global {
   interface Window {
     __nostyInitMap?: () => void;
     google?: GoogleMapsWindow;
+    gm_authFailure?: () => void;
+    __nostyMapsAuthFailed?: boolean;
   }
 }
+
 
 async function fetchKey(): Promise<{ key: string; channel: string }> {
   if (keyPromise) return keyPromise;
@@ -44,15 +47,35 @@ export function loadGoogleMaps(): Promise<unknown> {
   loadPromise = (async () => {
     const { key, channel } = await fetchKey();
     return new Promise((resolve, reject) => {
-      window.__nostyInitMap = () => resolve(window.google);
+      // Google calls this when the API key fails runtime auth (referrer/
+      // billing/API-not-enabled). Without a handler, Google injects the
+      // "Oops! Something went wrong" overlay over the map.
+      window.gm_authFailure = () => {
+        window.__nostyMapsAuthFailed = true;
+        console.error(
+          '[GoogleMaps] Authentication failed. Likely causes: Maps JavaScript API not enabled, billing not configured, or referrer not allowed for this key. Current origin:',
+          window.location.origin,
+        );
+      };
+      window.__nostyInitMap = () => {
+        if (window.__nostyMapsAuthFailed) {
+          reject(new Error('Google Maps authentication failed'));
+          return;
+        }
+        resolve(window.google);
+      };
       const s = document.createElement('script');
       s.async = true;
       s.defer = true;
       const channelParam = channel ? `&channel=${encodeURIComponent(channel)}` : '';
-      s.src = `https://maps.googleapis.com/maps/api/js?key=${key}&v=weekly&libraries=geometry,places&loading=async&callback=__nostyInitMap${channelParam}`;
-      s.onerror = () => reject(new Error('Failed to load Google Maps'));
+      s.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}&v=weekly&libraries=geometry,places&loading=async&callback=__nostyInitMap${channelParam}`;
+      s.onerror = () => {
+        loadPromise = null;
+        reject(new Error('Failed to load Google Maps script'));
+      };
       document.head.appendChild(s);
     });
   })();
+
   return loadPromise;
 }
