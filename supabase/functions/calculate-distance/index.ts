@@ -51,13 +51,14 @@ async function googleRoute(from: Coord, to: Coord, keys: { lovable: string; gmap
         Authorization: `Bearer ${keys.lovable}`,
         "X-Connection-Api-Key": keys.gmaps,
         "Content-Type": "application/json",
-        "X-Goog-FieldMask": "routes.distanceMeters,routes.duration",
+        "X-Goog-FieldMask": "routes.distanceMeters,routes.duration,routes.polyline.encodedPolyline",
       },
       body: JSON.stringify({
         origin: { location: { latLng: { latitude: from.lat, longitude: from.lng } } },
         destination: { location: { latLng: { latitude: to.lat, longitude: to.lng } } },
         travelMode: "DRIVE",
         routingPreference: "TRAFFIC_AWARE",
+        polylineQuality: "HIGH_QUALITY",
       }),
     });
     const d = await r.json();
@@ -67,7 +68,8 @@ async function googleRoute(from: Coord, to: Coord, keys: { lovable: string; gmap
     // duration like "1234s"
     const durStr = String(route.duration ?? "0s");
     const seconds = parseInt(durStr.replace("s", ""), 10) || Math.ceil(meters / 8.33);
-    return { meters, seconds };
+    const encodedPolyline = route.polyline?.encodedPolyline as string | undefined;
+    return { meters, seconds, encodedPolyline };
   } catch (e) {
     console.error("Routes error:", e);
     return null;
