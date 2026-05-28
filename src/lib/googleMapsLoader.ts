@@ -24,7 +24,7 @@ export function loadGoogleMaps(): Promise<any> {
     s.async = true;
     s.defer = true;
     const channelParam = channel ? `&channel=${encodeURIComponent(channel)}` : '';
-    s.src = `https://maps.googleapis.com/maps/api/js?key=${browserKey}&loading=async&callback=__nostyInitMap${channelParam}`;
+    s.src = `https://maps.googleapis.com/maps/api/js?key=${browserKey}&libraries=geometry&loading=async&callback=__nostyInitMap${channelParam}`;
     s.onerror = () => reject(new Error('Failed to load Google Maps'));
     document.head.appendChild(s);
   });

@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 const GATEWAY_URL = "https://connector-gateway.lovable.dev/google_maps";
-const RATE_PER_100M = 0.50; // ZAR
+const RATE_PER_100M = 1.50; // ZAR
 
 interface Coord { lat: number; lng: number; }
 interface RequestBody {

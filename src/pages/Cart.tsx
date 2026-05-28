@@ -16,7 +16,7 @@ import { cn } from '@/lib/utils';
 
 const MAX_NOTES_LENGTH = 1000;
 const MAX_ADDRESS_LENGTH = 500;
-const RATE_PER_100M = 0.50; // R0.50 per 100m => R5 per km
+const RATE_PER_100M = 1.50; // R1.50 per 100m => R15 per km
 
 export default function Cart() {
   const { items, updateQuantity, removeItem, clearCart, total, restaurantId } = useCart();
