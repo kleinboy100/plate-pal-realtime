@@ -13,24 +13,46 @@ export function DriverMap({ destination, restaurant, className, onEta }: DriverM
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
   const driverMarkerRef = useRef<any>(null);
-  const polylineRef = useRef<any>(null);
+  const routePolylineRef = useRef<any>(null);
+  const fittedRef = useRef(false);
+  const [ready, setReady] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [driverPos, setDriverPos] = useState<{ lat: number; lng: number } | null>(null);
   const [eta, setEta] = useState<{ km: number; min: number } | null>(null);
 
-  // Init map
+  // Init map (retry until container has dimensions)
   useEffect(() => {
     let cancelled = false;
-    loadGoogleMaps()
-      .then((g) => {
+    let raf = 0;
+
+    const init = async () => {
+      try {
+        const g = await loadGoogleMaps();
+        if (cancelled) return;
+
+        // Wait for container to be in DOM with size
+        const waitForContainer = () =>
+          new Promise<void>((resolve) => {
+            const check = () => {
+              const el = containerRef.current;
+              if (cancelled) return resolve();
+              if (el && el.offsetWidth > 0 && el.offsetHeight > 0) return resolve();
+              raf = requestAnimationFrame(check);
+            };
+            check();
+          });
+        await waitForContainer();
         if (cancelled || !containerRef.current) return;
+
         const map = new g.maps.Map(containerRef.current, {
           center: destination,
           zoom: 14,
           disableDefaultUI: false,
           fullscreenControl: false,
           streetViewControl: false,
+          mapTypeControl: false,
+          gestureHandling: 'greedy',
         });
         mapRef.current = map;
 
@@ -64,16 +86,22 @@ export function DriverMap({ destination, restaurant, className, onEta }: DriverM
           });
         }
 
+        setReady(true);
         setLoading(false);
-      })
-      .catch((e) => {
+      } catch (e) {
         console.error('Maps load error', e);
-        setError('Map unavailable');
-        setLoading(false);
-      });
+        if (!cancelled) {
+          setError('Map unavailable');
+          setLoading(false);
+        }
+      }
+    };
+
+    init();
 
     return () => {
       cancelled = true;
+      if (raf) cancelAnimationFrame(raf);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -89,11 +117,12 @@ export function DriverMap({ destination, restaurant, className, onEta }: DriverM
     return () => navigator.geolocation.clearWatch(watchId);
   }, []);
 
-  // Update driver marker + route line + ETA
+  // Update driver marker + real route (via Routes API) + ETA
   useEffect(() => {
+    if (!ready) return;
     const map = mapRef.current;
-    if (!map || !driverPos || !window.google) return;
-    const g = window.google;
+    const g = (window as any).google;
+    if (!map || !driverPos || !g) return;
 
     if (!driverMarkerRef.current) {
       driverMarkerRef.current = new g.maps.Marker({
@@ -109,45 +138,55 @@ export function DriverMap({ destination, restaurant, className, onEta }: DriverM
           strokeWeight: 2,
         },
       });
-      const bounds = new g.maps.LatLngBounds();
-      bounds.extend(driverPos);
-      bounds.extend(destination);
-      map.fitBounds(bounds, 60);
     } else {
       driverMarkerRef.current.setPosition(driverPos);
     }
 
-    // Simple straight polyline (visual cue). For real routing we use Routes API below.
-    if (polylineRef.current) polylineRef.current.setMap(null);
-    polylineRef.current = new g.maps.Polyline({
-      map,
-      path: [driverPos, destination],
-      strokeColor: '#2563eb',
-      strokeOpacity: 0.6,
-      strokeWeight: 4,
-    });
-
-    // ETA via Routes API through our edge function
-    const fetchEta = async () => {
+    // Fetch real driving route + draw the polyline
+    const fetchRoute = async () => {
       try {
         const { supabase } = await import('@/integrations/supabase/client');
         const { data } = await supabase.functions.invoke('calculate-distance', {
-          body: {
-            restaurantCoords: driverPos,
-            customerCoords: destination,
-          },
+          body: { restaurantCoords: driverPos, customerCoords: destination },
         });
         if (data?.distanceKm != null && data?.durationMinutes != null) {
           const next = { km: data.distanceKm, min: data.durationMinutes };
           setEta(next);
           onEta?.(next.min, next.km);
         }
+
+        const encoded: string | undefined = data?.encodedPolyline;
+        let path: { lat: number; lng: number }[] | null = null;
+        if (encoded && g.maps.geometry?.encoding?.decodePath) {
+          const decoded = g.maps.geometry.encoding.decodePath(encoded);
+          path = decoded.map((p: any) => ({ lat: p.lat(), lng: p.lng() }));
+        }
+        if (!path) path = [driverPos, destination];
+
+        if (routePolylineRef.current) routePolylineRef.current.setMap(null);
+        routePolylineRef.current = new g.maps.Polyline({
+          map,
+          path,
+          strokeColor: '#2563eb',
+          strokeOpacity: 0.9,
+          strokeWeight: 5,
+          geodesic: false,
+        });
+
+        if (!fittedRef.current) {
+          const bounds = new g.maps.LatLngBounds();
+          path.forEach((p) => bounds.extend(p));
+          bounds.extend(destination);
+          bounds.extend(driverPos);
+          map.fitBounds(bounds, 60);
+          fittedRef.current = true;
+        }
       } catch (e) {
-        console.warn('ETA fetch failed', e);
+        console.warn('Route fetch failed', e);
       }
     };
-    fetchEta();
-  }, [driverPos, destination, onEta]);
+    fetchRoute();
+  }, [ready, driverPos, destination, onEta]);
 
   if (error) {
     return (
