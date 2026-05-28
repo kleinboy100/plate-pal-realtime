@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { loadGoogleMaps } from '@/lib/googleMapsLoader';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import { Loader2, Navigation } from 'lucide-react';
 
 interface DriverMapProps {
@@ -9,31 +10,43 @@ interface DriverMapProps {
   onEta?: (etaMinutes: number, distanceKm: number) => void;
 }
 
-type LatLngLiteral = { lat: number; lng: number };
-type LatLng = { lat: () => number; lng: () => number };
-type GoogleMapInstance = {
-  setCenter: (position: LatLngLiteral) => void;
-  setZoom: (zoom: number) => void;
-  fitBounds: (bounds: unknown, padding?: number) => void;
-};
-type GoogleMarkerInstance = { setPosition: (position: LatLngLiteral) => void; setMap?: (map: null) => void };
-type GooglePolylineInstance = { setMap: (map: null) => void };
-type GoogleMapsApi = {
-  maps: {
-    Map: new (element: HTMLElement, options: Record<string, unknown>) => GoogleMapInstance;
-    Marker: new (options: Record<string, unknown>) => GoogleMarkerInstance;
-    Polyline: new (options: Record<string, unknown>) => GooglePolylineInstance;
-    LatLngBounds: new () => { extend: (position: LatLngLiteral) => void };
-    SymbolPath: { CIRCLE: unknown; FORWARD_CLOSED_ARROW: unknown };
-    geometry?: { encoding?: { decodePath?: (encoded: string) => LatLng[] } };
-  };
-};
+// Simple coloured circle marker for customer / restaurant points.
+const circleIcon = (color: string) =>
+  L.divIcon({
+    className: '',
+    html: `<div style="width:18px;height:18px;border-radius:50%;background:${color};border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,0.25)"></div>`,
+    iconSize: [18, 18],
+    iconAnchor: [9, 9],
+  });
+
+const driverIcon = L.divIcon({
+  className: '',
+  html: `<div style="width:16px;height:16px;border-radius:50%;background:#2563eb;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,0.25)"></div>`,
+  iconSize: [16, 16],
+  iconAnchor: [8, 8],
+});
+
+// Decode an encoded polyline (Google/OSRM format, precision 5).
+function decodePolyline(encoded: string): [number, number][] {
+  const points: [number, number][] = [];
+  let index = 0, lat = 0, lng = 0;
+  while (index < encoded.length) {
+    let b, shift = 0, result = 0;
+    do { b = encoded.charCodeAt(index++) - 63; result |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
+    lat += (result & 1) ? ~(result >> 1) : (result >> 1);
+    shift = 0; result = 0;
+    do { b = encoded.charCodeAt(index++) - 63; result |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
+    lng += (result & 1) ? ~(result >> 1) : (result >> 1);
+    points.push([lat / 1e5, lng / 1e5]);
+  }
+  return points;
+}
 
 export function DriverMap({ destination, restaurant, className, onEta }: DriverMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<GoogleMapInstance | null>(null);
-  const driverMarkerRef = useRef<GoogleMarkerInstance | null>(null);
-  const routePolylineRef = useRef<GooglePolylineInstance | null>(null);
+  const mapRef = useRef<L.Map | null>(null);
+  const driverMarkerRef = useRef<L.Marker | null>(null);
+  const routeLineRef = useRef<L.Polyline | null>(null);
   const fittedRef = useRef(false);
   const [ready, setReady] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -46,75 +59,54 @@ export function DriverMap({ destination, restaurant, className, onEta }: DriverM
     let cancelled = false;
     let raf = 0;
 
-    const init = async () => {
-      try {
-        const g = await loadGoogleMaps() as GoogleMapsApi;
-        if (cancelled) return;
+    const init = () => {
+      const waitForContainer = () =>
+        new Promise<void>((resolve) => {
+          const check = () => {
+            const el = containerRef.current;
+            if (cancelled) return resolve();
+            if (el && el.offsetWidth > 0 && el.offsetHeight > 0) return resolve();
+            raf = requestAnimationFrame(check);
+          };
+          check();
+        });
 
-        // Wait for container to be in DOM with size
-        const waitForContainer = () =>
-          new Promise<void>((resolve) => {
-            const check = () => {
-              const el = containerRef.current;
-              if (cancelled) return resolve();
-              if (el && el.offsetWidth > 0 && el.offsetHeight > 0) return resolve();
-              raf = requestAnimationFrame(check);
-            };
-            check();
-          });
-        await waitForContainer();
+      waitForContainer().then(() => {
         if (cancelled || !containerRef.current) return;
-
-        const map = new g.maps.Map(containerRef.current, {
-          center: destination,
-          zoom: 14,
-          disableDefaultUI: false,
-          fullscreenControl: false,
-          streetViewControl: false,
-          mapTypeControl: false,
-          gestureHandling: 'greedy',
-        });
-        mapRef.current = map;
-
-        new g.maps.Marker({
-          map,
-          position: destination,
-          title: 'Customer',
-          icon: {
-            path: g.maps.SymbolPath.CIRCLE,
-            scale: 10,
-            fillColor: '#16a34a',
-            fillOpacity: 1,
-            strokeColor: '#fff',
-            strokeWeight: 2,
-          },
-        });
-
-        if (restaurant) {
-          new g.maps.Marker({
-            map,
-            position: restaurant,
-            title: 'Restaurant',
-            icon: {
-              path: g.maps.SymbolPath.CIRCLE,
-              scale: 10,
-              fillColor: '#f97316',
-              fillOpacity: 1,
-              strokeColor: '#fff',
-              strokeWeight: 2,
-            },
+        try {
+          const map = L.map(containerRef.current, {
+            center: [destination.lat, destination.lng],
+            zoom: 14,
+            zoomControl: true,
           });
-        }
+          mapRef.current = map;
 
-        setReady(true);
-        setLoading(false);
-      } catch (e) {
-        console.error('Maps load error', e);
-        if (!cancelled) {
-          setError('Map unavailable');
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap contributors',
+          }).addTo(map);
+
+          L.marker([destination.lat, destination.lng], { icon: circleIcon('#16a34a') })
+            .addTo(map)
+            .bindPopup('Customer');
+
+          if (restaurant) {
+            L.marker([restaurant.lat, restaurant.lng], { icon: circleIcon('#f97316') })
+              .addTo(map)
+              .bindPopup('Restaurant');
+          }
+
+          setTimeout(() => map.invalidateSize(), 100);
+          setReady(true);
           setLoading(false);
+        } catch (e) {
+          console.error('Maps load error', e);
+          if (!cancelled) {
+            setError('Map unavailable');
+            setLoading(false);
+          }
         }
-      }
+      });
     };
 
     init();
@@ -122,6 +114,8 @@ export function DriverMap({ destination, restaurant, className, onEta }: DriverM
     return () => {
       cancelled = true;
       if (raf) cancelAnimationFrame(raf);
+      mapRef.current?.remove();
+      mapRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -141,32 +135,20 @@ export function DriverMap({ destination, restaurant, className, onEta }: DriverM
   useEffect(() => {
     if (!ready) return;
     const map = mapRef.current;
-    const g = window.google as unknown as GoogleMapsApi | undefined;
-    if (!map || !g) return;
+    if (!map) return;
 
     const origin = driverPos || restaurant;
     if (!origin) {
-      map.setCenter(destination);
-      map.setZoom(16);
+      map.setView([destination.lat, destination.lng], 16);
       return;
     }
 
     if (driverPos && !driverMarkerRef.current) {
-      driverMarkerRef.current = new g.maps.Marker({
-        map,
-        position: driverPos,
-        title: 'You',
-        icon: {
-          path: g.maps.SymbolPath.FORWARD_CLOSED_ARROW,
-          scale: 6,
-          fillColor: '#2563eb',
-          fillOpacity: 1,
-          strokeColor: '#fff',
-          strokeWeight: 2,
-        },
-      });
-    } else if (driverPos) {
-      driverMarkerRef.current.setPosition(driverPos);
+      driverMarkerRef.current = L.marker([driverPos.lat, driverPos.lng], { icon: driverIcon })
+        .addTo(map)
+        .bindPopup('You');
+    } else if (driverPos && driverMarkerRef.current) {
+      driverMarkerRef.current.setLatLng([driverPos.lat, driverPos.lng]);
     }
 
     // Fetch real driving route + draw the polyline
@@ -183,29 +165,30 @@ export function DriverMap({ destination, restaurant, className, onEta }: DriverM
         }
 
         const encoded: string | undefined = data?.encodedPolyline;
-        let path: { lat: number; lng: number }[] | null = null;
-        if (encoded && g.maps.geometry?.encoding?.decodePath) {
-          const decoded = g.maps.geometry.encoding.decodePath(encoded);
-          path = decoded.map((p) => ({ lat: p.lat(), lng: p.lng() }));
+        let path: [number, number][] | null = null;
+        if (encoded) {
+          try {
+            path = decodePolyline(encoded);
+          } catch {
+            path = null;
+          }
         }
-        if (!path) path = [origin, destination];
+        if (!path || path.length === 0) {
+          path = [
+            [origin.lat, origin.lng],
+            [destination.lat, destination.lng],
+          ];
+        }
 
-        if (routePolylineRef.current) routePolylineRef.current.setMap(null);
-        routePolylineRef.current = new g.maps.Polyline({
-          map,
-          path,
-          strokeColor: '#2563eb',
-          strokeOpacity: 0.9,
-          strokeWeight: 5,
-          geodesic: false,
-        });
+        if (routeLineRef.current) routeLineRef.current.remove();
+        routeLineRef.current = L.polyline(path, {
+          color: '#2563eb',
+          opacity: 0.9,
+          weight: 5,
+        }).addTo(map);
 
         if (!fittedRef.current) {
-          const bounds = new g.maps.LatLngBounds();
-          path.forEach((p) => bounds.extend(p));
-          bounds.extend(destination);
-          bounds.extend(origin);
-          map.fitBounds(bounds, 60);
+          map.fitBounds(routeLineRef.current.getBounds(), { padding: [60, 60] });
           fittedRef.current = true;
         }
       } catch (e) {
@@ -226,13 +209,13 @@ export function DriverMap({ destination, restaurant, className, onEta }: DriverM
   return (
     <div className={`relative rounded-xl overflow-hidden ${className}`}>
       {loading && (
-        <div className="absolute inset-0 bg-muted flex items-center justify-center z-10">
+        <div className="absolute inset-0 bg-muted flex items-center justify-center z-[1000]">
           <Loader2 className="w-6 h-6 animate-spin text-primary" />
         </div>
       )}
       <div ref={containerRef} className="w-full h-full min-h-[280px]" />
       {eta && (
-        <div className="absolute top-3 left-3 bg-card/95 backdrop-blur rounded-xl shadow-lg px-3 py-2 text-xs font-semibold flex items-center gap-2 border border-border/50">
+        <div className="absolute top-3 left-3 bg-card/95 backdrop-blur rounded-xl shadow-lg px-3 py-2 text-xs font-semibold flex items-center gap-2 border border-border/50 z-[1000]">
           <Navigation size={14} className="text-primary" />
           <span>{eta.km} km</span>
           <span className="text-muted-foreground">·</span>
