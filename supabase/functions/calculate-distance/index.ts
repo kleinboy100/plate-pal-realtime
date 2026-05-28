@@ -6,7 +6,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const GATEWAY_URL = "https://connector-gateway.lovable.dev/google_maps";
+const NOMINATIM_URL = "https://nominatim.openstreetmap.org";
+const OSRM_URL = "https://router.project-osrm.org";
 const RATE_PER_100M = 1.50; // ZAR
 
 interface Coord { lat: number; lng: number; }
@@ -22,19 +23,16 @@ const isCoord = (c: any): c is Coord =>
   isFinite(c.lat) && isFinite(c.lng) &&
   c.lat >= -90 && c.lat <= 90 && c.lng >= -180 && c.lng <= 180;
 
-// Google geocode via gateway
-async function geocode(address: string, keys: { lovable: string; gmaps: string }): Promise<Coord | null> {
+// Geocode an address via Nominatim (OpenStreetMap).
+async function geocode(address: string): Promise<Coord | null> {
   try {
-    const url = `${GATEWAY_URL}/maps/api/geocode/json?address=${encodeURIComponent(address)}&region=za`;
-    const r = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${keys.lovable}`,
-        "X-Connection-Api-Key": keys.gmaps,
-      },
-    });
+    const url = `${NOMINATIM_URL}/search?format=json&q=${encodeURIComponent(address)}&countrycodes=za&limit=1`;
+    const r = await fetch(url, { headers: { "User-Agent": "PlatePal-Delivery-App/1.0" } });
     const d = await r.json();
-    const loc = d?.results?.[0]?.geometry?.location;
-    if (loc) return { lat: loc.lat, lng: loc.lng };
+    const first = Array.isArray(d) ? d[0] : null;
+    if (first?.lat && first?.lon) {
+      return { lat: parseFloat(first.lat), lng: parseFloat(first.lon) };
+    }
     return null;
   } catch (e) {
     console.error("Geocode error:", e);
@@ -42,36 +40,24 @@ async function geocode(address: string, keys: { lovable: string; gmaps: string }
   }
 }
 
-// Google Routes API computeRoutes
-async function googleRoute(from: Coord, to: Coord, keys: { lovable: string; gmaps: string }) {
+// Driving route via OSRM public server. Returns distance (m), duration (s)
+// and an encoded polyline (precision 5).
+async function osrmRoute(from: Coord, to: Coord) {
   try {
-    const r = await fetch(`${GATEWAY_URL}/routes/directions/v2:computeRoutes`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${keys.lovable}`,
-        "X-Connection-Api-Key": keys.gmaps,
-        "Content-Type": "application/json",
-        "X-Goog-FieldMask": "routes.distanceMeters,routes.duration,routes.polyline.encodedPolyline",
-      },
-      body: JSON.stringify({
-        origin: { location: { latLng: { latitude: from.lat, longitude: from.lng } } },
-        destination: { location: { latLng: { latitude: to.lat, longitude: to.lng } } },
-        travelMode: "DRIVE",
-        routingPreference: "TRAFFIC_AWARE",
-        polylineQuality: "HIGH_QUALITY",
-      }),
-    });
+    const url =
+      `${OSRM_URL}/route/v1/driving/${from.lng},${from.lat};${to.lng},${to.lat}` +
+      `?overview=full&geometries=polyline`;
+    const r = await fetch(url, { headers: { "User-Agent": "PlatePal-Delivery-App/1.0" } });
     const d = await r.json();
     const route = d?.routes?.[0];
     if (!route) return null;
-    const meters = route.distanceMeters as number;
-    // duration like "1234s"
-    const durStr = String(route.duration ?? "0s");
-    const seconds = parseInt(durStr.replace("s", ""), 10) || Math.ceil(meters / 8.33);
-    const encodedPolyline = route.polyline?.encodedPolyline as string | undefined;
-    return { meters, seconds, encodedPolyline };
+    return {
+      meters: route.distance as number,
+      seconds: route.duration as number,
+      encodedPolyline: (route.geometry as string) ?? undefined,
+    };
   } catch (e) {
-    console.error("Routes error:", e);
+    console.error("OSRM error:", e);
     return null;
   }
 }
@@ -113,12 +99,6 @@ serve(async (req) => {
       });
     }
 
-    const lovable = Deno.env.get("LOVABLE_API_KEY");
-    const gmaps = Deno.env.get("GOOGLE_MAPS_API_KEY");
-    if (!lovable || !gmaps) {
-      console.error("Missing Google Maps connector credentials");
-    }
-
     const body: RequestBody = await req.json();
 
     if (body.restaurantCoords && !isCoord(body.restaurantCoords)) {
@@ -134,39 +114,35 @@ serve(async (req) => {
 
     let rc: Coord | null = body.restaurantCoords || null;
     let cc: Coord | null = body.customerCoords || null;
-    const keys = { lovable: lovable!, gmaps: gmaps! };
 
-    if (!rc && body.restaurantAddress && lovable && gmaps) rc = await geocode(body.restaurantAddress, keys);
-    if (!cc && body.customerAddress && lovable && gmaps) cc = await geocode(body.customerAddress, keys);
+    if (!rc && body.restaurantAddress) rc = await geocode(body.restaurantAddress);
+    if (!cc && body.customerAddress) cc = await geocode(body.customerAddress);
 
     if (!rc || !cc) {
-      // Cannot compute — return clear error so client knows
       return new Response(JSON.stringify({
         error: "Could not determine coordinates",
         distanceKm: null,
       }), { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Try Google Routes
-    if (lovable && gmaps) {
-      const route = await googleRoute(rc, cc, keys);
-      if (route) {
-        const distanceKm = Math.round((route.meters / 1000) * 10) / 10;
-        const fee = feeFromMeters(route.meters);
-        return new Response(JSON.stringify({
-          distanceKm,
-          distanceMeters: route.meters,
-          durationMinutes: Math.max(1, Math.ceil(route.seconds / 60)),
-          fee,
-          customerCoords: cc,
-          restaurantCoords: rc,
-          encodedPolyline: route.encodedPolyline ?? null,
-          method: "google-routes",
-        }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      }
+    // Try OSRM driving route
+    const route = await osrmRoute(rc, cc);
+    if (route) {
+      const distanceKm = Math.round((route.meters / 1000) * 10) / 10;
+      const fee = feeFromMeters(route.meters);
+      return new Response(JSON.stringify({
+        distanceKm,
+        distanceMeters: route.meters,
+        durationMinutes: Math.max(1, Math.ceil(route.seconds / 60)),
+        fee,
+        customerCoords: cc,
+        restaurantCoords: rc,
+        encodedPolyline: route.encodedPolyline ?? null,
+        method: "osrm",
+      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Haversine fallback
+    // Haversine fallback (5 km / 15 min graceful default behaviour)
     const km = haversineKm(rc, cc);
     const meters = Math.round(km * 1000);
     return new Response(JSON.stringify({
