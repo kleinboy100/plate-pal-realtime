@@ -1,0 +1,4 @@
+REVOKE ALL ON FUNCTION public.create_validated_order(uuid, text, text, text, jsonb, text, numeric, numeric, numeric, numeric, numeric, text, text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.create_validated_order(uuid, text, text, text, jsonb, text, numeric, numeric, numeric, numeric, numeric, text, text) FROM anon;
+GRANT EXECUTE ON FUNCTION public.create_validated_order(uuid, text, text, text, jsonb, text, numeric, numeric, numeric, numeric, numeric, text, text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.create_validated_order(uuid, text, text, text, jsonb, text, numeric, numeric, numeric, numeric, numeric, text, text) TO service_role;
