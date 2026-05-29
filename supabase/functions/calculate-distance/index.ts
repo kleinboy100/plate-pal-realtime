@@ -140,16 +140,19 @@ serve(async (req) => {
       }), { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    const inJouberton = isInJouberton(cc, body.customerAddress);
+
     // Try OSRM driving route
     const route = await osrmRoute(rc, cc);
     if (route) {
       const distanceKm = Math.round((route.meters / 1000) * 10) / 10;
-      const fee = feeFromMeters(route.meters);
+      const fee = inJouberton ? JOUBERTON_FLAT_FEE : feeFromMeters(route.meters);
       return new Response(JSON.stringify({
         distanceKm,
         distanceMeters: route.meters,
         durationMinutes: Math.max(1, Math.ceil(route.seconds / 60)),
         fee,
+        inJouberton,
         customerCoords: cc,
         restaurantCoords: rc,
         encodedPolyline: route.encodedPolyline ?? null,
@@ -164,11 +167,13 @@ serve(async (req) => {
       distanceKm: Math.round(km * 10) / 10,
       distanceMeters: meters,
       durationMinutes: Math.max(5, Math.ceil(km * 2.5)),
-      fee: feeFromMeters(meters),
+      fee: inJouberton ? JOUBERTON_FLAT_FEE : feeFromMeters(meters),
+      inJouberton,
       customerCoords: cc,
       restaurantCoords: rc,
       method: "haversine",
     }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+
   } catch (e) {
     console.error("calculate-distance error:", e);
     return new Response(JSON.stringify({ error: "Internal error" }), {
