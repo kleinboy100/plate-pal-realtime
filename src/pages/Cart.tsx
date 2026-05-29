@@ -16,7 +16,8 @@ import { cn } from '@/lib/utils';
 
 const MAX_NOTES_LENGTH = 1000;
 const MAX_ADDRESS_LENGTH = 500;
-const RATE_PER_METER = 1.00 / 80; // R1.00 per 80m
+const RATE_PER_METER = 0.80 / 90; // R0.80 per 90m (areas outside Jouberton)
+
 
 export default function Cart() {
   const { items, updateQuantity, removeItem, clearCart, total, restaurantId } = useCart();
