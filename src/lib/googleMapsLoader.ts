@@ -9,7 +9,23 @@
 // To allow a new domain (e.g. www.nosty.co.za), add it to this key's HTTP
 // referrer restrictions in Google Cloud Console — do NOT change this file.
 
-const GOOGLE_MAPS_BROWSER_KEY = 'AIzaSyAZLLgYkblCL3mambA14hl52DWayMBR18A';
+// Your own production key — referrer-restricted to nosty.life / nosty.co.za,
+// with billing enabled. Used on the live custom domains.
+const CUSTOM_BROWSER_KEY = 'AIzaSyAZLLgYkblCL3mambA14hl52DWayMBR18A';
+
+// Lovable-managed key (from the Google Maps connector). It is referrer-locked to
+// *.lovable.app / *.lovableproject.com, so it is the one that works in preview.
+const MANAGED_BROWSER_KEY =
+  (import.meta.env.VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY as string | undefined) || '';
+
+// Pick the right key for the current host: managed key on Lovable preview
+// domains, your own key everywhere else (production custom domains).
+function resolveBrowserKey(): string {
+  const host = typeof window !== 'undefined' ? window.location.hostname : '';
+  const isLovableHost = /\.lovable\.app$|\.lovableproject\.com$/.test(host);
+  if (isLovableHost && MANAGED_BROWSER_KEY) return MANAGED_BROWSER_KEY;
+  return CUSTOM_BROWSER_KEY;
+}
 
 let loaderPromise: Promise<typeof google> | null = null;
 
@@ -50,7 +66,7 @@ export function loadGoogleMaps(): Promise<typeof google> {
       return (window as any).google;
     }
 
-    installBootstrap(GOOGLE_MAPS_BROWSER_KEY);
+    installBootstrap(resolveBrowserKey());
 
     // Initialise the libraries we use.
     await (window as any).google.maps.importLibrary('maps');
