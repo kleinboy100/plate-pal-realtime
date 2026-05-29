@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
 import { Loader2, Navigation } from 'lucide-react';
+import { loadGoogleMaps } from '@/lib/googleMapsLoader';
 
 interface DriverMapProps {
   destination: { lat: number; lng: number; address?: string };
@@ -10,43 +9,11 @@ interface DriverMapProps {
   onEta?: (etaMinutes: number, distanceKm: number) => void;
 }
 
-// Simple coloured circle marker for customer / restaurant points.
-const circleIcon = (color: string) =>
-  L.divIcon({
-    className: '',
-    html: `<div style="width:18px;height:18px;border-radius:50%;background:${color};border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,0.25)"></div>`,
-    iconSize: [18, 18],
-    iconAnchor: [9, 9],
-  });
-
-const driverIcon = L.divIcon({
-  className: '',
-  html: `<div style="width:16px;height:16px;border-radius:50%;background:#2563eb;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,0.25)"></div>`,
-  iconSize: [16, 16],
-  iconAnchor: [8, 8],
-});
-
-// Decode an encoded polyline (Google/OSRM format, precision 5).
-function decodePolyline(encoded: string): [number, number][] {
-  const points: [number, number][] = [];
-  let index = 0, lat = 0, lng = 0;
-  while (index < encoded.length) {
-    let b, shift = 0, result = 0;
-    do { b = encoded.charCodeAt(index++) - 63; result |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
-    lat += (result & 1) ? ~(result >> 1) : (result >> 1);
-    shift = 0; result = 0;
-    do { b = encoded.charCodeAt(index++) - 63; result |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
-    lng += (result & 1) ? ~(result >> 1) : (result >> 1);
-    points.push([lat / 1e5, lng / 1e5]);
-  }
-  return points;
-}
-
 export function DriverMap({ destination, restaurant, className, onEta }: DriverMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<L.Map | null>(null);
-  const driverMarkerRef = useRef<L.Marker | null>(null);
-  const routeLineRef = useRef<L.Polyline | null>(null);
+  const mapRef = useRef<google.maps.Map | null>(null);
+  const driverMarkerRef = useRef<google.maps.Marker | null>(null);
+  const routeLineRef = useRef<google.maps.Polyline | null>(null);
   const fittedRef = useRef(false);
   const [ready, setReady] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -59,54 +26,72 @@ export function DriverMap({ destination, restaurant, className, onEta }: DriverM
     let cancelled = false;
     let raf = 0;
 
-    const init = () => {
-      const waitForContainer = () =>
-        new Promise<void>((resolve) => {
-          const check = () => {
-            const el = containerRef.current;
-            if (cancelled) return resolve();
-            if (el && el.offsetWidth > 0 && el.offsetHeight > 0) return resolve();
-            raf = requestAnimationFrame(check);
-          };
-          check();
+    const init = async () => {
+      try {
+        const google = await loadGoogleMaps();
+
+        const waitForContainer = () =>
+          new Promise<void>((resolve) => {
+            const check = () => {
+              const el = containerRef.current;
+              if (cancelled) return resolve();
+              if (el && el.offsetWidth > 0 && el.offsetHeight > 0) return resolve();
+              raf = requestAnimationFrame(check);
+            };
+            check();
+          });
+
+        await waitForContainer();
+        if (cancelled || !containerRef.current) return;
+
+        const map = new google.maps.Map(containerRef.current, {
+          center: { lat: destination.lat, lng: destination.lng },
+          zoom: 14,
+          disableDefaultUI: true,
+          zoomControl: true,
+          clickableIcons: false,
+        });
+        mapRef.current = map;
+
+        new google.maps.Marker({
+          position: { lat: destination.lat, lng: destination.lng },
+          map,
+          title: 'Customer',
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 8,
+            fillColor: '#16a34a',
+            fillOpacity: 1,
+            strokeColor: '#fff',
+            strokeWeight: 2,
+          },
         });
 
-      waitForContainer().then(() => {
-        if (cancelled || !containerRef.current) return;
-        try {
-          const map = L.map(containerRef.current, {
-            center: [destination.lat, destination.lng],
-            zoom: 14,
-            zoomControl: true,
+        if (restaurant) {
+          new google.maps.Marker({
+            position: { lat: restaurant.lat, lng: restaurant.lng },
+            map,
+            title: 'Restaurant',
+            icon: {
+              path: google.maps.SymbolPath.CIRCLE,
+              scale: 8,
+              fillColor: '#f97316',
+              fillOpacity: 1,
+              strokeColor: '#fff',
+              strokeWeight: 2,
+            },
           });
-          mapRef.current = map;
-
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '&copy; OpenStreetMap contributors',
-          }).addTo(map);
-
-          L.marker([destination.lat, destination.lng], { icon: circleIcon('#16a34a') })
-            .addTo(map)
-            .bindPopup('Customer');
-
-          if (restaurant) {
-            L.marker([restaurant.lat, restaurant.lng], { icon: circleIcon('#f97316') })
-              .addTo(map)
-              .bindPopup('Restaurant');
-          }
-
-          setTimeout(() => map.invalidateSize(), 100);
-          setReady(true);
-          setLoading(false);
-        } catch (e) {
-          console.error('Maps load error', e);
-          if (!cancelled) {
-            setError('Map unavailable');
-            setLoading(false);
-          }
         }
-      });
+
+        setReady(true);
+        setLoading(false);
+      } catch (e) {
+        console.error('Maps load error', e);
+        if (!cancelled) {
+          setError('Map unavailable');
+          setLoading(false);
+        }
+      }
     };
 
     init();
@@ -114,7 +99,6 @@ export function DriverMap({ destination, restaurant, className, onEta }: DriverM
     return () => {
       cancelled = true;
       if (raf) cancelAnimationFrame(raf);
-      mapRef.current?.remove();
       mapRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -131,27 +115,39 @@ export function DriverMap({ destination, restaurant, className, onEta }: DriverM
     return () => navigator.geolocation.clearWatch(watchId);
   }, []);
 
-  // Draw pickup-to-customer route immediately, then switch to driver-to-customer once GPS is available.
+  // Draw route + ETA. Uses the calculate-distance edge function (OSRM) which
+  // needs no API key, then renders the polyline with Google Maps.
   useEffect(() => {
     if (!ready) return;
     const map = mapRef.current;
     if (!map) return;
+    const google = (window as any).google as typeof globalThis.google;
 
     const origin = driverPos || restaurant;
     if (!origin) {
-      map.setView([destination.lat, destination.lng], 16);
+      map.setCenter({ lat: destination.lat, lng: destination.lng });
+      map.setZoom(16);
       return;
     }
 
     if (driverPos && !driverMarkerRef.current) {
-      driverMarkerRef.current = L.marker([driverPos.lat, driverPos.lng], { icon: driverIcon })
-        .addTo(map)
-        .bindPopup('You');
+      driverMarkerRef.current = new google.maps.Marker({
+        position: driverPos,
+        map,
+        title: 'You',
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 7,
+          fillColor: '#2563eb',
+          fillOpacity: 1,
+          strokeColor: '#fff',
+          strokeWeight: 2,
+        },
+      });
     } else if (driverPos && driverMarkerRef.current) {
-      driverMarkerRef.current.setLatLng([driverPos.lat, driverPos.lng]);
+      driverMarkerRef.current.setPosition(driverPos);
     }
 
-    // Fetch real driving route + draw the polyline
     const fetchRoute = async () => {
       try {
         const { supabase } = await import('@/integrations/supabase/client');
@@ -164,31 +160,37 @@ export function DriverMap({ destination, restaurant, className, onEta }: DriverM
           onEta?.(next.min, next.km);
         }
 
+        let path: google.maps.LatLngLiteral[] | null = null;
         const encoded: string | undefined = data?.encodedPolyline;
-        let path: [number, number][] | null = null;
-        if (encoded) {
+        if (encoded && google.maps.geometry?.encoding) {
           try {
-            path = decodePolyline(encoded);
+            path = google.maps.geometry.encoding
+              .decodePath(encoded)
+              .map((p) => ({ lat: p.lat(), lng: p.lng() }));
           } catch {
             path = null;
           }
         }
         if (!path || path.length === 0) {
           path = [
-            [origin.lat, origin.lng],
-            [destination.lat, destination.lng],
+            { lat: origin.lat, lng: origin.lng },
+            { lat: destination.lat, lng: destination.lng },
           ];
         }
 
-        if (routeLineRef.current) routeLineRef.current.remove();
-        routeLineRef.current = L.polyline(path, {
-          color: '#2563eb',
-          opacity: 0.9,
-          weight: 5,
-        }).addTo(map);
+        if (routeLineRef.current) routeLineRef.current.setMap(null);
+        routeLineRef.current = new google.maps.Polyline({
+          path,
+          strokeColor: '#2563eb',
+          strokeOpacity: 0.9,
+          strokeWeight: 5,
+          map,
+        });
 
         if (!fittedRef.current) {
-          map.fitBounds(routeLineRef.current.getBounds(), { padding: [60, 60] });
+          const bounds = new google.maps.LatLngBounds();
+          path.forEach((p) => bounds.extend(p));
+          map.fitBounds(bounds, 60);
           fittedRef.current = true;
         }
       } catch (e) {
