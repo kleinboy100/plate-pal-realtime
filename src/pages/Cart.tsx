@@ -157,6 +157,16 @@ export default function Cart() {
       return;
     }
 
+    if (orderType === 'delivery' && !feeReady) {
+      toast({
+        title: "Delivery fee not calculated",
+        description: feeError || "Please wait for the delivery fee to be calculated, or refine your address so we can locate it on the map.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+
     if (notes.length > MAX_NOTES_LENGTH) {
       toast({
         title: "Notes too long",
