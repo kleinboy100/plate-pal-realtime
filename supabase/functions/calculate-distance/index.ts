@@ -8,7 +8,7 @@ const corsHeaders = {
 
 const NOMINATIM_URL = "https://nominatim.openstreetmap.org";
 const OSRM_URL = "https://router.project-osrm.org";
-const RATE_PER_METER = 1.35 / 80; // ZAR: R1.35 per 80 metres
+const RATE_PER_METER = 1.00 / 80; // ZAR: R1.00 per 80 metres
 
 interface Coord { lat: number; lng: number; }
 interface RequestBody {
