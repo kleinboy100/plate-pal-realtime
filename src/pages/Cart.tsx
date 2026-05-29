@@ -16,7 +16,7 @@ import { cn } from '@/lib/utils';
 
 const MAX_NOTES_LENGTH = 1000;
 const MAX_ADDRESS_LENGTH = 500;
-const RATE_PER_100M = 1.50; // R1.50 per 100m => R15 per km
+const RATE_PER_METER = 1.35 / 80; // R1.35 per 80m
 
 export default function Cart() {
   const { items, updateQuantity, removeItem, clearCart, total, restaurantId } = useCart();
@@ -34,6 +34,8 @@ export default function Cart() {
   const [restaurantCoords, setRestaurantCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [restaurantAddress, setRestaurantAddress] = useState<string>('');
   const [distanceKm, setDistanceKm] = useState<number | null>(null);
+  const [serverFee, setServerFee] = useState<number | null>(null);
+  const [feeError, setFeeError] = useState<string | null>(null);
   const [calculatingFee, setCalculatingFee] = useState(false);
   const [tipAmount, setTipAmount] = useState<number>(0);
   const [customTip, setCustomTip] = useState<string>('');
@@ -56,9 +58,12 @@ export default function Cart() {
   }, [restaurantId]);
 
   useEffect(() => {
-    if (orderType !== 'delivery') { setDistanceKm(null); return; }
-    if (!deliveryCoords && !deliveryAddress.trim()) { setDistanceKm(null); return; }
+    if (orderType !== 'delivery') { setDistanceKm(null); setServerFee(null); setFeeError(null); return; }
+    if (!deliveryCoords && !deliveryAddress.trim()) { setDistanceKm(null); setServerFee(null); setFeeError(null); return; }
     if (!restaurantCoords && !restaurantAddress) return;
+
+    setServerFee(null);
+    setFeeError(null);
 
     const handle = setTimeout(async () => {
       setCalculatingFee(true);
@@ -71,9 +76,20 @@ export default function Cart() {
             customerAddress: deliveryCoords ? undefined : deliveryAddress,
           },
         });
-        if (!error && data?.distanceKm != null) setDistanceKm(data.distanceKm);
+        if (!error && data?.distanceKm != null && data?.fee != null) {
+          setDistanceKm(data.distanceKm);
+          setServerFee(data.fee);
+          setFeeError(null);
+        } else {
+          setDistanceKm(null);
+          setServerFee(null);
+          setFeeError("We couldn't locate that address on the map. Please refine it or drop a pin.");
+        }
       } catch (err) {
         console.error('Distance calc error:', err);
+        setDistanceKm(null);
+        setServerFee(null);
+        setFeeError("Couldn't calculate the delivery fee. Please try again.");
       } finally {
         setCalculatingFee(false);
       }
@@ -81,9 +97,11 @@ export default function Cart() {
     return () => clearTimeout(handle);
   }, [orderType, deliveryAddress, deliveryCoords, restaurantCoords, restaurantAddress]);
 
-  const deliveryFee = orderType === 'delivery' && distanceKm != null
-    ? Math.max(0, Math.round(distanceKm * 10 * RATE_PER_100M * 100) / 100)
+  const deliveryFee = orderType === 'delivery' && serverFee != null
+    ? Math.max(0, serverFee)
     : 0;
+  const feeReady = orderType !== 'delivery' || serverFee != null;
+
 
   const handleEnableNotifications = async () => {
     const granted = await requestPermission();
@@ -138,6 +156,16 @@ export default function Cart() {
       });
       return;
     }
+
+    if (orderType === 'delivery' && !feeReady) {
+      toast({
+        title: "Delivery fee not calculated",
+        description: feeError || "Please wait for the delivery fee to be calculated, or refine your address so we can locate it on the map.",
+        variant: "destructive"
+      });
+      return;
+    }
+
 
     if (notes.length > MAX_NOTES_LENGTH) {
       toast({
@@ -386,23 +414,28 @@ export default function Cart() {
                   <span>R{total.toFixed(2)}</span>
                 </div>
                 {orderType === 'delivery' && (
-                  <div className="flex justify-between text-sm text-muted-foreground">
-                    <span>
-                      Delivery Fee
-                      {distanceKm != null && (
-                        <span className="text-xs ml-1">({distanceKm} km)</span>
-                      )}
-                    </span>
-                    <span>
-                      {calculatingFee ? (
-                        <Loader2 className="w-4 h-4 animate-spin inline" />
-                      ) : distanceKm != null ? (
-                        `R${deliveryFee.toFixed(2)}`
-                      ) : (
-                        <span className="text-xs">Enter address</span>
-                      )}
-                    </span>
-                  </div>
+                  <>
+                    <div className="flex justify-between text-sm text-muted-foreground">
+                      <span>
+                        Delivery Fee
+                        {distanceKm != null && (
+                          <span className="text-xs ml-1">({distanceKm} km)</span>
+                        )}
+                      </span>
+                      <span>
+                        {calculatingFee ? (
+                          <Loader2 className="w-4 h-4 animate-spin inline" />
+                        ) : serverFee != null ? (
+                          `R${deliveryFee.toFixed(2)}`
+                        ) : (
+                          <span className="text-xs">Enter address</span>
+                        )}
+                      </span>
+                    </div>
+                    {!calculatingFee && feeError && (
+                      <p className="text-xs text-destructive">{feeError}</p>
+                    )}
+                  </>
                 )}
                 {orderType === 'delivery' && (
                   <div className="space-y-2 pt-2">
@@ -475,7 +508,7 @@ export default function Cart() {
               <Button 
                 className="w-full btn-primary h-12 rounded-xl text-base font-semibold"
                 onClick={handlePlaceOrder}
-                disabled={loading || statusLoading || !isOpen}
+                disabled={loading || statusLoading || !isOpen || calculatingFee || (orderType === 'delivery' && !feeReady)}
               >
                 {loading ? (
                   <>
@@ -484,6 +517,10 @@ export default function Cart() {
                   </>
                 ) : !isOpen ? (
                   'Restaurant Closed'
+                ) : orderType === 'delivery' && calculatingFee ? (
+                  'Calculating delivery fee...'
+                ) : orderType === 'delivery' && !feeReady ? (
+                  'Enter a valid delivery address'
                 ) : (
                   'Place Order'
                 )}
