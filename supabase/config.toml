@@ -15,6 +15,4 @@ verify_jwt = false
 [functions.verify-yoco-checkout]
 verify_jwt = false
 
-[functions.get-maps-key]
-verify_jwt = false
 

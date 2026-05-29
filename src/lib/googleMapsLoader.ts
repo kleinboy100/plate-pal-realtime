@@ -1,22 +1,17 @@
-import { supabase } from '@/integrations/supabase/client';
-
-// Loads the Google Maps JavaScript API (with the Places library) exactly once,
-// fetching the browser API key from the `get-maps-key` edge function so the
-// same referrer-restricted key works on every domain (Lovable, published, and
-// the custom Netlify domain).
+// Loads the Google Maps JavaScript API (with Places, Marker, Geometry) once.
 //
-// Uses Google's official inline bootstrap loader, which installs
-// `google.maps.importLibrary` synchronously and lets us await each library.
+// The key below is the Google Maps **browser** key. It is referrer-restricted
+// in Google Cloud Console, so it is SAFE to ship in client code — Google blocks
+// any domain that is not on the allowlist. This is a publishable key, not a
+// hidden secret, so it lives in the frontend (no edge function / secret needed,
+// which also avoids the "secret exposed" deploy scanner false-positive).
+//
+// To allow a new domain (e.g. www.nosty.co.za), add it to this key's HTTP
+// referrer restrictions in Google Cloud Console — do NOT change this file.
+
+const GOOGLE_MAPS_BROWSER_KEY = 'AIzaSyAZLLgYkblCL3mambA14hl52DWayMBR18A';
 
 let loaderPromise: Promise<typeof google> | null = null;
-
-async function fetchApiKey(): Promise<string> {
-  const { data, error } = await supabase.functions.invoke('get-maps-key');
-  if (error || !data?.key) {
-    throw new Error('Could not load Google Maps key');
-  }
-  return data.key as string;
-}
 
 function installBootstrap(key: string) {
   // Official Google Maps JS API inline bootstrap loader.
@@ -55,8 +50,7 @@ export function loadGoogleMaps(): Promise<typeof google> {
       return (window as any).google;
     }
 
-    const key = await fetchApiKey();
-    installBootstrap(key);
+    installBootstrap(GOOGLE_MAPS_BROWSER_KEY);
 
     // Initialise the libraries we use.
     await (window as any).google.maps.importLibrary('maps');
