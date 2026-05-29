@@ -16,7 +16,7 @@ import { cn } from '@/lib/utils';
 
 const MAX_NOTES_LENGTH = 1000;
 const MAX_ADDRESS_LENGTH = 500;
-const RATE_PER_100M = 1.50; // R1.50 per 100m => R15 per km
+const RATE_PER_METER = 1.35 / 80; // R1.35 per 80m
 
 export default function Cart() {
   const { items, updateQuantity, removeItem, clearCart, total, restaurantId } = useCart();
@@ -34,6 +34,8 @@ export default function Cart() {
   const [restaurantCoords, setRestaurantCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [restaurantAddress, setRestaurantAddress] = useState<string>('');
   const [distanceKm, setDistanceKm] = useState<number | null>(null);
+  const [serverFee, setServerFee] = useState<number | null>(null);
+  const [feeError, setFeeError] = useState<string | null>(null);
   const [calculatingFee, setCalculatingFee] = useState(false);
   const [tipAmount, setTipAmount] = useState<number>(0);
   const [customTip, setCustomTip] = useState<string>('');
