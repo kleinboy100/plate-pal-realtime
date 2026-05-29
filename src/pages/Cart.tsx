@@ -58,9 +58,12 @@ export default function Cart() {
   }, [restaurantId]);
 
   useEffect(() => {
-    if (orderType !== 'delivery') { setDistanceKm(null); return; }
-    if (!deliveryCoords && !deliveryAddress.trim()) { setDistanceKm(null); return; }
+    if (orderType !== 'delivery') { setDistanceKm(null); setServerFee(null); setFeeError(null); return; }
+    if (!deliveryCoords && !deliveryAddress.trim()) { setDistanceKm(null); setServerFee(null); setFeeError(null); return; }
     if (!restaurantCoords && !restaurantAddress) return;
+
+    setServerFee(null);
+    setFeeError(null);
 
     const handle = setTimeout(async () => {
       setCalculatingFee(true);
@@ -73,9 +76,20 @@ export default function Cart() {
             customerAddress: deliveryCoords ? undefined : deliveryAddress,
           },
         });
-        if (!error && data?.distanceKm != null) setDistanceKm(data.distanceKm);
+        if (!error && data?.distanceKm != null && data?.fee != null) {
+          setDistanceKm(data.distanceKm);
+          setServerFee(data.fee);
+          setFeeError(null);
+        } else {
+          setDistanceKm(null);
+          setServerFee(null);
+          setFeeError("We couldn't locate that address on the map. Please refine it or drop a pin.");
+        }
       } catch (err) {
         console.error('Distance calc error:', err);
+        setDistanceKm(null);
+        setServerFee(null);
+        setFeeError("Couldn't calculate the delivery fee. Please try again.");
       } finally {
         setCalculatingFee(false);
       }
@@ -83,9 +97,11 @@ export default function Cart() {
     return () => clearTimeout(handle);
   }, [orderType, deliveryAddress, deliveryCoords, restaurantCoords, restaurantAddress]);
 
-  const deliveryFee = orderType === 'delivery' && distanceKm != null
-    ? Math.max(0, Math.round(distanceKm * 10 * RATE_PER_100M * 100) / 100)
+  const deliveryFee = orderType === 'delivery' && serverFee != null
+    ? Math.max(0, serverFee)
     : 0;
+  const feeReady = orderType !== 'delivery' || serverFee != null;
+
 
   const handleEnableNotifications = async () => {
     const granted = await requestPermission();
