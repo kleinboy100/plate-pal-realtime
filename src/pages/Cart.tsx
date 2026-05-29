@@ -414,23 +414,28 @@ export default function Cart() {
                   <span>R{total.toFixed(2)}</span>
                 </div>
                 {orderType === 'delivery' && (
-                  <div className="flex justify-between text-sm text-muted-foreground">
-                    <span>
-                      Delivery Fee
-                      {distanceKm != null && (
-                        <span className="text-xs ml-1">({distanceKm} km)</span>
-                      )}
-                    </span>
-                    <span>
-                      {calculatingFee ? (
-                        <Loader2 className="w-4 h-4 animate-spin inline" />
-                      ) : distanceKm != null ? (
-                        `R${deliveryFee.toFixed(2)}`
-                      ) : (
-                        <span className="text-xs">Enter address</span>
-                      )}
-                    </span>
-                  </div>
+                  <>
+                    <div className="flex justify-between text-sm text-muted-foreground">
+                      <span>
+                        Delivery Fee
+                        {distanceKm != null && (
+                          <span className="text-xs ml-1">({distanceKm} km)</span>
+                        )}
+                      </span>
+                      <span>
+                        {calculatingFee ? (
+                          <Loader2 className="w-4 h-4 animate-spin inline" />
+                        ) : serverFee != null ? (
+                          `R${deliveryFee.toFixed(2)}`
+                        ) : (
+                          <span className="text-xs">Enter address</span>
+                        )}
+                      </span>
+                    </div>
+                    {!calculatingFee && feeError && (
+                      <p className="text-xs text-destructive">{feeError}</p>
+                    )}
+                  </>
                 )}
                 {orderType === 'delivery' && (
                   <div className="space-y-2 pt-2">
