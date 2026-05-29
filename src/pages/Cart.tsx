@@ -508,7 +508,7 @@ export default function Cart() {
               <Button 
                 className="w-full btn-primary h-12 rounded-xl text-base font-semibold"
                 onClick={handlePlaceOrder}
-                disabled={loading || statusLoading || !isOpen}
+                disabled={loading || statusLoading || !isOpen || calculatingFee || (orderType === 'delivery' && !feeReady)}
               >
                 {loading ? (
                   <>
@@ -517,6 +517,10 @@ export default function Cart() {
                   </>
                 ) : !isOpen ? (
                   'Restaurant Closed'
+                ) : orderType === 'delivery' && calculatingFee ? (
+                  'Calculating delivery fee...'
+                ) : orderType === 'delivery' && !feeReady ? (
+                  'Enter a valid delivery address'
                 ) : (
                   'Place Order'
                 )}
