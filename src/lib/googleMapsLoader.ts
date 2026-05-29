@@ -66,7 +66,7 @@ export function loadGoogleMaps(): Promise<typeof google> {
       return (window as any).google;
     }
 
-    installBootstrap(GOOGLE_MAPS_BROWSER_KEY);
+    installBootstrap(resolveBrowserKey());
 
     // Initialise the libraries we use.
     await (window as any).google.maps.importLibrary('maps');
