@@ -32,6 +32,7 @@ export default function OrderDetail() {
   const { permission, requestPermission, showNotification, supported } = usePushNotifications();
   const previousStatus = useRef<string | null>(null);
   const toastShownRef = useRef(false);
+  const soundKey = `customer-${user?.id ?? 'anon'}`;
 
   // Handle payment return messages
   useEffect(() => {
