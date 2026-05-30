@@ -1,0 +1,17 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# These VITE_ keys are PUBLIC, referrer-restricted browser keys (Google Maps).
+# They are meant to be embedded in client-side JS — Google blocks any domain
+# that is not on the key's HTTP referrer allowlist, so shipping them is safe.
+# Netlify's secret scanner flags any value that matches a build env var, which
+# breaks the deploy with a false "secret exposed" error. Omit these two public
+# keys from the scan so the build succeeds.
+[build.environment]
+  SECRETS_SCAN_OMIT_KEYS = "VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY,VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_TRACKING_ID,VITE_SUPABASE_PUBLISHABLE_KEY,VITE_SUPABASE_URL,VITE_SUPABASE_PROJECT_ID"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
