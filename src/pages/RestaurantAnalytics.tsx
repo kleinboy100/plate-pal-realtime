@@ -200,7 +200,7 @@ export default function RestaurantAnalytics() {
       if (existing) {
         existing.orders += 1;
         if (order.status !== 'cancelled' && order.status !== 'declined') {
-          const fee = order.order_type === 'delivery' ? DELIVERY_FEE : 0;
+          const fee = order.order_type === 'delivery' ? Number(order.delivery_fee ?? 0) : 0;
           existing.revenue += Number(order.total_amount) - fee;
         }
       }
