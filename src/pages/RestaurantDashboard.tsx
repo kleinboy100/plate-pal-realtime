@@ -327,6 +327,9 @@ export default function RestaurantDashboard() {
 
               {!isStaffOnly && (
                 <>
+                  <TabsContent value="drivers">
+                    <DriverEarnings restaurantId={selectedRestaurant} />
+                  </TabsContent>
                   <TabsContent value="menu">
                     <MenuManager restaurantId={selectedRestaurant} />
                   </TabsContent>
