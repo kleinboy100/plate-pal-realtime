@@ -55,6 +55,23 @@ export default function DriverDashboard() {
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
   const polledRef = useRef<NodeJS.Timeout | null>(null);
+  const knownReadyRef = useRef<Set<string> | null>(null);
+  const soundKey = `driver-${user?.id ?? 'anon'}`;
+
+  // Play a notification sound when a new delivery becomes available for pickup.
+  useEffect(() => {
+    const readyIds = orders
+      .filter((o) => o.status === 'ready' && o.driver_id === null)
+      .map((o) => o.id);
+    if (knownReadyRef.current === null) {
+      // First load: remember current orders without alerting.
+      knownReadyRef.current = new Set(readyIds);
+      return;
+    }
+    const hasNew = readyIds.some((id) => !knownReadyRef.current!.has(id));
+    if (hasNew) playNotification(soundKey, 'New delivery available');
+    knownReadyRef.current = new Set(readyIds);
+  }, [orders, soundKey]);
 
   // Redirect non-drivers
   useEffect(() => {
