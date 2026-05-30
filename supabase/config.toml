@@ -1,8 +1,5 @@
 project_id = "aweceghpsgqhilydnoun"
 
-[functions.get-mapbox-token]
-verify_jwt = false
-
 [functions.create-yoco-checkout]
 verify_jwt = false
 
