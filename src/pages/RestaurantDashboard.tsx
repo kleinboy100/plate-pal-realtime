@@ -211,6 +211,12 @@ export default function RestaurantDashboard() {
               )}
             </div>
 
+            {/* Custom Notification Sound */}
+            <div className="card-elevated p-4 mb-4 md:mb-6">
+              <NotificationSoundPicker storageKey={soundKey} previewText="New order received" />
+            </div>
+
+
             {/* Order Tabs */}
             <Tabs defaultValue="pending" className="w-full overflow-hidden">
               <TabsList className="mb-4 w-full flex flex-wrap h-auto gap-1 p-1.5 bg-gradient-to-r from-muted/80 to-muted rounded-xl border border-border/50">
