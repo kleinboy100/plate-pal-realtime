@@ -88,7 +88,7 @@ export function DriverMap({ destination, restaurant, className, onEta }: DriverM
       } catch (e) {
         console.error('Maps load error', e);
         if (!cancelled) {
-          setError('Map unavailable');
+          setError(getMapsAuthError() || (e instanceof Error ? e.message : 'Map unavailable'));
           setLoading(false);
         }
       }
