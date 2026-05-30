@@ -183,6 +183,7 @@ export default function OrderDetail() {
             const message = ORDER_STATUS_MESSAGES[newOrder.status];
             if (message) {
               showNotification(message.title, { body: message.body, tag: `order-${id}` });
+              playNotification(soundKey, message.title.replace(/[^\w\s!]/g, '').trim());
             }
           }
           previousStatus.current = newOrder.status;
