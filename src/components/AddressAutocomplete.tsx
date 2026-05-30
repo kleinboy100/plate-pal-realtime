@@ -127,9 +127,11 @@ export function AddressAutocomplete({
 
       setSuggestions(mapped);
       setShowDropdown(true);
+      setMapsError(null);
     } catch (error) {
       console.error('Error fetching address suggestions:', error);
       setSuggestions([]);
+      setMapsError(getMapsAuthError() || (error instanceof Error ? error.message : null));
     } finally {
       setLoading(false);
     }
