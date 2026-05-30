@@ -25,6 +25,19 @@ function resolveBrowserKey(): string {
 
 let loaderPromise: Promise<typeof google> | null = null;
 
+type GoogleMapsBootstrap = {
+  importLibrary?: (library: string, ...args: unknown[]) => Promise<unknown>;
+  __ib__?: () => void;
+};
+
+type GoogleMapsWindow = Window &
+  typeof globalThis & {
+    google?: typeof google & { maps?: typeof google.maps & GoogleMapsBootstrap };
+    gm_authFailure?: () => void;
+  };
+
+const getMapsWindow = () => window as unknown as GoogleMapsWindow;
+
 function installBootstrap(key: string) {
   if (!key) {
     throw new Error(
@@ -32,33 +45,49 @@ function installBootstrap(key: string) {
     );
   }
 
-  const bootstrapOptions: Record<string, string> = { key, v: 'weekly' };
+  const bootstrapOptions: Record<string, string> = { key, v: 'weekly', loading: 'async' };
   if (TRACKING_ID) bootstrapOptions.channel = TRACKING_ID;
 
   // Official Google Maps JS API inline bootstrap loader.
   // Defines window.google.maps.importLibrary immediately.
-  /* eslint-disable */
-  (g => {
-    var h: any, a: any, k: any, p = "The Google Maps JavaScript API",
-      c = "google", l = "importLibrary", q = "__ib__",
-      m = document, b: any = window;
-    b = b[c] || (b[c] = {});
-    var d = b.maps || (b.maps = {}), r = new Set(), e = new URLSearchParams(),
-      u = () => h || (h = new Promise(async (f, n) => {
-        a = m.createElement("script");
-        e.set("libraries", [...r] + "");
-        for (k in g) e.set(k.replace(/[A-Z]/g, t => "_" + t[0].toLowerCase()), g[k]);
-        e.set("callback", c + ".maps." + q);
-        a.src = `https://maps.${c}apis.com/maps/api/js?` + e;
-        d[q] = f;
-        a.onerror = () => h = n(Error(p + " could not load."));
-        a.nonce = (m.querySelector("script[nonce]") as any)?.nonce || "";
-        m.head.append(a);
+  ((g: Record<string, string>) => {
+    let bootstrapPromise: Promise<void> | undefined;
+    const apiName = 'The Google Maps JavaScript API';
+    const callbackName = '__ib__';
+    const mapsWindow = getMapsWindow();
+    const googleRoot = mapsWindow.google || (mapsWindow.google = {} as typeof google);
+    const mapsRoot = googleRoot.maps || (googleRoot.maps = {} as typeof google.maps & GoogleMapsBootstrap);
+    const requestedLibraries = new Set<string>();
+    const params = new URLSearchParams();
+
+    const load = () =>
+      bootstrapPromise ||
+      (bootstrapPromise = new Promise<void>((resolve, reject) => {
+        const script = document.createElement('script');
+        params.set('libraries', [...requestedLibraries].join(','));
+        for (const option in g) {
+          params.set(option.replace(/[A-Z]/g, (t) => '_' + t[0].toLowerCase()), g[option]);
+        }
+        params.set('callback', `google.maps.${callbackName}`);
+        script.src = `https://maps.googleapis.com/maps/api/js?${params}`;
+        mapsRoot.__ib__ = resolve;
+        script.onerror = () => {
+          bootstrapPromise = undefined;
+          reject(Error(apiName + ' could not load.'));
+        };
+        script.nonce = document.querySelector<HTMLScriptElement>('script[nonce]')?.nonce || '';
+        document.head.append(script);
       }));
-    d[l] ? console.warn(p + " only loads once. Ignoring:", g) :
-      d[l] = (f: any, ...n: any) => r.add(f) && u().then(() => d[l](f, ...n));
+
+    if (mapsRoot.importLibrary) {
+      console.warn(apiName + ' only loads once. Ignoring:', g);
+    } else {
+      mapsRoot.importLibrary = (library: string, ...args: unknown[]) => {
+        requestedLibraries.add(library);
+        return load().then(() => mapsRoot.importLibrary?.(library, ...args));
+      };
+    }
   })(bootstrapOptions);
-  /* eslint-enable */
 }
 
 // Holds a human-readable Google Maps auth error (set by gm_authFailure), so we
@@ -73,7 +102,7 @@ function installAuthFailureHandler() {
   if (typeof window === 'undefined') return;
   // Google calls this global when the API key is rejected (wrong domain,
   // billing off, or API not enabled). Capture it so the UI can display it.
-  (window as any).gm_authFailure = () => {
+  getMapsWindow().gm_authFailure = () => {
     const host = window.location.hostname;
     authError =
       `Google Maps rejected the key for "${host}". ` +
@@ -89,11 +118,12 @@ export function loadGoogleMaps(): Promise<typeof google> {
 
   loaderPromise = (async () => {
     installAuthFailureHandler();
+    const mapsWindow = getMapsWindow();
 
     // Already fully loaded.
-    if (typeof window !== 'undefined' && (window as any).google?.maps?.importLibrary) {
-      await (window as any).google.maps.importLibrary('maps');
-      return (window as any).google;
+    if (typeof window !== 'undefined' && mapsWindow.google?.maps?.importLibrary) {
+      await mapsWindow.google.maps.importLibrary('maps');
+      return mapsWindow.google;
     }
 
     installBootstrap(resolveBrowserKey());
@@ -101,11 +131,12 @@ export function loadGoogleMaps(): Promise<typeof google> {
     // Race the library load against a timeout. If the key is rejected, Google
     // never resolves importLibrary, so we surface the captured auth error.
     const load = (async () => {
-      await (window as any).google.maps.importLibrary('maps');
-      await (window as any).google.maps.importLibrary('places');
-      await (window as any).google.maps.importLibrary('marker');
-      await (window as any).google.maps.importLibrary('geometry');
-      return (window as any).google;
+      await mapsWindow.google?.maps?.importLibrary?.('maps');
+      await mapsWindow.google?.maps?.importLibrary?.('places');
+      await mapsWindow.google?.maps?.importLibrary?.('marker');
+      await mapsWindow.google?.maps?.importLibrary?.('geometry');
+      if (!mapsWindow.google) throw new Error('Google Maps did not initialize.');
+      return mapsWindow.google;
     })();
 
     const timeout = new Promise<never>((_, reject) => {
