@@ -89,10 +89,7 @@ export default function RestaurantDashboard() {
   }, [selectedRestaurant, showNotification]);
 
   const playNotificationSound = () => {
-    if (!audioRef.current) {
-      audioRef.current = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2teleToZ');
-    }
-    audioRef.current.play().catch(() => {});
+    playNotification(soundKey, 'New order received');
   };
 
   const fetchRestaurants = async () => {
