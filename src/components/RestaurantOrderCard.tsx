@@ -29,6 +29,8 @@ interface RestaurantOrderCardProps {
   order: Order;
   onUpdateStatus: (orderId: string, status: string) => Promise<void>;
   isNew?: boolean;
+  /** When false, the "Out for Delivery" step is hidden (e.g. for staff) */
+  canMarkOutForDelivery?: boolean;
 }
 
 // Status flow for delivery orders
