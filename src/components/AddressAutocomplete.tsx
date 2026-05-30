@@ -64,6 +64,7 @@ export function AddressAutocomplete({
   const [gettingLocation, setGettingLocation] = useState(false);
   const [pinOpen, setPinOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<AddressLocation | null>(null);
+  const [mapsError, setMapsError] = useState<string | null>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
