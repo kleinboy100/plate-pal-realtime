@@ -32,7 +32,7 @@ type GoogleMapsBootstrap = {
 
 type GoogleMapsWindow = Window &
   typeof globalThis & {
-    google?: typeof google & { maps?: typeof google.maps & GoogleMapsBootstrap };
+    google?: { maps?: GoogleMapsBootstrap };
     gm_authFailure?: () => void;
   };
 
@@ -55,8 +55,8 @@ function installBootstrap(key: string) {
     const apiName = 'The Google Maps JavaScript API';
     const callbackName = '__ib__';
     const mapsWindow = getMapsWindow();
-    const googleRoot = mapsWindow.google || (mapsWindow.google = {} as typeof google);
-    const mapsRoot = googleRoot.maps || (googleRoot.maps = {} as typeof google.maps & GoogleMapsBootstrap);
+    const googleRoot = mapsWindow.google || (mapsWindow.google = {});
+    const mapsRoot = googleRoot.maps || (googleRoot.maps = {});
     const requestedLibraries = new Set<string>();
     const params = new URLSearchParams();
 
@@ -123,7 +123,7 @@ export function loadGoogleMaps(): Promise<typeof google> {
     // Already fully loaded.
     if (typeof window !== 'undefined' && mapsWindow.google?.maps?.importLibrary) {
       await mapsWindow.google.maps.importLibrary('maps');
-      return mapsWindow.google;
+      return mapsWindow.google as unknown as typeof google;
     }
 
     installBootstrap(resolveBrowserKey());
@@ -136,7 +136,7 @@ export function loadGoogleMaps(): Promise<typeof google> {
       await mapsWindow.google?.maps?.importLibrary?.('marker');
       await mapsWindow.google?.maps?.importLibrary?.('geometry');
       if (!mapsWindow.google) throw new Error('Google Maps did not initialize.');
-      return mapsWindow.google;
+      return mapsWindow.google as unknown as typeof google;
     })();
 
     const timeout = new Promise<never>((_, reject) => {
