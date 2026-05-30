@@ -202,7 +202,7 @@ export function DriverMap({ destination, restaurant, className, onEta }: DriverM
 
   if (error) {
     return (
-      <div className={`bg-muted rounded-xl flex items-center justify-center text-sm text-muted-foreground ${className}`}>
+      <div className={`bg-muted rounded-xl flex items-center justify-center p-4 text-xs text-muted-foreground text-center leading-relaxed ${className}`}>
         {error}
       </div>
     );
