@@ -10,7 +10,29 @@ export default function Orders() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user) fetchOrders();
+    if (!user) return;
+    fetchOrders();
+
+    // Real-time updates for the user's orders
+    const channel = supabase
+      .channel(`orders-list-${user.id}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'orders',
+        filter: `user_id=eq.${user.id}`,
+      }, () => {
+        fetchOrders();
+      })
+      .subscribe();
+
+    // Polling fallback in case realtime is unavailable
+    const poll = setInterval(fetchOrders, 15000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(poll);
+    };
   }, [user]);
 
   const fetchOrders = async () => {
