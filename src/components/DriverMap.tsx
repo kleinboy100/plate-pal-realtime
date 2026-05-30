@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Loader2, Navigation } from 'lucide-react';
-import { loadGoogleMaps } from '@/lib/googleMapsLoader';
+import { loadGoogleMaps, getMapsAuthError } from '@/lib/googleMapsLoader';
 
 interface DriverMapProps {
   destination: { lat: number; lng: number; address?: string };
