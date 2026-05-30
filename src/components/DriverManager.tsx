@@ -70,7 +70,7 @@ export function DriverManager({ restaurantId }: { restaurantId: string }) {
         <h3 className="font-semibold text-base">Delivery Drivers</h3>
       </div>
       <p className="text-sm text-muted-foreground">
-        Drivers can see ready delivery orders, accept them, navigate via Google Maps, and mark them delivered.
+        Drivers can see ready delivery orders, accept them, navigate via the map, and mark them delivered.
       </p>
 
       <div className="flex gap-2">
