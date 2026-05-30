@@ -60,10 +60,12 @@ const getNextAction = (currentStatus: string, orderType: 'delivery' | 'collectio
   return null;
 };
 
-export function RestaurantOrderCard({ order, onUpdateStatus, isNew }: RestaurantOrderCardProps) {
+export function RestaurantOrderCard({ order, onUpdateStatus, isNew, canMarkOutForDelivery = true }: RestaurantOrderCardProps) {
   const [loading, setLoading] = useState(false);
   const orderType = order.order_type || 'delivery';
   const nextAction = getNextAction(order.status, orderType);
+  // Staff are not allowed to mark delivery orders as "out for delivery".
+  const blockedAction = !canMarkOutForDelivery && nextAction?.status === 'out_for_delivery';
 
   const handleAction = async (status: string) => {
     setLoading(true);
