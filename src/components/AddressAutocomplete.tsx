@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
-import { loadGoogleMaps } from '@/lib/googleMapsLoader';
+import { loadGoogleMaps, getMapsAuthError } from '@/lib/googleMapsLoader';
 
 type LocationSource = 'search' | 'current_location' | 'pin' | 'manual';
 
