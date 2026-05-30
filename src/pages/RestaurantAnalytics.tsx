@@ -29,7 +29,7 @@ interface OrderStats {
   cancelledOrders: number;
 }
 
-const DELIVERY_FEE = 25;
+
 
 interface DailyData {
   date: string;
