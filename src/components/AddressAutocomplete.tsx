@@ -252,6 +252,10 @@ export function AddressAutocomplete({
         )}
       </div>
 
+      {mapsError && (
+        <p className="mt-2 text-xs text-destructive leading-relaxed">{mapsError}</p>
+      )}
+
       {showLocationButton && (
         <div className="mt-2 flex flex-wrap gap-2">
           <Button
