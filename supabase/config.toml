@@ -15,4 +15,3 @@ verify_jwt = false
 [functions.verify-yoco-checkout]
 verify_jwt = false
 
-
