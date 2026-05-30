@@ -30,8 +30,7 @@ type GoogleMapsBootstrap = {
   __ib__?: () => void;
 };
 
-type GoogleMapsWindow = Window &
-  typeof globalThis & {
+type GoogleMapsWindow = Window & {
     google?: { maps?: GoogleMapsBootstrap };
     gm_authFailure?: () => void;
   };
@@ -84,7 +83,11 @@ function installBootstrap(key: string) {
     } else {
       mapsRoot.importLibrary = (library: string, ...args: unknown[]) => {
         requestedLibraries.add(library);
-        return load().then(() => mapsRoot.importLibrary?.(library, ...args));
+        return load().then(() => {
+          const importLibrary = mapsRoot.importLibrary;
+          if (!importLibrary) throw new Error('Google Maps library loader is unavailable.');
+          return importLibrary(library, ...args);
+        });
       };
     }
   })(bootstrapOptions);
