@@ -116,6 +116,11 @@ export function Navbar() {
           <div className="md:hidden">
             {user ? (
               <div className="flex items-center gap-1">
+                <Link to="/orders">
+                  <Button variant="ghost" size="icon" className="rounded-xl" aria-label="My Orders">
+                    <ClipboardList size={20} />
+                  </Button>
+                </Link>
                 <Link to="/profile">
                   <Button variant="ghost" size="icon" className="rounded-xl">
                     <User size={20} />
