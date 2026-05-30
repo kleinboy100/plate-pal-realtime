@@ -170,7 +170,7 @@ export default function RestaurantAnalytics() {
     const grossRevenue = nonCancelled.reduce((sum, o) => sum + Number(o.total_amount), 0);
     const deliveriesRevenue = nonCancelled
       .filter(o => o.order_type === 'delivery')
-      .length * DELIVERY_FEE;
+      .reduce((sum, o) => sum + Number(o.delivery_fee ?? 0), 0);
     const totalRevenue = grossRevenue - deliveriesRevenue;
     const completedOrders = orderList.filter(o => o.status === 'delivered').length;
     const cancelledOrders = orderList.filter(o => o.status === 'cancelled' || o.status === 'declined').length;
