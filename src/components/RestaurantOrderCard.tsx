@@ -207,7 +207,7 @@ export function RestaurantOrderCard({ order, onUpdateStatus, isNew, canMarkOutFo
           {order.status !== 'pending' && 
            order.status !== 'delivered' && 
            order.status !== 'cancelled' && 
-           nextAction && (
+           nextAction && !blockedAction && (
             <>
               <Button
                 size="sm"
@@ -232,6 +232,12 @@ export function RestaurantOrderCard({ order, onUpdateStatus, isNew, canMarkOutFo
                 Cancel
               </Button>
             </>
+          )}
+
+          {blockedAction && (
+            <p className="text-xs text-muted-foreground">
+              Order is ready. A driver will take it out for delivery.
+            </p>
           )}
         </div>
 
