@@ -29,6 +29,8 @@ interface RestaurantOrderCardProps {
   order: Order;
   onUpdateStatus: (orderId: string, status: string) => Promise<void>;
   isNew?: boolean;
+  /** When false, the "Out for Delivery" step is hidden (e.g. for staff) */
+  canMarkOutForDelivery?: boolean;
 }
 
 // Status flow for delivery orders
@@ -58,10 +60,12 @@ const getNextAction = (currentStatus: string, orderType: 'delivery' | 'collectio
   return null;
 };
 
-export function RestaurantOrderCard({ order, onUpdateStatus, isNew }: RestaurantOrderCardProps) {
+export function RestaurantOrderCard({ order, onUpdateStatus, isNew, canMarkOutForDelivery = true }: RestaurantOrderCardProps) {
   const [loading, setLoading] = useState(false);
   const orderType = order.order_type || 'delivery';
   const nextAction = getNextAction(order.status, orderType);
+  // Staff are not allowed to mark delivery orders as "out for delivery".
+  const blockedAction = !canMarkOutForDelivery && nextAction?.status === 'out_for_delivery';
 
   const handleAction = async (status: string) => {
     setLoading(true);
@@ -203,7 +207,7 @@ export function RestaurantOrderCard({ order, onUpdateStatus, isNew }: Restaurant
           {order.status !== 'pending' && 
            order.status !== 'delivered' && 
            order.status !== 'cancelled' && 
-           nextAction && (
+           nextAction && !blockedAction && (
             <>
               <Button
                 size="sm"
@@ -228,6 +232,12 @@ export function RestaurantOrderCard({ order, onUpdateStatus, isNew }: Restaurant
                 Cancel
               </Button>
             </>
+          )}
+
+          {blockedAction && (
+            <p className="text-xs text-muted-foreground">
+              Order is ready. A driver will take it out for delivery.
+            </p>
           )}
         </div>
 

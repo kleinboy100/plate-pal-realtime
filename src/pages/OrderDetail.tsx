@@ -9,6 +9,8 @@ import { DeliveryETA } from '@/components/DeliveryETA';
 import { supabase } from '@/integrations/supabase/client';
 import { Bell, XCircle, Star, Banknote, CreditCard, Loader2 } from 'lucide-react';
 import { usePushNotifications, ORDER_STATUS_MESSAGES } from '@/hooks/usePushNotifications';
+import { NotificationSoundPicker } from '@/components/NotificationSoundPicker';
+import { playNotification } from '@/lib/notificationSound';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -30,6 +32,7 @@ export default function OrderDetail() {
   const { permission, requestPermission, showNotification, supported } = usePushNotifications();
   const previousStatus = useRef<string | null>(null);
   const toastShownRef = useRef(false);
+  const soundKey = `customer-${user?.id ?? 'anon'}`;
 
   // Handle payment return messages
   useEffect(() => {
@@ -180,6 +183,7 @@ export default function OrderDetail() {
             const message = ORDER_STATUS_MESSAGES[newOrder.status];
             if (message) {
               showNotification(message.title, { body: message.body, tag: `order-${id}` });
+              playNotification(soundKey, message.title.replace(/[^\w\s!]/g, '').trim());
             }
           }
           previousStatus.current = newOrder.status;
@@ -203,7 +207,7 @@ export default function OrderDetail() {
         clearInterval(poll);
       };
     }
-  }, [id, showNotification]);
+  }, [id, showNotification, soundKey]);
 
   // Check online payment availability when order loads
   useEffect(() => {
@@ -346,6 +350,13 @@ export default function OrderDetail() {
             <Button size="sm" onClick={handleEnableNotifications}>Enable</Button>
           </div>
         )}
+
+        {/* Custom Notification Sound */}
+        <div className="card-elevated p-4 mb-6">
+          <NotificationSoundPicker storageKey={soundKey} previewText="Your order status has changed" />
+        </div>
+        
+
         
         <div className="card-elevated p-6 mb-6">
           <div className="flex items-center justify-between mb-4">

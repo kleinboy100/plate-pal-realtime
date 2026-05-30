@@ -10,6 +10,8 @@ import { Loader2, CheckCircle, XCircle, MapPin, Package, Truck, ClipboardCheck, 
 import { DriverMap } from '@/components/DriverMap';
 import { DriverNavMap } from '@/components/DriverNavMap';
 import { OrderChat } from '@/components/OrderChat';
+import { NotificationSoundPicker } from '@/components/NotificationSoundPicker';
+import { playNotification } from '@/lib/notificationSound';
 import { useNavigate } from 'react-router-dom';
 
 type Order = {
@@ -53,6 +55,23 @@ export default function DriverDashboard() {
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
   const polledRef = useRef<NodeJS.Timeout | null>(null);
+  const knownReadyRef = useRef<Set<string> | null>(null);
+  const soundKey = `driver-${user?.id ?? 'anon'}`;
+
+  // Play a notification sound when a new delivery becomes available for pickup.
+  useEffect(() => {
+    const readyIds = orders
+      .filter((o) => o.status === 'ready' && o.driver_id === null)
+      .map((o) => o.id);
+    if (knownReadyRef.current === null) {
+      // First load: remember current orders without alerting.
+      knownReadyRef.current = new Set(readyIds);
+      return;
+    }
+    const hasNew = readyIds.some((id) => !knownReadyRef.current!.has(id));
+    if (hasNew) playNotification(soundKey, 'New delivery available');
+    knownReadyRef.current = new Set(readyIds);
+  }, [orders, soundKey]);
 
   // Redirect non-drivers
   useEffect(() => {
@@ -225,6 +244,12 @@ export default function DriverDashboard() {
             <p className="text-xs text-muted-foreground">{restaurant?.name}</p>
           </div>
         </div>
+
+        <div className="card-elevated p-4 mb-4">
+          <NotificationSoundPicker storageKey={soundKey} previewText="New delivery available" />
+        </div>
+
+
 
         <Tabs defaultValue="pickup" className="w-full">
           <TabsList className="w-full grid grid-cols-4 mb-4 p-1.5 bg-muted rounded-xl">
