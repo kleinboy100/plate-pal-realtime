@@ -1,11 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { MapPin, Loader2, Navigation, Crosshair } from 'lucide-react';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
+import { loadGoogleMaps } from '@/lib/googleMapsLoader';
 
 type LocationSource = 'search' | 'current_location' | 'pin' | 'manual';
 
@@ -29,38 +28,19 @@ interface AddressAutocompleteProps {
 }
 
 interface Suggestion {
-  display_name: string;
-  lat?: string;
-  lon?: string;
+  placeId: string;
+  text: string;
 }
 
-// Klerksdorp / Jouberton bounding box (approx)
-// west,north,east,south (lon,lat,lon,lat)
-const KLERKSDORP_VIEWBOX = '26.55,-26.78,26.78,-26.95';
-// Klerksdorp center coords for proximity-biased ranking
-const KLERKSDORP_CENTER = { lat: -26.8523, lon: 26.6669 };
-const KLERKSDORP_MAP_CENTER = { lat: KLERKSDORP_CENTER.lat, lng: KLERKSDORP_CENTER.lon };
-
-// Build a Leaflet marker icon using the bundled images (avoids broken default
-// icon URLs when bundling with Vite).
-const markerIcon = L.icon({
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-});
+// Klerksdorp / Jouberton centre for proximity-biased ranking.
+const KLERKSDORP_CENTER = { lat: -26.8523, lng: 26.6669 };
 
 const reverseGeocode = async (lat: number, lng: number): Promise<string | null> => {
   try {
-    const response = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1&zoom=18`,
-      { headers: { 'User-Agent': 'PlatePal-Delivery-App/1.0' } }
-    );
-    const data = await response.json();
-    return data?.display_name || null;
+    await loadGoogleMaps();
+    const geocoder = new google.maps.Geocoder();
+    const { results } = await geocoder.geocode({ location: { lat, lng } });
+    return results?.[0]?.formatted_address || null;
   } catch {
     return null;
   }
@@ -83,6 +63,7 @@ export function AddressAutocomplete({
   const [pinOpen, setPinOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<AddressLocation | null>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const sessionTokenRef = useRef<google.maps.places.AutocompleteSessionToken | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -105,15 +86,7 @@ export function AddressAutocomplete({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const fetchNominatim = async (params: string): Promise<Suggestion[]> => {
-    const res = await fetch(`https://nominatim.openstreetmap.org/search?${params}`, {
-      headers: { 'User-Agent': 'PlatePal-Delivery-App/1.0' },
-    });
-    const data = await res.json();
-    return Array.isArray(data) ? data : [];
-  };
-
-  // Search addresses with strong bias toward Klerksdorp/Jouberton area.
+  // Search addresses with Google Places (New) biased toward Klerksdorp/Jouberton.
   const searchAddresses = async (searchQuery: string) => {
     const q = searchQuery.trim();
     if (q.length < 3) {
@@ -123,71 +96,34 @@ export function AddressAutocomplete({
 
     setLoading(true);
     try {
-      // If user didn't already mention the area, append it to improve recall
-      // for township/extension-style addresses (e.g. "123 Ext 6 Kasi Street").
-      const lower = q.toLowerCase();
-      const mentionsArea =
-        lower.includes('jouberton') ||
-        lower.includes('klerksdorp') ||
-        lower.includes('matlosana') ||
-        lower.includes('kanana') ||
-        lower.includes('alabama') ||
-        lower.includes('orkney');
+      await loadGoogleMaps();
+      const { AutocompleteSuggestion, AutocompleteSessionToken } =
+        (await google.maps.importLibrary('places')) as google.maps.PlacesLibrary;
 
-      const augmentedQ = mentionsArea ? q : `${q}, Jouberton, Klerksdorp`;
-
-      // 1) Bounded search constrained to Klerksdorp viewbox (highest precision)
-      let results = await fetchNominatim(
-        new URLSearchParams({
-          format: 'json',
-          q: augmentedQ,
-          countrycodes: 'za',
-          limit: '8',
-          addressdetails: '1',
-          viewbox: KLERKSDORP_VIEWBOX,
-          bounded: '1',
-        }).toString()
-      );
-
-      // 2) Fallback: viewbox bias but not bounded, country = ZA
-      if (results.length === 0) {
-        results = await fetchNominatim(
-          new URLSearchParams({
-            format: 'json',
-            q: augmentedQ,
-            countrycodes: 'za',
-            limit: '8',
-            addressdetails: '1',
-            viewbox: KLERKSDORP_VIEWBOX,
-          }).toString()
-        );
+      if (!sessionTokenRef.current) {
+        sessionTokenRef.current = new AutocompleteSessionToken();
       }
 
-      // 3) Last resort: original query, country-only
-      if (results.length === 0) {
-        results = await fetchNominatim(
-          new URLSearchParams({
-            format: 'json',
-            q,
-            countrycodes: 'za',
-            limit: '5',
-            addressdetails: '1',
-          }).toString()
-        );
-      }
+      const { suggestions: results } =
+        await AutocompleteSuggestion.fetchAutocompleteSuggestions({
+          input: q,
+          sessionToken: sessionTokenRef.current,
+          includedRegionCodes: ['za'],
+          locationBias: {
+            center: KLERKSDORP_CENTER,
+            radius: 30000,
+          },
+        });
 
-      // Sort by proximity to Klerksdorp center so local matches surface first
-      results.sort((a, b) => {
-        const da =
-          Math.abs(parseFloat(a.lat || '0') - KLERKSDORP_CENTER.lat) +
-          Math.abs(parseFloat(a.lon || '0') - KLERKSDORP_CENTER.lon);
-        const db =
-          Math.abs(parseFloat(b.lat || '0') - KLERKSDORP_CENTER.lat) +
-          Math.abs(parseFloat(b.lon || '0') - KLERKSDORP_CENTER.lon);
-        return da - db;
-      });
+      const mapped: Suggestion[] = (results || [])
+        .map((s) => s.placePrediction)
+        .filter(Boolean)
+        .map((p) => ({
+          placeId: p!.placeId,
+          text: p!.text?.toString() || '',
+        }));
 
-      setSuggestions(results);
+      setSuggestions(mapped);
       setShowDropdown(true);
     } catch (error) {
       console.error('Error fetching address suggestions:', error);
@@ -208,25 +144,42 @@ export function AddressAutocomplete({
     }, 400);
   };
 
-  const handleSelectSuggestion = (suggestion: Suggestion) => {
-    const address = suggestion.display_name;
-    let location: AddressLocation | null = null;
-
-    if (suggestion.lat && suggestion.lon) {
-      location = {
-        lat: parseFloat(suggestion.lat),
-        lng: parseFloat(suggestion.lon),
-        address,
-        source: 'search',
-      };
-    }
-
-    setQuery(address);
-    onChange(address);
-    setSelectedLocation(location);
-    onCoordinatesChange?.(location);
+  const handleSelectSuggestion = async (suggestion: Suggestion) => {
+    setQuery(suggestion.text);
+    onChange(suggestion.text);
     setSuggestions([]);
     setShowDropdown(false);
+    setLoading(true);
+
+    try {
+      await loadGoogleMaps();
+      const { Place } = (await google.maps.importLibrary('places')) as google.maps.PlacesLibrary;
+      const place = new Place({ id: suggestion.placeId });
+      await place.fetchFields({ fields: ['location', 'formattedAddress'] });
+
+      // Reset session token after a selection (per Google billing best practice).
+      sessionTokenRef.current = null;
+
+      const loc = place.location;
+      if (loc) {
+        const address = place.formattedAddress || suggestion.text;
+        const location: AddressLocation = {
+          lat: loc.lat(),
+          lng: loc.lng(),
+          address,
+          placeId: suggestion.placeId,
+          source: 'search',
+        };
+        setQuery(address);
+        onChange(address);
+        setSelectedLocation(location);
+        onCoordinatesChange?.(location);
+      }
+    } catch (error) {
+      console.error('Error fetching place details:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleUseCurrentLocation = async () => {
@@ -335,15 +288,15 @@ export function AddressAutocomplete({
               Searching addresses...
             </div>
           ) : suggestions.length > 0 ? (
-            suggestions.map((suggestion, index) => (
+            suggestions.map((suggestion) => (
               <button
-                key={index}
+                key={suggestion.placeId}
                 type="button"
                 onClick={() => handleSelectSuggestion(suggestion)}
                 className="w-full px-4 py-3 flex items-center gap-3 hover:bg-muted/50 transition-colors text-left"
               >
                 <MapPin className="text-muted-foreground shrink-0" size={16} />
-                <span className="text-sm truncate">{suggestion.display_name}</span>
+                <span className="text-sm truncate">{suggestion.text}</span>
               </button>
             ))
           ) : query.length >= 3 ? (
@@ -385,21 +338,16 @@ function PinPickerDialog({
   onConfirm: (location: AddressLocation) => void;
 }) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<L.Map | null>(null);
-  const markerRef = useRef<L.Marker | null>(null);
-  const pickedRef = useRef<AddressLocation | null>(null);
+  const mapRef = useRef<google.maps.Map | null>(null);
+  const markerRef = useRef<google.maps.Marker | null>(null);
   const [picked, setPicked] = useState<AddressLocation>(
-    initialLocation || { ...KLERKSDORP_MAP_CENTER, address: fallbackAddress, source: 'pin' }
+    initialLocation || { ...KLERKSDORP_CENTER, address: fallbackAddress, source: 'pin' }
   );
   const [mapLoading, setMapLoading] = useState(false);
 
   useEffect(() => {
-    pickedRef.current = picked;
-  }, [picked]);
-
-  useEffect(() => {
     if (!open) return;
-    setPicked(initialLocation || { ...KLERKSDORP_MAP_CENTER, address: fallbackAddress, source: 'pin' });
+    setPicked(initialLocation || { ...KLERKSDORP_CENTER, address: fallbackAddress, source: 'pin' });
   }, [open, initialLocation, fallbackAddress]);
 
   useEffect(() => {
@@ -420,8 +368,10 @@ function PinPickerDialog({
       }
     };
 
-    const initMap = () => {
+    const initMap = async () => {
       setMapLoading(true);
+      await loadGoogleMaps();
+
       const waitForContainer = () => new Promise<void>((resolve) => {
         const check = () => {
           const el = mapContainerRef.current;
@@ -432,43 +382,40 @@ function PinPickerDialog({
         check();
       });
 
-      waitForContainer().then(() => {
-        if (cancelled || !mapContainerRef.current) return;
+      await waitForContainer();
+      if (cancelled || !mapContainerRef.current) return;
 
-        const center = initialLocation || { ...KLERKSDORP_MAP_CENTER };
-        const map = L.map(mapContainerRef.current, {
-          center: [center.lat, center.lng],
-          zoom: initialLocation ? 18 : 14,
-          zoomControl: true,
-        });
-        mapRef.current = map;
-
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          maxZoom: 19,
-          attribution: '&copy; OpenStreetMap contributors',
-        }).addTo(map);
-
-        const marker = L.marker([center.lat, center.lng], {
-          draggable: true,
-          icon: markerIcon,
-        }).addTo(map);
-        markerRef.current = marker;
-
-        marker.on('dragend', () => {
-          const pos = marker.getLatLng();
-          updatePickedFromLatLng(pos.lat, pos.lng);
-        });
-
-        map.on('click', (event: L.LeafletMouseEvent) => {
-          marker.setLatLng(event.latlng);
-          map.panTo(event.latlng);
-          updatePickedFromLatLng(event.latlng.lat, event.latlng.lng);
-        });
-
-        // Leaflet needs a size recalculation once the dialog is visible.
-        setTimeout(() => map.invalidateSize(), 100);
-        setMapLoading(false);
+      const center = initialLocation || { ...KLERKSDORP_CENTER };
+      const map = new google.maps.Map(mapContainerRef.current, {
+        center: { lat: center.lat, lng: center.lng },
+        zoom: initialLocation ? 18 : 14,
+        disableDefaultUI: false,
+        streetViewControl: false,
+        mapTypeControl: false,
+        fullscreenControl: false,
       });
+      mapRef.current = map;
+
+      const marker = new google.maps.Marker({
+        position: { lat: center.lat, lng: center.lng },
+        map,
+        draggable: true,
+      });
+      markerRef.current = marker;
+
+      marker.addListener('dragend', () => {
+        const pos = marker.getPosition();
+        if (pos) updatePickedFromLatLng(pos.lat(), pos.lng());
+      });
+
+      map.addListener('click', (event: google.maps.MapMouseEvent) => {
+        if (!event.latLng) return;
+        marker.setPosition(event.latLng);
+        map.panTo(event.latLng);
+        updatePickedFromLatLng(event.latLng.lat(), event.latLng.lng());
+      });
+
+      setMapLoading(false);
     };
 
     initMap();
@@ -476,7 +423,6 @@ function PinPickerDialog({
       cancelled = true;
       if (raf) cancelAnimationFrame(raf);
       markerRef.current = null;
-      mapRef.current?.remove();
       mapRef.current = null;
     };
   }, [open, initialLocation, fallbackAddress]);
@@ -504,8 +450,9 @@ function PinPickerDialog({
         source: 'current_location',
       };
       setPicked(location);
-      markerRef.current?.setLatLng([next.lat, next.lng]);
-      mapRef.current?.setView([next.lat, next.lng], 18);
+      markerRef.current?.setPosition({ lat: next.lat, lng: next.lng });
+      mapRef.current?.setCenter({ lat: next.lat, lng: next.lng });
+      mapRef.current?.setZoom(18);
     } finally {
       setMapLoading(false);
     }
