@@ -207,7 +207,7 @@ export default function OrderDetail() {
         clearInterval(poll);
       };
     }
-  }, [id, showNotification]);
+  }, [id, showNotification, soundKey]);
 
   // Check online payment availability when order loads
   useEffect(() => {
