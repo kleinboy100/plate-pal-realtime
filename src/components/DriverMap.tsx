@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Loader2, Navigation } from 'lucide-react';
-import { loadGoogleMaps } from '@/lib/googleMapsLoader';
+import { loadGoogleMaps, getMapsAuthError } from '@/lib/googleMapsLoader';
 
 interface DriverMapProps {
   destination: { lat: number; lng: number; address?: string };
@@ -88,7 +88,7 @@ export function DriverMap({ destination, restaurant, className, onEta }: DriverM
       } catch (e) {
         console.error('Maps load error', e);
         if (!cancelled) {
-          setError('Map unavailable');
+          setError(getMapsAuthError() || (e instanceof Error ? e.message : 'Map unavailable'));
           setLoading(false);
         }
       }
@@ -202,7 +202,7 @@ export function DriverMap({ destination, restaurant, className, onEta }: DriverM
 
   if (error) {
     return (
-      <div className={`bg-muted rounded-xl flex items-center justify-center text-sm text-muted-foreground ${className}`}>
+      <div className={`bg-muted rounded-xl flex items-center justify-center p-4 text-xs text-muted-foreground text-center leading-relaxed ${className}`}>
         {error}
       </div>
     );

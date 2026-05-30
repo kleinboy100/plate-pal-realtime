@@ -56,10 +56,35 @@ function installBootstrap(key: string) {
   /* eslint-enable */
 }
 
+// Holds a human-readable Google Maps auth error (set by gm_authFailure), so we
+// can show it on screen — handy on mobile where there's no dev console.
+let authError: string | null = null;
+
+export function getMapsAuthError(): string | null {
+  return authError;
+}
+
+function installAuthFailureHandler() {
+  if (typeof window === 'undefined') return;
+  // Google calls this global when the API key is rejected (wrong domain,
+  // billing off, or API not enabled). Capture it so the UI can display it.
+  (window as any).gm_authFailure = () => {
+    const host = window.location.hostname;
+    authError =
+      `Google Maps rejected the key for "${host}". ` +
+      `Fix in Google Cloud Console: (1) enable billing, ` +
+      `(2) enable "Maps JavaScript API" and "Places API (New)", ` +
+      `(3) add https://${host}/* and https://*.${host.replace(/^www\./, '')}/* ` +
+      `to the key's HTTP referrer allowlist.`;
+  };
+}
+
 export function loadGoogleMaps(): Promise<typeof google> {
   if (loaderPromise) return loaderPromise;
 
   loaderPromise = (async () => {
+    installAuthFailureHandler();
+
     // Already fully loaded.
     if (typeof window !== 'undefined' && (window as any).google?.maps?.importLibrary) {
       await (window as any).google.maps.importLibrary('maps');
@@ -68,14 +93,30 @@ export function loadGoogleMaps(): Promise<typeof google> {
 
     installBootstrap(resolveBrowserKey());
 
-    // Initialise the libraries we use.
-    await (window as any).google.maps.importLibrary('maps');
-    await (window as any).google.maps.importLibrary('places');
-    await (window as any).google.maps.importLibrary('marker');
-    await (window as any).google.maps.importLibrary('geometry');
+    // Race the library load against a timeout. If the key is rejected, Google
+    // never resolves importLibrary, so we surface the captured auth error.
+    const load = (async () => {
+      await (window as any).google.maps.importLibrary('maps');
+      await (window as any).google.maps.importLibrary('places');
+      await (window as any).google.maps.importLibrary('marker');
+      await (window as any).google.maps.importLibrary('geometry');
+      return (window as any).google;
+    })();
 
-    return (window as any).google;
+    const timeout = new Promise<never>((_, reject) => {
+      setTimeout(() => {
+        if (authError) reject(new Error(authError));
+        else reject(new Error('Google Maps took too long to load.'));
+      }, 8000);
+    });
+
+    return (await Promise.race([load, timeout])) as typeof google;
   })();
+
+  // If loading fails, allow a future retry instead of caching the failure.
+  loaderPromise.catch(() => {
+    loaderPromise = null;
+  });
 
   return loaderPromise;
 }

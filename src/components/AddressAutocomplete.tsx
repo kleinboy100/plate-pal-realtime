@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
-import { loadGoogleMaps } from '@/lib/googleMapsLoader';
+import { loadGoogleMaps, getMapsAuthError } from '@/lib/googleMapsLoader';
 
 type LocationSource = 'search' | 'current_location' | 'pin' | 'manual';
 
@@ -64,6 +64,7 @@ export function AddressAutocomplete({
   const [gettingLocation, setGettingLocation] = useState(false);
   const [pinOpen, setPinOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<AddressLocation | null>(null);
+  const [mapsError, setMapsError] = useState<string | null>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -126,9 +127,11 @@ export function AddressAutocomplete({
 
       setSuggestions(mapped);
       setShowDropdown(true);
+      setMapsError(null);
     } catch (error) {
       console.error('Error fetching address suggestions:', error);
       setSuggestions([]);
+      setMapsError(getMapsAuthError() || (error instanceof Error ? error.message : null));
     } finally {
       setLoading(false);
     }
@@ -248,6 +251,10 @@ export function AddressAutocomplete({
           />
         )}
       </div>
+
+      {mapsError && (
+        <p className="mt-2 text-xs text-destructive leading-relaxed">{mapsError}</p>
+      )}
 
       {showLocationButton && (
         <div className="mt-2 flex flex-wrap gap-2">
