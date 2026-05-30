@@ -299,6 +299,7 @@ export default function RestaurantDashboard() {
                         key={order.id}
                         order={order}
                         onUpdateStatus={updateStatus}
+                        canMarkOutForDelivery={!isStaffOnly}
                       />
                     ))}
                   </div>
