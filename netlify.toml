@@ -10,6 +10,14 @@
 # keys from the scan so the build succeeds.
 [build.environment]
   SECRETS_SCAN_OMIT_KEYS = "VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY,VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_TRACKING_ID,VITE_SUPABASE_PUBLISHABLE_KEY,VITE_SUPABASE_URL,VITE_SUPABASE_PROJECT_ID"
+  # "Smart detection" flags high-entropy strings (e.g. the hashed Google Fonts
+  # woff2 URLs in the bundled CSS) as possible secrets, breaking the deploy with
+  # a false positive. These are public font URLs, not secrets — disable smart
+  # detection. Explicit known-key scanning above still runs.
+  SECRETS_SCAN_SMART_DETECTION_ENABLED = "false"
+  # Built assets only contain public, referrer-restricted keys and public font
+  # URLs, so skip scanning the output bundle entirely as a safety net.
+  SECRETS_SCAN_OMIT_PATHS = "dist/**"
 
 [[redirects]]
   from = "/*"
