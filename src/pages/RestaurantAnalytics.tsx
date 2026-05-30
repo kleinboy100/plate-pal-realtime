@@ -29,7 +29,7 @@ interface OrderStats {
   cancelledOrders: number;
 }
 
-const DELIVERY_FEE = 25;
+
 
 interface DailyData {
   date: string;
@@ -141,7 +141,7 @@ export default function RestaurantAnalytics() {
 
     let query = supabase
       .from('orders')
-      .select('id, total_amount, status, created_at, order_type')
+      .select('id, total_amount, delivery_fee, status, created_at, order_type')
       .eq('restaurant_id', selectedRestaurant)
       .gte('created_at', from.toISOString())
       .lte('created_at', to.toISOString());
@@ -170,7 +170,7 @@ export default function RestaurantAnalytics() {
     const grossRevenue = nonCancelled.reduce((sum, o) => sum + Number(o.total_amount), 0);
     const deliveriesRevenue = nonCancelled
       .filter(o => o.order_type === 'delivery')
-      .length * DELIVERY_FEE;
+      .reduce((sum, o) => sum + Number(o.delivery_fee ?? 0), 0);
     const totalRevenue = grossRevenue - deliveriesRevenue;
     const completedOrders = orderList.filter(o => o.status === 'delivered').length;
     const cancelledOrders = orderList.filter(o => o.status === 'cancelled' || o.status === 'declined').length;
@@ -200,7 +200,7 @@ export default function RestaurantAnalytics() {
       if (existing) {
         existing.orders += 1;
         if (order.status !== 'cancelled' && order.status !== 'declined') {
-          const fee = order.order_type === 'delivery' ? DELIVERY_FEE : 0;
+          const fee = order.order_type === 'delivery' ? Number(order.delivery_fee ?? 0) : 0;
           existing.revenue += Number(order.total_amount) - fee;
         }
       }

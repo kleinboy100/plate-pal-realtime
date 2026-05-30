@@ -313,6 +313,7 @@ export type Database = {
           delivered_at: string | null
           delivery_address: string
           delivery_address_source: string | null
+          delivery_fee: number
           delivery_latitude: number | null
           delivery_location_accuracy_m: number | null
           delivery_longitude: number | null
@@ -338,6 +339,7 @@ export type Database = {
           delivered_at?: string | null
           delivery_address: string
           delivery_address_source?: string | null
+          delivery_fee?: number
           delivery_latitude?: number | null
           delivery_location_accuracy_m?: number | null
           delivery_longitude?: number | null
@@ -363,6 +365,7 @@ export type Database = {
           delivered_at?: string | null
           delivery_address?: string
           delivery_address_source?: string | null
+          delivery_fee?: number
           delivery_latitude?: number | null
           delivery_location_accuracy_m?: number | null
           delivery_longitude?: number | null
