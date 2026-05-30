@@ -141,7 +141,7 @@ export default function RestaurantAnalytics() {
 
     let query = supabase
       .from('orders')
-      .select('id, total_amount, status, created_at, order_type')
+      .select('id, total_amount, delivery_fee, status, created_at, order_type')
       .eq('restaurant_id', selectedRestaurant)
       .gte('created_at', from.toISOString())
       .lte('created_at', to.toISOString());
