@@ -246,6 +246,10 @@ export default function RestaurantDashboard() {
                 {/* Only show Menu and Settings for owners */}
                 {!isStaffOnly && (
                   <>
+                    <TabsTrigger value="drivers" className="flex-1 min-w-0 text-xs md:text-sm px-2 md:px-3 data-[state=active]:bg-indigo-500 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg transition-all">
+                      <Bike size={14} className="mr-1 shrink-0" />
+                      <span className="hidden sm:inline">Drivers</span>
+                    </TabsTrigger>
                     <TabsTrigger value="menu" className="flex-1 min-w-0 text-xs md:text-sm px-2 md:px-3 data-[state=active]:bg-purple-500 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg transition-all">
                       <UtensilsCrossed size={14} className="mr-1 shrink-0" />
                       <span className="hidden sm:inline">Menu</span>
