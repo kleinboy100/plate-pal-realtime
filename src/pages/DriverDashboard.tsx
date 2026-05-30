@@ -1,12 +1,15 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
 import { useIsRestaurantDriver } from '@/hooks/useIsRestaurantDriver';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { Loader2, CheckCircle, XCircle, MapPin, Package, Truck, ClipboardCheck, type LucideIcon } from 'lucide-react';
+import { Loader2, CheckCircle, XCircle, MapPin, Package, Truck, ClipboardCheck, Navigation, Wallet, type LucideIcon } from 'lucide-react';
 import { DriverMap } from '@/components/DriverMap';
+import { DriverNavMap } from '@/components/DriverNavMap';
+import { OrderChat } from '@/components/OrderChat';
 import { useNavigate } from 'react-router-dom';
 
 type Order = {
@@ -15,6 +18,7 @@ type Order = {
   restaurant_id: string;
   total_amount: number;
   tip_amount: number;
+  delivery_fee: number;
   delivery_address: string;
   delivery_latitude: number | null;
   delivery_longitude: number | null;
@@ -45,6 +49,9 @@ export default function DriverDashboard() {
   const [destErrors, setDestErrors] = useState<Set<string>>(new Set());
   const [declined, setDeclined] = useState<Set<string>>(new Set());
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [navOrderId, setNavOrderId] = useState<string | null>(null);
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
   const polledRef = useRef<NodeJS.Timeout | null>(null);
 
   // Redirect non-drivers
@@ -74,7 +81,7 @@ export default function DriverDashboard() {
     const fetchOrders = async () => {
       const { data } = await supabase
         .from('orders')
-        .select('id, order_number, restaurant_id, total_amount, tip_amount, delivery_address, delivery_latitude, delivery_longitude, delivery_location_accuracy_m, delivery_address_source, status, order_type, driver_id, delivered_at, created_at')
+        .select('id, order_number, restaurant_id, total_amount, tip_amount, delivery_fee, delivery_address, delivery_latitude, delivery_longitude, delivery_location_accuracy_m, delivery_address_source, status, order_type, driver_id, delivered_at, created_at')
         .eq('restaurant_id', driverRestaurantId)
         .eq('order_type', 'delivery')
         .order('created_at', { ascending: false });
@@ -158,6 +165,7 @@ export default function DriverDashboard() {
         toast({ title: 'Could not update', description: 'Please try again.', variant: 'destructive' });
       } else {
         toast({ title: 'Marked delivered', description: 'Great work!' });
+        setNavOrderId((cur) => (cur === id ? null : cur));
       }
     } finally {
       setBusyId(null);
@@ -173,8 +181,43 @@ export default function DriverDashboard() {
   const myActive = orders.filter((o) => o.driver_id === user.id && o.status === 'out_for_delivery');
   const myDelivered = orders.filter((o) => o.driver_id === user.id && o.status === 'delivered');
 
+  // Date-filtered history for the Done tab
+  const fromTs = fromDate ? new Date(fromDate + 'T00:00:00').getTime() : null;
+  const toTs = toDate ? new Date(toDate + 'T23:59:59').getTime() : null;
+  const filteredDelivered = myDelivered.filter((o) => {
+    const t = o.delivered_at ? new Date(o.delivered_at).getTime() : new Date(o.created_at).getTime();
+    if (fromTs && t < fromTs) return false;
+    if (toTs && t > toTs) return false;
+    return true;
+  });
+
+  const earnings = filteredDelivered.reduce(
+    (acc, o) => {
+      acc.fees += Number(o.delivery_fee ?? 0);
+      acc.tips += Number(o.tip_amount ?? 0);
+      return acc;
+    },
+    { fees: 0, tips: 0 },
+  );
+  const totalEarnings = earnings.fees + earnings.tips;
+
+  // The order currently being navigated (full screen)
+  const navOrder = navOrderId ? myActive.find((o) => o.id === navOrderId) : null;
+  const navDest = navOrder ? destCoords[navOrder.id] : null;
+
   return (
     <div className="min-h-screen py-4 md:py-8 bg-gradient-to-br from-background via-background to-primary/5">
+      {navOrder && navDest && (
+        <DriverNavMap
+          destination={{ ...navDest, address: navOrder.delivery_address }}
+          origin={restaurant?.latitude && restaurant?.longitude
+            ? { lat: Number(restaurant.latitude), lng: Number(restaurant.longitude) }
+            : undefined}
+          orderLabel={`Order #${String(navOrder.order_number).padStart(5, '0')}`}
+          onClose={() => setNavOrderId(null)}
+        />
+      )}
+
       <div className="container mx-auto px-3 md:px-4 max-w-3xl">
         <div className="flex items-center justify-between mb-4">
           <div>
@@ -184,7 +227,7 @@ export default function DriverDashboard() {
         </div>
 
         <Tabs defaultValue="pickup" className="w-full">
-          <TabsList className="w-full grid grid-cols-3 mb-4 p-1.5 bg-muted rounded-xl">
+          <TabsList className="w-full grid grid-cols-4 mb-4 p-1.5 bg-muted rounded-xl">
             <TabsTrigger value="pickup" className="text-xs md:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg">
               <Package size={14} className="mr-1" />
               Ready
@@ -203,9 +246,13 @@ export default function DriverDashboard() {
                 </span>
               )}
             </TabsTrigger>
+            <TabsTrigger value="map" className="text-xs md:text-sm data-[state=active]:bg-indigo-500 data-[state=active]:text-white rounded-lg">
+              <Navigation size={14} className="mr-1" />
+              Map
+            </TabsTrigger>
             <TabsTrigger value="done" className="text-xs md:text-sm data-[state=active]:bg-green-500 data-[state=active]:text-white rounded-lg">
               <ClipboardCheck size={14} className="mr-1" />
-              Delivered
+              Done
             </TabsTrigger>
           </TabsList>
 
@@ -227,9 +274,12 @@ export default function DriverDashboard() {
                       <MapPin size={14} className="mt-0.5 shrink-0" />
                       <span>{o.delivery_address}</span>
                     </div>
-                    {Number(o.tip_amount) > 0 && (
-                      <p className="text-xs text-green-600 font-semibold">Tip included: R{Number(o.tip_amount).toFixed(2)}</p>
-                    )}
+                    <div className="flex items-center gap-3 text-xs">
+                      <span className="font-semibold text-indigo-600">Delivery: R{Number(o.delivery_fee).toFixed(2)}</span>
+                      {Number(o.tip_amount) > 0 && (
+                        <span className="text-green-600 font-semibold">Tip: R{Number(o.tip_amount).toFixed(2)}</span>
+                      )}
+                    </div>
                     <div className="flex gap-2">
                       <Button onClick={() => accept(o.id)} disabled={busyId === o.id} className="flex-1 btn-primary">
                         {busyId === o.id ? <Loader2 className="w-4 h-4 animate-spin" /> : (<><CheckCircle size={16} className="mr-1" />Accept</>)}
@@ -261,17 +311,36 @@ export default function DriverDashboard() {
                           <p className="font-bold">Order #{String(o.order_number).padStart(5, '0')}</p>
                           <p className="text-xs text-muted-foreground flex items-start gap-1"><MapPin size={12} className="mt-0.5"/> {o.delivery_address}</p>
                         </div>
-                        <p className="font-bold text-primary">R{Number(o.total_amount).toFixed(2)}</p>
+                        <div className="text-right">
+                          <p className="font-bold text-primary">R{Number(o.total_amount).toFixed(2)}</p>
+                          <p className="text-xs text-indigo-600 font-semibold">Delivery R{Number(o.delivery_fee).toFixed(2)}</p>
+                          {Number(o.tip_amount) > 0 && (
+                            <p className="text-xs text-green-600 font-semibold">Tip R{Number(o.tip_amount).toFixed(2)}</p>
+                          )}
+                        </div>
                       </div>
+
+                      <div className="flex items-center gap-2">
+                        <Button
+                          onClick={() => { setNavOrderId(o.id); }}
+                          disabled={!dc}
+                          className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white"
+                        >
+                          <Navigation size={16} className="mr-1" />
+                          {dc ? 'Navigate' : 'Locating…'}
+                        </Button>
+                        <OrderChat orderId={o.id} userType="restaurant" />
+                      </div>
+
                       {dc ? (
-                        <DriverMap destination={dc} restaurant={rest} className="h-[480px] md:h-[560px]" />
+                        <DriverMap destination={dc} restaurant={rest} className="h-[320px] md:h-[420px]" />
                       ) : destErrors.has(o.id) ? (
-                        <div className="bg-muted rounded-xl h-[480px] md:h-[560px] flex flex-col items-center justify-center gap-2 px-6 text-center text-sm text-muted-foreground">
+                        <div className="bg-muted rounded-xl h-[320px] md:h-[420px] flex flex-col items-center justify-center gap-2 px-6 text-center text-sm text-muted-foreground">
                           <MapPin className="h-8 w-8" />
                           <span>Customer location could not be found. Use the written address above.</span>
                         </div>
                       ) : (
-                        <div className="bg-muted rounded-xl h-[480px] md:h-[560px] flex items-center justify-center text-sm text-muted-foreground">
+                        <div className="bg-muted rounded-xl h-[320px] md:h-[420px] flex items-center justify-center text-sm text-muted-foreground">
                           <Loader2 className="w-4 h-4 animate-spin mr-2" /> Locating customer...
                         </div>
                       )}
@@ -289,21 +358,89 @@ export default function DriverDashboard() {
             )}
           </TabsContent>
 
-          <TabsContent value="done">
-            {myDelivered.length === 0 ? (
-              <EmptyState icon={ClipboardCheck} msg="No completed deliveries yet." />
+          <TabsContent value="map">
+            {myActive.length === 0 ? (
+              <EmptyState icon={Navigation} msg="No active delivery to navigate. Accept an order first." />
             ) : (
               <div className="space-y-3">
-                {myDelivered.slice(0, 30).map((o) => (
+                <p className="text-sm text-muted-foreground">Tap an order to open full-screen voice navigation.</p>
+                {myActive.map((o) => {
+                  const dc = destCoords[o.id];
+                  return (
+                    <button
+                      key={o.id}
+                      onClick={() => dc && setNavOrderId(o.id)}
+                      disabled={!dc}
+                      className="w-full text-left card-elevated p-4 flex items-center justify-between gap-3 disabled:opacity-60"
+                    >
+                      <div className="min-w-0">
+                        <p className="font-bold">Order #{String(o.order_number).padStart(5, '0')}</p>
+                        <p className="text-xs text-muted-foreground flex items-start gap-1 truncate"><MapPin size={12} className="mt-0.5 shrink-0"/> {o.delivery_address}</p>
+                      </div>
+                      <span className="shrink-0 inline-flex items-center gap-1 text-indigo-600 font-semibold text-sm">
+                        <Navigation size={16} /> {dc ? 'Navigate' : 'Locating…'}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="done">
+            {/* Earnings summary */}
+            <div className="card-elevated p-4 mb-4 bg-gradient-to-br from-card to-green-500/5">
+              <div className="flex items-center gap-2 mb-3">
+                <Wallet size={18} className="text-green-600" />
+                <h3 className="font-semibold">My earnings</h3>
+              </div>
+              <div className="grid grid-cols-3 gap-2 mb-3">
+                <div className="rounded-lg bg-muted/60 p-2 text-center">
+                  <p className="text-[11px] text-muted-foreground">Delivery</p>
+                  <p className="font-bold text-indigo-600">R{earnings.fees.toFixed(2)}</p>
+                </div>
+                <div className="rounded-lg bg-muted/60 p-2 text-center">
+                  <p className="text-[11px] text-muted-foreground">Tips</p>
+                  <p className="font-bold text-green-600">R{earnings.tips.toFixed(2)}</p>
+                </div>
+                <div className="rounded-lg bg-primary/10 p-2 text-center">
+                  <p className="text-[11px] text-muted-foreground">Total</p>
+                  <p className="font-bold text-primary">R{totalEarnings.toFixed(2)}</p>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-end gap-2">
+                <div className="flex-1 min-w-[120px]">
+                  <label className="text-[11px] text-muted-foreground">From</label>
+                  <Input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="h-9" />
+                </div>
+                <div className="flex-1 min-w-[120px]">
+                  <label className="text-[11px] text-muted-foreground">To</label>
+                  <Input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="h-9" />
+                </div>
+                {(fromDate || toDate) && (
+                  <Button variant="outline" size="sm" onClick={() => { setFromDate(''); setToDate(''); }}>Clear</Button>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">{filteredDelivered.length} deliveries</p>
+            </div>
+
+            {filteredDelivered.length === 0 ? (
+              <EmptyState icon={ClipboardCheck} msg="No completed deliveries for this period." />
+            ) : (
+              <div className="space-y-3">
+                {filteredDelivered.map((o) => (
                   <div key={o.id} className="card-elevated p-4 space-y-1">
                     <div className="flex items-center justify-between">
                       <p className="font-bold">Order #{String(o.order_number).padStart(5, '0')}</p>
-                      <p className="font-bold text-primary">R{Number(o.total_amount).toFixed(2)}</p>
+                      <p className="font-bold text-indigo-600">Delivery R{Number(o.delivery_fee).toFixed(2)}</p>
                     </div>
                     <p className="text-xs text-muted-foreground flex items-start gap-1"><MapPin size={12} className="mt-0.5"/> {o.delivery_address}</p>
-                    {Number(o.tip_amount) > 0 && (
-                      <p className="text-xs text-green-600 font-semibold">Tip: R{Number(o.tip_amount).toFixed(2)}</p>
-                    )}
+                    <div className="flex items-center justify-between">
+                      {Number(o.tip_amount) > 0 ? (
+                        <p className="text-xs text-green-600 font-semibold">Tip: R{Number(o.tip_amount).toFixed(2)}</p>
+                      ) : <span />}
+                      <p className="text-xs font-semibold">You earned R{(Number(o.delivery_fee) + Number(o.tip_amount)).toFixed(2)}</p>
+                    </div>
                     {o.delivered_at && (
                       <p className="text-xs text-muted-foreground">Delivered {new Date(o.delivered_at).toLocaleString()}</p>
                     )}
