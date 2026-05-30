@@ -9,27 +9,32 @@
 // To allow a new domain (e.g. www.nosty.co.za), add it to this key's HTTP
 // referrer restrictions in Google Cloud Console — do NOT change this file.
 
-// Your own production key — referrer-restricted to nosty.life / nosty.co.za,
-// with billing enabled. Used on the live custom domains.
-const CUSTOM_BROWSER_KEY = 'AIzaSyAZLLgYkblCL3mambA14hl52DWayMBR18A';
-
-// Lovable-managed key (from the Google Maps connector). It is referrer-locked to
-// *.lovable.app / *.lovableproject.com, so it is the one that works in preview.
-const MANAGED_BROWSER_KEY =
+// Google Maps browser key from the connected Google Maps Platform setup.
+// This is a public, HTTP-referrer-restricted browser key and must be provided
+// by the deployment environment so the same verified key is bundled for Netlify.
+const BROWSER_KEY =
   (import.meta.env.VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY as string | undefined) || '';
+const TRACKING_ID =
+  (import.meta.env.VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_TRACKING_ID as string | undefined) || '';
 
-// Pick the right key for the current host: managed key on Lovable preview
-// domains, your own key everywhere else (production custom domains).
+// Always use the environment-provided key. Hardcoded production keys easily go
+// stale and can be rejected on custom domains like nosty.co.za.
 function resolveBrowserKey(): string {
-  const host = typeof window !== 'undefined' ? window.location.hostname : '';
-  const isLovableHost = /\.lovable\.app$|\.lovableproject\.com$/.test(host);
-  if (isLovableHost && MANAGED_BROWSER_KEY) return MANAGED_BROWSER_KEY;
-  return CUSTOM_BROWSER_KEY;
+  return BROWSER_KEY;
 }
 
 let loaderPromise: Promise<typeof google> | null = null;
 
 function installBootstrap(key: string) {
+  if (!key) {
+    throw new Error(
+      'Google Maps browser key is missing. Add VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY in Netlify and redeploy.'
+    );
+  }
+
+  const bootstrapOptions: Record<string, string> = { key, v: 'weekly' };
+  if (TRACKING_ID) bootstrapOptions.channel = TRACKING_ID;
+
   // Official Google Maps JS API inline bootstrap loader.
   // Defines window.google.maps.importLibrary immediately.
   /* eslint-disable */
@@ -52,7 +57,7 @@ function installBootstrap(key: string) {
       }));
     d[l] ? console.warn(p + " only loads once. Ignoring:", g) :
       d[l] = (f: any, ...n: any) => r.add(f) && u().then(() => d[l](f, ...n));
-  })({ key, v: "weekly" });
+  })(bootstrapOptions);
   /* eslint-enable */
 }
 
