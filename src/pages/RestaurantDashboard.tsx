@@ -36,6 +36,7 @@ export default function RestaurantDashboard() {
 
   // Determine if user is staff-only (not owner)
   const isStaffOnly = isStaff && !isOwner;
+  const soundKey = `restaurant-${user?.id ?? 'anon'}`;
 
   useEffect(() => {
     if (user) fetchRestaurants();
