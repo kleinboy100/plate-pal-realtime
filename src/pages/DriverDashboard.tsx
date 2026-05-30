@@ -245,6 +245,12 @@ export default function DriverDashboard() {
           </div>
         </div>
 
+        <div className="card-elevated p-4 mb-4">
+          <NotificationSoundPicker storageKey={soundKey} previewText="New delivery available" />
+        </div>
+
+
+
         <Tabs defaultValue="pickup" className="w-full">
           <TabsList className="w-full grid grid-cols-4 mb-4 p-1.5 bg-muted rounded-xl">
             <TabsTrigger value="pickup" className="text-xs md:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg">
