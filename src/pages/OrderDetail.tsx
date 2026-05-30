@@ -350,6 +350,13 @@ export default function OrderDetail() {
             <Button size="sm" onClick={handleEnableNotifications}>Enable</Button>
           </div>
         )}
+
+        {/* Custom Notification Sound */}
+        <div className="card-elevated p-4 mb-6">
+          <NotificationSoundPicker storageKey={soundKey} previewText="Your order status has changed" />
+        </div>
+        
+
         
         <div className="card-elevated p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
