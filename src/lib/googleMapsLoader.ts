@@ -9,18 +9,25 @@
 // To allow a new domain (e.g. www.nosty.co.za), add it to this key's HTTP
 // referrer restrictions in Google Cloud Console — do NOT change this file.
 
-// Google Maps browser key from the connected Google Maps Platform setup.
-// This is a public, HTTP-referrer-restricted browser key and must be provided
-// by the deployment environment so the same verified key is bundled for Netlify.
+// The connector-provided browser key is referrer-restricted to Lovable preview
+// domains only. It works in dev/preview, but Google rejects it on nosty.co.za.
 const BROWSER_KEY =
   (import.meta.env.VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY as string | undefined) || '';
 const TRACKING_ID =
   (import.meta.env.VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_TRACKING_ID as string | undefined) || '';
 
-// Always use the environment-provided key. Hardcoded production keys easily go
-// stale and can be rejected on custom domains like nosty.co.za.
+// Public Google Maps browser key for Nosty's custom domain. This is safe to
+// ship client-side because it is HTTP-referrer-restricted in Google Cloud.
+const NOSTY_CUSTOM_DOMAIN_BROWSER_KEY = 'AIzaSyAZLLgYkblCL3mambA14hl52DWayMBR18A';
+
+// Use the Lovable-managed key only where it is allowed. On Netlify/custom
+// domains, always use Nosty's own key so Google does not reject the referrer.
 function resolveBrowserKey(): string {
-  return BROWSER_KEY;
+  const host = typeof window !== 'undefined' ? window.location.hostname : '';
+  const isLovableHost = /(^|\.)lovable\.app$|(^|\.)lovableproject\.com$/.test(host);
+
+  if (isLovableHost && BROWSER_KEY) return BROWSER_KEY;
+  return NOSTY_CUSTOM_DOMAIN_BROWSER_KEY;
 }
 
 let loaderPromise: Promise<typeof google> | null = null;
