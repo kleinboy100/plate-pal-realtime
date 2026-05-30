@@ -32,7 +32,6 @@ export default function RestaurantDashboard() {
   const [selectedRestaurant, setSelectedRestaurant] = useState<string>('');
   const [newOrderIds, setNewOrderIds] = useState<Set<string>>(new Set());
   const { permission, requestPermission, showNotification, supported } = usePushNotifications();
-  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Determine if user is staff-only (not owner)
   const isStaffOnly = isStaff && !isOwner;
