@@ -193,8 +193,14 @@ export default function OrderDetail() {
           }
         });
         
+      // Polling fallback in case realtime is unavailable
+      const poll = setInterval(() => {
+        fetchOrder();
+      }, 15000);
+
       return () => { 
         supabase.removeChannel(channel); 
+        clearInterval(poll);
       };
     }
   }, [id, showNotification]);
