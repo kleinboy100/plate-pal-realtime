@@ -1,5 +1,5 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { ShoppingCart, User, LogOut, Store, ClipboardList, Menu as MenuIcon, MessageSquare, Bell, Wallet } from 'lucide-react';
+import { ShoppingCart, User, LogOut, Store, ClipboardList, Menu as MenuIcon, MessageSquare, Bell, Wallet, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -104,6 +104,12 @@ export function Navbar() {
             </DropdownMenuItem>
           </>
         )}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <a href="mailto:mozksolutions@gmail.com" className="flex items-center gap-2 cursor-pointer">
+            <Mail size={16} /> Support
+          </a>
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleSignOut} className="flex items-center gap-2 cursor-pointer">
           <LogOut size={16} /> Sign Out
