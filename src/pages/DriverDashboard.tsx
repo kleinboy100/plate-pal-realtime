@@ -10,7 +10,7 @@ import { Loader2, CheckCircle, XCircle, MapPin, Package, Truck, ClipboardCheck, 
 import { DriverMap } from '@/components/DriverMap';
 import { DriverNavMap } from '@/components/DriverNavMap';
 import { OrderChat } from '@/components/OrderChat';
-import { NotificationSoundPicker } from '@/components/NotificationSoundPicker';
+
 import { playNotification } from '@/lib/notificationSound';
 import { useNavigate } from 'react-router-dom';
 
