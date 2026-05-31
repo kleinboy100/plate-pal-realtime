@@ -21,6 +21,7 @@ import RestaurantAnalytics from "./pages/RestaurantAnalytics";
 import { OAuthCallback } from "./pages/OAuthCallback";
 import Install from "./pages/Install";
 import Privacy from "./pages/Privacy";
+import DeleteAccount from "./pages/DeleteAccount";
 import DriverDashboard from "./pages/DriverDashboard";
 import NotificationSettings from "./pages/NotificationSettings";
 import Earnings from "./pages/Earnings";
@@ -54,6 +55,7 @@ const App = () => (
                 <Route path="/notifications" element={<NotificationSettings />} />
                 <Route path="/earnings" element={<Earnings />} />
                 <Route path="/privacy" element={<Privacy />} />
+                <Route path="/delete-account" element={<DeleteAccount />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </div>
