@@ -51,6 +51,8 @@ const App = () => (
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/~oauth" element={<OAuthCallback />} />
                 <Route path="/install" element={<Install />} />
+                <Route path="/notifications" element={<NotificationSettings />} />
+                <Route path="/earnings" element={<Earnings />} />
                 <Route path="/privacy" element={<Privacy />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
