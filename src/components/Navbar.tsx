@@ -99,10 +99,8 @@ export function Navbar() {
                 <User size={16} /> Profile
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link to="/orders" className="flex items-center gap-2 cursor-pointer">
-                <MessageSquare size={16} /> Chat
-              </Link>
+            <DropdownMenuItem onClick={handleOpenChat} className="flex items-center gap-2 cursor-pointer">
+              <MessageSquare size={16} /> Chat
             </DropdownMenuItem>
           </>
         )}
