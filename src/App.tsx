@@ -22,6 +22,8 @@ import { OAuthCallback } from "./pages/OAuthCallback";
 import Install from "./pages/Install";
 import Privacy from "./pages/Privacy";
 import DriverDashboard from "./pages/DriverDashboard";
+import NotificationSettings from "./pages/NotificationSettings";
+import Earnings from "./pages/Earnings";
 
 const queryClient = new QueryClient();
 
