@@ -153,7 +153,13 @@ export default function Index() {
                 isOpen ? "bg-success" : "bg-muted-foreground"
               )} />
               <Clock className="w-4 h-4" />
-              <span className="font-semibold">{isOpen ? "We're open!" : "Open 10AM to 6PM"}</span>
+              <span className="font-semibold">
+                {/* Temporary: show closed today message on May 31, 2026 */}
+                {new Date().toDateString() === 'Sun May 31 2026'
+                  ? "The store will be closed today"
+                  : isOpen ? "We're open!" : "Open 10AM to 6PM"
+                }
+              </span>
             </div>
             <div className="flex-1 flex justify-end">
               <img
