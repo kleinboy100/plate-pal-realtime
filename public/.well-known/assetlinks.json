@@ -2,7 +2,7 @@
       "relation": ["delegate_permission/common.handle_all_urls"],
       "target": {
         "namespace": "android_app",
-        "package_name": "za.co.nosty.www.twa",
+        "package_name": "com.kasiconnect.nostysfreshfastfood",
         "sha256_cert_fingerprints": ["7E:2C:8C:3B:1F:0A:E0:68:2E:08:C0:2C:7F:27:E1:63:8E:15:7D:C8:6F:2E:79:4A:22:55:D5:F4:87:6F:E5:BC"]
       }
     }]
