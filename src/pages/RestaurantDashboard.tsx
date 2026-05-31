@@ -18,7 +18,7 @@ import { useIsRestaurantOwner } from '@/hooks/useIsRestaurantOwner';
 import { useIsRestaurantStaff } from '@/hooks/useIsRestaurantStaff';
 import { RecipeManager } from '@/components/RecipeManager';
 import { StockManager } from '@/components/StockManager';
-import { NotificationSoundPicker } from '@/components/NotificationSoundPicker';
+
 import { playNotification } from '@/lib/notificationSound';
 
 const EXTERNAL_DASHBOARD_URL = 'https://restaurant-demand-forecasting-1.onrender.com';
@@ -210,10 +210,8 @@ export default function RestaurantDashboard() {
               )}
             </div>
 
-            {/* Custom Notification Sound */}
-            <div className="card-elevated p-4 mb-4 md:mb-6">
-              <NotificationSoundPicker storageKey={soundKey} previewText="New order received" />
-            </div>
+
+
 
 
             {/* Order Tabs */}

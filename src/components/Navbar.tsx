@@ -1,9 +1,18 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { ShoppingCart, User, LogOut, Store, ClipboardList } from 'lucide-react';
+import { ShoppingCart, User, LogOut, Store, ClipboardList, Menu as MenuIcon, MessageSquare, Bell, Wallet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
 import { useIsRestaurantOwner } from '@/hooks/useIsRestaurantOwner';
+import { useIsRestaurantStaff } from '@/hooks/useIsRestaurantStaff';
+import { useIsRestaurantDriver } from '@/hooks/useIsRestaurantDriver';
 import { cn } from '@/lib/utils';
 import nostyLogo from '@/assets/nosty-logo.jpg';
 
@@ -13,6 +22,10 @@ export function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const { isOwner } = useIsRestaurantOwner();
+  const { isStaff } = useIsRestaurantStaff();
+  const { isDriver } = useIsRestaurantDriver();
+
+  const isStaffSide = isOwner || isStaff || isDriver;
 
   const handleSignOut = async () => {
     await signOut();
@@ -20,6 +33,60 @@ export function Navbar() {
   };
 
   const isActive = (path: string) => location.pathname === path;
+
+  const AppMenu = () => (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon" className="rounded-xl hover:bg-muted/50" aria-label="Menu">
+          <MenuIcon size={20} />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-52">
+        {isStaffSide ? (
+          <>
+            <DropdownMenuItem asChild>
+              <Link to="/notifications" className="flex items-center gap-2 cursor-pointer">
+                <Bell size={16} /> Notification Settings
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to="/earnings" className="flex items-center gap-2 cursor-pointer">
+                <Wallet size={16} /> Earnings
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link to="/profile" className="flex items-center gap-2 cursor-pointer">
+                <User size={16} /> Profile
+              </Link>
+            </DropdownMenuItem>
+          </>
+        ) : (
+          <>
+            <DropdownMenuItem asChild>
+              <Link to="/orders" className="flex items-center gap-2 cursor-pointer">
+                <ClipboardList size={16} /> My Orders
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to="/profile" className="flex items-center gap-2 cursor-pointer">
+                <User size={16} /> Profile
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to="/orders" className="flex items-center gap-2 cursor-pointer">
+                <MessageSquare size={16} /> Chat
+              </Link>
+            </DropdownMenuItem>
+          </>
+        )}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={handleSignOut} className="flex items-center gap-2 cursor-pointer">
+          <LogOut size={16} /> Sign Out
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 
   return (
     <nav className="sticky top-0 z-50 border-b border-border/50 shadow-sm bg-[hsl(var(--brand))]" style={{ backdropFilter: 'blur(16px)' }}>
@@ -95,16 +162,7 @@ export function Navbar() {
             </Link>
 
             {user ? (
-              <div className="flex items-center gap-1">
-                <Link to="/profile">
-                  <Button variant="ghost" size="icon" className="rounded-xl hover:bg-muted/50">
-                    <User size={20} />
-                  </Button>
-                </Link>
-                <Button variant="ghost" size="icon" onClick={handleSignOut} className="rounded-xl hover:bg-muted/50">
-                  <LogOut size={20} />
-                </Button>
-              </div>
+              <AppMenu />
             ) : (
               <Link to="/auth">
                 <Button className="btn-primary rounded-xl px-5">Sign In</Button>
@@ -112,24 +170,22 @@ export function Navbar() {
             )}
           </div>
 
-          {/* Mobile: Show profile/logout if logged in, sign in button if logged out */}
-          <div className="md:hidden">
+          {/* Mobile Actions */}
+          <div className="md:hidden flex items-center gap-1">
             {user ? (
-              <div className="flex items-center gap-1">
-                <Link to="/orders">
-                  <Button variant="ghost" size="icon" className="rounded-xl" aria-label="My Orders">
-                    <ClipboardList size={20} />
+              <>
+                <Link to="/cart" className="relative">
+                  <Button variant="ghost" size="icon" className="rounded-xl" aria-label="Cart">
+                    <ShoppingCart size={20} />
+                    {itemCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold shadow-md">
+                        {itemCount}
+                      </span>
+                    )}
                   </Button>
                 </Link>
-                <Link to="/profile">
-                  <Button variant="ghost" size="icon" className="rounded-xl">
-                    <User size={20} />
-                  </Button>
-                </Link>
-                <Button variant="ghost" size="icon" onClick={handleSignOut} className="rounded-xl">
-                  <LogOut size={20} />
-                </Button>
-              </div>
+                <AppMenu />
+              </>
             ) : (
               <Link to="/auth">
                 <Button className="btn-primary rounded-xl px-4 text-sm">Sign In</Button>

@@ -22,6 +22,8 @@ import { OAuthCallback } from "./pages/OAuthCallback";
 import Install from "./pages/Install";
 import Privacy from "./pages/Privacy";
 import DriverDashboard from "./pages/DriverDashboard";
+import NotificationSettings from "./pages/NotificationSettings";
+import Earnings from "./pages/Earnings";
 
 const queryClient = new QueryClient();
 
@@ -49,6 +51,8 @@ const App = () => (
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/~oauth" element={<OAuthCallback />} />
                 <Route path="/install" element={<Install />} />
+                <Route path="/notifications" element={<NotificationSettings />} />
+                <Route path="/earnings" element={<Earnings />} />
                 <Route path="/privacy" element={<Privacy />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
