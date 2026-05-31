@@ -245,9 +245,8 @@ export default function DriverDashboard() {
           </div>
         </div>
 
-        <div className="card-elevated p-4 mb-4">
-          <NotificationSoundPicker storageKey={soundKey} previewText="New delivery available" />
-        </div>
+
+
 
 
 
