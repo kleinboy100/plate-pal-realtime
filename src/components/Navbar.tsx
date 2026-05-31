@@ -1,5 +1,5 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { ShoppingCart, User, LogOut, Store, ClipboardList, Menu as MenuIcon, MessageSquare, Bell, Wallet } from 'lucide-react';
+import { ShoppingCart, User, LogOut, Store, ClipboardList, Menu as MenuIcon, MessageSquare, Bell, Wallet, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
