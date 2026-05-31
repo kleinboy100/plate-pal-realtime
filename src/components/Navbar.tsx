@@ -14,6 +14,8 @@ import { useIsRestaurantOwner } from '@/hooks/useIsRestaurantOwner';
 import { useIsRestaurantStaff } from '@/hooks/useIsRestaurantStaff';
 import { useIsRestaurantDriver } from '@/hooks/useIsRestaurantDriver';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 import nostyLogo from '@/assets/nosty-logo.jpg';
 
 export function Navbar() {
@@ -27,9 +29,33 @@ export function Navbar() {
 
   const isStaffSide = isOwner || isStaff || isDriver;
 
+  const { toast } = useToast();
+
   const handleSignOut = async () => {
     await signOut();
     navigate('/');
+  };
+
+  const handleOpenChat = async () => {
+    if (!user) {
+      navigate('/orders');
+      return;
+    }
+    const { data } = await supabase
+      .from('orders')
+      .select('id')
+      .eq('user_id', user.id)
+      .not('status', 'in', '(delivered,cancelled)')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (data?.id) {
+      navigate(`/orders/${data.id}?chat=open`);
+    } else {
+      toast({ title: 'No active orders', description: 'You have no active orders to chat about.' });
+      navigate('/orders');
+    }
   };
 
   const isActive = (path: string) => location.pathname === path;
@@ -73,10 +99,8 @@ export function Navbar() {
                 <User size={16} /> Profile
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link to="/orders" className="flex items-center gap-2 cursor-pointer">
-                <MessageSquare size={16} /> Chat
-              </Link>
+            <DropdownMenuItem onClick={handleOpenChat} className="flex items-center gap-2 cursor-pointer">
+              <MessageSquare size={16} /> Chat
             </DropdownMenuItem>
           </>
         )}

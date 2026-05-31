@@ -369,7 +369,7 @@ export default function OrderDetail() {
                   variant="outline"
                   size="sm"
                 />
-                <OrderChat orderId={order.id} userType="customer" />
+                <OrderChat orderId={order.id} userType="customer" defaultOpen={searchParams.get('chat') === 'open'} />
               </div>
             )}
           </div>

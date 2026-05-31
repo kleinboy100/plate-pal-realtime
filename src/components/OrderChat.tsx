@@ -20,13 +20,14 @@ interface OrderChatProps {
   orderId: string;
   userType: 'customer' | 'restaurant';
   className?: string;
+  defaultOpen?: boolean;
 }
 
-export function OrderChat({ orderId, userType, className }: OrderChatProps) {
+export function OrderChat({ orderId, userType, className, defaultOpen = false }: OrderChatProps) {
   const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(defaultOpen);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOtherTyping, setIsOtherTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
