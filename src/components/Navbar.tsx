@@ -22,6 +22,10 @@ export function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const { isOwner } = useIsRestaurantOwner();
+  const { isStaff } = useIsRestaurantStaff();
+  const { isDriver } = useIsRestaurantDriver();
+
+  const isStaffSide = isOwner || isStaff || isDriver;
 
   const handleSignOut = async () => {
     await signOut();
@@ -29,6 +33,60 @@ export function Navbar() {
   };
 
   const isActive = (path: string) => location.pathname === path;
+
+  const AppMenu = () => (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon" className="rounded-xl hover:bg-muted/50" aria-label="Menu">
+          <MenuIcon size={20} />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-52">
+        {isStaffSide ? (
+          <>
+            <DropdownMenuItem asChild>
+              <Link to="/notifications" className="flex items-center gap-2 cursor-pointer">
+                <Bell size={16} /> Notification Settings
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to="/earnings" className="flex items-center gap-2 cursor-pointer">
+                <Wallet size={16} /> Earnings
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link to="/profile" className="flex items-center gap-2 cursor-pointer">
+                <User size={16} /> Profile
+              </Link>
+            </DropdownMenuItem>
+          </>
+        ) : (
+          <>
+            <DropdownMenuItem asChild>
+              <Link to="/orders" className="flex items-center gap-2 cursor-pointer">
+                <ClipboardList size={16} /> My Orders
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to="/profile" className="flex items-center gap-2 cursor-pointer">
+                <User size={16} /> Profile
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to="/orders" className="flex items-center gap-2 cursor-pointer">
+                <MessageSquare size={16} /> Chat
+              </Link>
+            </DropdownMenuItem>
+          </>
+        )}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={handleSignOut} className="flex items-center gap-2 cursor-pointer">
+          <LogOut size={16} /> Sign Out
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 
   return (
     <nav className="sticky top-0 z-50 border-b border-border/50 shadow-sm bg-[hsl(var(--brand))]" style={{ backdropFilter: 'blur(16px)' }}>
