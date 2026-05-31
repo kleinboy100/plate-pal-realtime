@@ -29,9 +29,33 @@ export function Navbar() {
 
   const isStaffSide = isOwner || isStaff || isDriver;
 
+  const { toast } = useToast();
+
   const handleSignOut = async () => {
     await signOut();
     navigate('/');
+  };
+
+  const handleOpenChat = async () => {
+    if (!user) {
+      navigate('/orders');
+      return;
+    }
+    const { data } = await supabase
+      .from('orders')
+      .select('id')
+      .eq('user_id', user.id)
+      .not('status', 'in', '(delivered,cancelled)')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (data?.id) {
+      navigate(`/orders/${data.id}?chat=open`);
+    } else {
+      toast({ title: 'No active orders', description: 'You have no active orders to chat about.' });
+      navigate('/orders');
+    }
   };
 
   const isActive = (path: string) => location.pathname === path;
