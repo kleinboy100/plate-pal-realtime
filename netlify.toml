@@ -2,6 +2,13 @@
   command = "bun run build"
   publish = "dist"
 
+# Ensure the Digital Asset Links file is served as raw JSON (required by the
+# Android TWA verifier) and never swallowed by the SPA catch-all redirect.
+[[headers]]
+  for = "/.well-known/assetlinks.json"
+  [headers.values]
+    Content-Type = "application/json"
+
 # The Google Maps browser key is a referrer-restricted, publishable key. It is
 # safe to expose (it only works from our allowed domains) but Netlify's secret
 # scanner flags any "AIza..." string. We tell the scanner to ignore the .env
