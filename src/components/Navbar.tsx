@@ -162,16 +162,7 @@ export function Navbar() {
             </Link>
 
             {user ? (
-              <div className="flex items-center gap-1">
-                <Link to="/profile">
-                  <Button variant="ghost" size="icon" className="rounded-xl hover:bg-muted/50">
-                    <User size={20} />
-                  </Button>
-                </Link>
-                <Button variant="ghost" size="icon" onClick={handleSignOut} className="rounded-xl hover:bg-muted/50">
-                  <LogOut size={20} />
-                </Button>
-              </div>
+              <AppMenu />
             ) : (
               <Link to="/auth">
                 <Button className="btn-primary rounded-xl px-5">Sign In</Button>
@@ -179,24 +170,22 @@ export function Navbar() {
             )}
           </div>
 
-          {/* Mobile: Show profile/logout if logged in, sign in button if logged out */}
-          <div className="md:hidden">
+          {/* Mobile Actions */}
+          <div className="md:hidden flex items-center gap-1">
             {user ? (
-              <div className="flex items-center gap-1">
-                <Link to="/orders">
-                  <Button variant="ghost" size="icon" className="rounded-xl" aria-label="My Orders">
-                    <ClipboardList size={20} />
+              <>
+                <Link to="/cart" className="relative">
+                  <Button variant="ghost" size="icon" className="rounded-xl" aria-label="Cart">
+                    <ShoppingCart size={20} />
+                    {itemCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold shadow-md">
+                        {itemCount}
+                      </span>
+                    )}
                   </Button>
                 </Link>
-                <Link to="/profile">
-                  <Button variant="ghost" size="icon" className="rounded-xl">
-                    <User size={20} />
-                  </Button>
-                </Link>
-                <Button variant="ghost" size="icon" onClick={handleSignOut} className="rounded-xl">
-                  <LogOut size={20} />
-                </Button>
-              </div>
+                <AppMenu />
+              </>
             ) : (
               <Link to="/auth">
                 <Button className="btn-primary rounded-xl px-4 text-sm">Sign In</Button>
