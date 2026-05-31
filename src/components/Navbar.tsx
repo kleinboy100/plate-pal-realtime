@@ -1,9 +1,18 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { ShoppingCart, User, LogOut, Store, ClipboardList } from 'lucide-react';
+import { ShoppingCart, User, LogOut, Store, ClipboardList, Menu as MenuIcon, MessageSquare, Bell, Wallet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
 import { useIsRestaurantOwner } from '@/hooks/useIsRestaurantOwner';
+import { useIsRestaurantStaff } from '@/hooks/useIsRestaurantStaff';
+import { useIsRestaurantDriver } from '@/hooks/useIsRestaurantDriver';
 import { cn } from '@/lib/utils';
 import nostyLogo from '@/assets/nosty-logo.jpg';
 
