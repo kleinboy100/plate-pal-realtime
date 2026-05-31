@@ -104,10 +104,16 @@ export function Navbar() {
             </DropdownMenuItem>
           </>
         )}
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleSignOut} className="flex items-center gap-2 cursor-pointer">
-          <LogOut size={16} /> Sign Out
-        </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <a href="mailto:mozksolutions@gmail.com" className="flex items-center gap-2 cursor-pointer">
+                <Mail size={16} /> Support
+              </a>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleSignOut} className="flex items-center gap-2 cursor-pointer">
+              <LogOut size={16} /> Sign Out
+            </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
