@@ -14,6 +14,8 @@ import { useIsRestaurantOwner } from '@/hooks/useIsRestaurantOwner';
 import { useIsRestaurantStaff } from '@/hooks/useIsRestaurantStaff';
 import { useIsRestaurantDriver } from '@/hooks/useIsRestaurantDriver';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 import nostyLogo from '@/assets/nosty-logo.jpg';
 
 export function Navbar() {
