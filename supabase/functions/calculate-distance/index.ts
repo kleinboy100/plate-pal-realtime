@@ -77,6 +77,8 @@ function haversineKm(a: Coord, b: Coord): number {
 }
 
 function feeFromMeters(meters: number): number {
+  // Distances below 5km use a flat standard fee; 5km+ uses R1 per 80 metres.
+  if (meters < FLAT_FEE_DISTANCE_M) return STANDARD_FLAT_FEE;
   return Math.round(meters * RATE_PER_METER * 100) / 100;
 }
 
