@@ -8,21 +8,9 @@ const corsHeaders = {
 
 const NOMINATIM_URL = "https://nominatim.openstreetmap.org";
 const OSRM_URL = "https://router.project-osrm.org";
-const RATE_PER_METER = 0.80 / 90; // ZAR: R0.80 per 90 metres (areas outside Jouberton)
-const JOUBERTON_FLAT_FEE = 32; // ZAR flat delivery fee within Jouberton
-
-// Jouberton bounding box (approx): lat/lng range
-const JOUBERTON_BOUNDS = { minLat: -26.93, maxLat: -26.86, minLng: 26.56, maxLng: 26.66 };
-
-function isInJouberton(coord: Coord | null, address?: string): boolean {
-  if (address && address.toLowerCase().includes("jouberton")) return true;
-  if (coord &&
-    coord.lat >= JOUBERTON_BOUNDS.minLat && coord.lat <= JOUBERTON_BOUNDS.maxLat &&
-    coord.lng >= JOUBERTON_BOUNDS.minLng && coord.lng <= JOUBERTON_BOUNDS.maxLng) {
-    return true;
-  }
-  return false;
-}
+const RATE_PER_METER = 1 / 80; // ZAR: R1 per 80 metres (distances of 5km or more)
+const STANDARD_FLAT_FEE = 36; // ZAR flat delivery fee for distances below 5km
+const FLAT_FEE_DISTANCE_M = 5000; // below 5km uses the flat fee, 5km+ uses per-metre rate
 
 
 interface Coord { lat: number; lng: number; }
