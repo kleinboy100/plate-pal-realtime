@@ -102,7 +102,7 @@ export default function DriverDashboard() {
     const fetchOrders = async () => {
       const { data } = await supabase
         .from('orders')
-        .select('id, order_number, restaurant_id, total_amount, tip_amount, delivery_fee, delivery_address, delivery_latitude, delivery_longitude, delivery_location_accuracy_m, delivery_address_source, status, order_type, driver_id, delivered_at, created_at')
+        .select('id, order_number, restaurant_id, total_amount, tip_amount, delivery_fee, delivery_address, delivery_latitude, delivery_longitude, delivery_location_accuracy_m, delivery_address_source, status, order_type, payment_method, payment_confirmed, driver_id, delivered_at, created_at')
         .eq('restaurant_id', driverRestaurantId)
         .eq('order_type', 'delivery')
         .order('created_at', { ascending: false });
