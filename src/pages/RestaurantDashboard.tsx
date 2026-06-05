@@ -11,6 +11,7 @@ import { MenuManager } from '@/components/MenuManager';
 import { OperatingHoursSettings } from '@/components/OperatingHoursSettings';
 import { StaffManager } from '@/components/StaffManager';
 import { DriverManager } from '@/components/DriverManager';
+import { StoreOpenToggle } from '@/components/StoreOpenToggle';
 import { DriverEarnings } from '@/components/DriverEarnings';
 import { Store, Bell, Volume2, Settings, UtensilsCrossed, BarChart3, ExternalLink, ChefHat, Package, Bike } from 'lucide-react';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
