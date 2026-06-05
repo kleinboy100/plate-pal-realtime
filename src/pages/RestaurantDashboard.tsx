@@ -367,6 +367,26 @@ export default function RestaurantDashboard() {
                   </TabsContent>
                 </>
               )}
+
+              {/* Staff settings: open/close store + manage staff & drivers only */}
+              {isStaffOnly && (
+                <TabsContent value="settings">
+                  <div className="max-w-xl space-y-8">
+                    <div>
+                      <h2 className="font-semibold text-lg mb-4">Store Status</h2>
+                      <StoreOpenToggle restaurantId={selectedRestaurant} />
+                    </div>
+                    <div>
+                      <h2 className="font-semibold text-lg mb-4">Staff Management</h2>
+                      <StaffManager restaurantId={selectedRestaurant} />
+                    </div>
+                    <div>
+                      <h2 className="font-semibold text-lg mb-4">Driver Management</h2>
+                      <DriverManager restaurantId={selectedRestaurant} />
+                    </div>
+                  </div>
+                </TabsContent>
+              )}
             </Tabs>
           </>
         )}
