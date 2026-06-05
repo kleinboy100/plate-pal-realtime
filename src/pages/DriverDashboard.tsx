@@ -43,6 +43,45 @@ type Restaurant = {
   longitude: number | null;
 };
 
+function OrderMoneyBreakdown({ order }: { order: Order }) {
+  const deliveryFee = Number(order.delivery_fee ?? 0);
+  const tip = Number(order.tip_amount ?? 0);
+  const mealsTotal = Number(order.total_amount) - deliveryFee - tip;
+  const paymentLabel = order.payment_confirmed
+    ? order.payment_method === 'cash'
+      ? 'Cash on Delivery'
+      : 'Paid Online'
+    : 'Payment pending';
+  const isCash = order.payment_confirmed && order.payment_method === 'cash';
+  return (
+    <div className="rounded-lg bg-muted/60 p-3 space-y-1 text-sm">
+      <div className="flex justify-between">
+        <span className="text-muted-foreground">Meals total</span>
+        <span>R{mealsTotal.toFixed(2)}</span>
+      </div>
+      <div className="flex justify-between">
+        <span className="text-muted-foreground">Delivery price</span>
+        <span>R{deliveryFee.toFixed(2)}</span>
+      </div>
+      {tip > 0 && (
+        <div className="flex justify-between">
+          <span className="text-muted-foreground">Tip</span>
+          <span className="text-green-600">R{tip.toFixed(2)}</span>
+        </div>
+      )}
+      <div className="flex justify-between font-semibold pt-1 border-t">
+        <span>Total due</span>
+        <span>R{Number(order.total_amount).toFixed(2)}</span>
+      </div>
+      <div className={`flex items-center gap-1.5 pt-1 font-medium ${isCash ? 'text-amber-600' : 'text-emerald-600'}`}>
+        <Wallet size={14} />
+        <span>{paymentLabel}{isCash ? ` — collect R${Number(order.total_amount).toFixed(2)}` : ''}</span>
+      </div>
+    </div>
+  );
+}
+
+
 export default function DriverDashboard() {
   const { user, loading: authLoading } = useAuth();
   const { isDriver, driverRestaurantId, loading: driverLoading } = useIsRestaurantDriver();
