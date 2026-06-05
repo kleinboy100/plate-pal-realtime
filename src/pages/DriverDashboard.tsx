@@ -28,6 +28,8 @@ type Order = {
   delivery_address_source: string | null;
   status: string;
   order_type: string;
+  payment_method: string | null;
+  payment_confirmed: boolean | null;
   driver_id: string | null;
   delivered_at: string | null;
   created_at: string;
