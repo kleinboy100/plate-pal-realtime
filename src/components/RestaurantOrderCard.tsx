@@ -15,6 +15,8 @@ interface Order {
   id: string;
   status: string;
   total_amount: number;
+  delivery_fee?: number;
+  tip_amount?: number;
   delivery_address: string;
   notes?: string;
   created_at: string;
