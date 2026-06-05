@@ -247,6 +247,13 @@ export default function RestaurantDashboard() {
                   <ChefHat size={14} className="mr-1 shrink-0" />
                   <span className="hidden sm:inline">Recipes</span>
                 </TabsTrigger>
+                {/* Staff get a limited Settings tab */}
+                {isStaffOnly && (
+                  <TabsTrigger value="settings" className="flex-1 min-w-0 text-xs md:text-sm px-2 md:px-3 data-[state=active]:bg-slate-600 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg transition-all">
+                    <Settings size={14} className="mr-1 shrink-0" />
+                    <span className="hidden sm:inline">Settings</span>
+                  </TabsTrigger>
+                )}
                 {/* Only show Menu and Settings for owners */}
                 {!isStaffOnly && (
                   <>
