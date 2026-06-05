@@ -339,12 +339,7 @@ export default function DriverDashboard() {
                       <MapPin size={14} className="mt-0.5 shrink-0" />
                       <span>{o.delivery_address}</span>
                     </div>
-                    <div className="flex items-center gap-3 text-xs">
-                      <span className="font-semibold text-indigo-600">Delivery: R{Number(o.delivery_fee).toFixed(2)}</span>
-                      {Number(o.tip_amount) > 0 && (
-                        <span className="text-green-600 font-semibold">Tip: R{Number(o.tip_amount).toFixed(2)}</span>
-                      )}
-                    </div>
+                    <OrderMoneyBreakdown order={o} />
                     <div className="flex gap-2">
                       <Button onClick={() => accept(o.id)} disabled={busyId === o.id} className="flex-1 btn-primary">
                         {busyId === o.id ? <Loader2 className="w-4 h-4 animate-spin" /> : (<><CheckCircle size={16} className="mr-1" />Accept</>)}
