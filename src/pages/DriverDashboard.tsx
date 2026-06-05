@@ -366,19 +366,11 @@ export default function DriverDashboard() {
                     : undefined;
                   return (
                     <div key={o.id} className="card-elevated p-4 space-y-3">
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <p className="font-bold">Order #{String(o.order_number).padStart(5, '0')}</p>
-                          <p className="text-xs text-muted-foreground flex items-start gap-1"><MapPin size={12} className="mt-0.5"/> {o.delivery_address}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-bold text-primary">R{Number(o.total_amount).toFixed(2)}</p>
-                          <p className="text-xs text-indigo-600 font-semibold">Delivery R{Number(o.delivery_fee).toFixed(2)}</p>
-                          {Number(o.tip_amount) > 0 && (
-                            <p className="text-xs text-green-600 font-semibold">Tip R{Number(o.tip_amount).toFixed(2)}</p>
-                          )}
-                        </div>
+                      <div>
+                        <p className="font-bold">Order #{String(o.order_number).padStart(5, '0')}</p>
+                        <p className="text-xs text-muted-foreground flex items-start gap-1"><MapPin size={12} className="mt-0.5"/> {o.delivery_address}</p>
                       </div>
+                      <OrderMoneyBreakdown order={o} />
 
                       <div className="flex items-center gap-2">
                         <Button
