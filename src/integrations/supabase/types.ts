@@ -968,6 +968,7 @@ export type Database = {
         Returns: boolean
       }
       is_restaurant_staff: { Args: never; Returns: boolean }
+      is_staff_of: { Args: { p_restaurant_id: string }; Returns: boolean }
       mark_order_delivered: { Args: { p_order_id: string }; Returns: boolean }
       owner_has_payment_keys: {
         Args: { p_restaurant_id: string }
@@ -979,6 +980,10 @@ export type Database = {
       }
       restaurant_has_online_payment: {
         Args: { p_restaurant_id: string }
+        Returns: boolean
+      }
+      set_store_open: {
+        Args: { p_open: boolean; p_restaurant_id: string }
         Returns: boolean
       }
       update_restaurant_payment_credentials: {

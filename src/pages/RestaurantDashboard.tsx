@@ -11,6 +11,7 @@ import { MenuManager } from '@/components/MenuManager';
 import { OperatingHoursSettings } from '@/components/OperatingHoursSettings';
 import { StaffManager } from '@/components/StaffManager';
 import { DriverManager } from '@/components/DriverManager';
+import { StoreOpenToggle } from '@/components/StoreOpenToggle';
 import { DriverEarnings } from '@/components/DriverEarnings';
 import { Store, Bell, Volume2, Settings, UtensilsCrossed, BarChart3, ExternalLink, ChefHat, Package, Bike } from 'lucide-react';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
@@ -246,6 +247,13 @@ export default function RestaurantDashboard() {
                   <ChefHat size={14} className="mr-1 shrink-0" />
                   <span className="hidden sm:inline">Recipes</span>
                 </TabsTrigger>
+                {/* Staff get a limited Settings tab */}
+                {isStaffOnly && (
+                  <TabsTrigger value="settings" className="flex-1 min-w-0 text-xs md:text-sm px-2 md:px-3 data-[state=active]:bg-slate-600 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg transition-all">
+                    <Settings size={14} className="mr-1 shrink-0" />
+                    <span className="hidden sm:inline">Settings</span>
+                  </TabsTrigger>
+                )}
                 {/* Only show Menu and Settings for owners */}
                 {!isStaffOnly && (
                   <>
@@ -358,6 +366,26 @@ export default function RestaurantDashboard() {
                     </div>
                   </TabsContent>
                 </>
+              )}
+
+              {/* Staff settings: open/close store + manage staff & drivers only */}
+              {isStaffOnly && (
+                <TabsContent value="settings">
+                  <div className="max-w-xl space-y-8">
+                    <div>
+                      <h2 className="font-semibold text-lg mb-4">Store Status</h2>
+                      <StoreOpenToggle restaurantId={selectedRestaurant} />
+                    </div>
+                    <div>
+                      <h2 className="font-semibold text-lg mb-4">Staff Management</h2>
+                      <StaffManager restaurantId={selectedRestaurant} />
+                    </div>
+                    <div>
+                      <h2 className="font-semibold text-lg mb-4">Driver Management</h2>
+                      <DriverManager restaurantId={selectedRestaurant} />
+                    </div>
+                  </div>
+                </TabsContent>
               )}
             </Tabs>
           </>

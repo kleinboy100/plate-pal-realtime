@@ -8,7 +8,7 @@ const corsHeaders = {
 
 const NOMINATIM_URL = "https://nominatim.openstreetmap.org";
 const OSRM_URL = "https://router.project-osrm.org";
-const RATE_PER_METER = 1 / 80; // ZAR: R1 per 80 metres (distances of 5km or more)
+const RATE_PER_METER = 0.8 / 100; // ZAR: 80c per 100 metres (distances of 5km or more)
 const STANDARD_FLAT_FEE = 36; // ZAR flat delivery fee for distances below 5km
 const FLAT_FEE_DISTANCE_M = 5000; // below 5km uses the flat fee, 5km+ uses per-metre rate
 

@@ -28,6 +28,8 @@ type Order = {
   delivery_address_source: string | null;
   status: string;
   order_type: string;
+  payment_method: string | null;
+  payment_confirmed: boolean | null;
   driver_id: string | null;
   delivered_at: string | null;
   created_at: string;
@@ -40,6 +42,45 @@ type Restaurant = {
   latitude: number | null;
   longitude: number | null;
 };
+
+function OrderMoneyBreakdown({ order }: { order: Order }) {
+  const deliveryFee = Number(order.delivery_fee ?? 0);
+  const tip = Number(order.tip_amount ?? 0);
+  const mealsTotal = Number(order.total_amount) - deliveryFee - tip;
+  const paymentLabel = order.payment_confirmed
+    ? order.payment_method === 'cash'
+      ? 'Cash on Delivery'
+      : 'Paid Online'
+    : 'Payment pending';
+  const isCash = order.payment_confirmed && order.payment_method === 'cash';
+  return (
+    <div className="rounded-lg bg-muted/60 p-3 space-y-1 text-sm">
+      <div className="flex justify-between">
+        <span className="text-muted-foreground">Meals total</span>
+        <span>R{mealsTotal.toFixed(2)}</span>
+      </div>
+      <div className="flex justify-between">
+        <span className="text-muted-foreground">Delivery price</span>
+        <span>R{deliveryFee.toFixed(2)}</span>
+      </div>
+      {tip > 0 && (
+        <div className="flex justify-between">
+          <span className="text-muted-foreground">Tip</span>
+          <span className="text-green-600">R{tip.toFixed(2)}</span>
+        </div>
+      )}
+      <div className="flex justify-between font-semibold pt-1 border-t">
+        <span>Total due</span>
+        <span>R{Number(order.total_amount).toFixed(2)}</span>
+      </div>
+      <div className={`flex items-center gap-1.5 pt-1 font-medium ${isCash ? 'text-amber-600' : 'text-emerald-600'}`}>
+        <Wallet size={14} />
+        <span>{paymentLabel}{isCash ? ` — collect R${Number(order.total_amount).toFixed(2)}` : ''}</span>
+      </div>
+    </div>
+  );
+}
+
 
 export default function DriverDashboard() {
   const { user, loading: authLoading } = useAuth();
@@ -100,7 +141,7 @@ export default function DriverDashboard() {
     const fetchOrders = async () => {
       const { data } = await supabase
         .from('orders')
-        .select('id, order_number, restaurant_id, total_amount, tip_amount, delivery_fee, delivery_address, delivery_latitude, delivery_longitude, delivery_location_accuracy_m, delivery_address_source, status, order_type, driver_id, delivered_at, created_at')
+        .select('id, order_number, restaurant_id, total_amount, tip_amount, delivery_fee, delivery_address, delivery_latitude, delivery_longitude, delivery_location_accuracy_m, delivery_address_source, status, order_type, payment_method, payment_confirmed, driver_id, delivered_at, created_at')
         .eq('restaurant_id', driverRestaurantId)
         .eq('order_type', 'delivery')
         .order('created_at', { ascending: false });
@@ -298,12 +339,7 @@ export default function DriverDashboard() {
                       <MapPin size={14} className="mt-0.5 shrink-0" />
                       <span>{o.delivery_address}</span>
                     </div>
-                    <div className="flex items-center gap-3 text-xs">
-                      <span className="font-semibold text-indigo-600">Delivery: R{Number(o.delivery_fee).toFixed(2)}</span>
-                      {Number(o.tip_amount) > 0 && (
-                        <span className="text-green-600 font-semibold">Tip: R{Number(o.tip_amount).toFixed(2)}</span>
-                      )}
-                    </div>
+                    <OrderMoneyBreakdown order={o} />
                     <div className="flex gap-2">
                       <Button onClick={() => accept(o.id)} disabled={busyId === o.id} className="flex-1 btn-primary">
                         {busyId === o.id ? <Loader2 className="w-4 h-4 animate-spin" /> : (<><CheckCircle size={16} className="mr-1" />Accept</>)}
@@ -330,19 +366,11 @@ export default function DriverDashboard() {
                     : undefined;
                   return (
                     <div key={o.id} className="card-elevated p-4 space-y-3">
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <p className="font-bold">Order #{String(o.order_number).padStart(5, '0')}</p>
-                          <p className="text-xs text-muted-foreground flex items-start gap-1"><MapPin size={12} className="mt-0.5"/> {o.delivery_address}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-bold text-primary">R{Number(o.total_amount).toFixed(2)}</p>
-                          <p className="text-xs text-indigo-600 font-semibold">Delivery R{Number(o.delivery_fee).toFixed(2)}</p>
-                          {Number(o.tip_amount) > 0 && (
-                            <p className="text-xs text-green-600 font-semibold">Tip R{Number(o.tip_amount).toFixed(2)}</p>
-                          )}
-                        </div>
+                      <div>
+                        <p className="font-bold">Order #{String(o.order_number).padStart(5, '0')}</p>
+                        <p className="text-xs text-muted-foreground flex items-start gap-1"><MapPin size={12} className="mt-0.5"/> {o.delivery_address}</p>
                       </div>
+                      <OrderMoneyBreakdown order={o} />
 
                       <div className="flex items-center gap-2">
                         <Button

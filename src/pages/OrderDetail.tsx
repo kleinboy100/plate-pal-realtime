@@ -554,10 +554,35 @@ export default function OrderDetail() {
               <span>R{(Number(item.price) * item.quantity).toFixed(2)}</span>
             </div>
           ))}
-          <div className="flex justify-between font-bold pt-4 mt-4 border-t">
-            <span>Total</span>
-            <span>R{Number(order.total_amount).toFixed(2)}</span>
-          </div>
+          {(() => {
+            const deliveryFee = Number(order.delivery_fee ?? 0);
+            const tip = Number(order.tip_amount ?? 0);
+            const mealsTotal = Number(order.total_amount) - deliveryFee - tip;
+            return (
+              <div className="pt-4 mt-4 border-t space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Meals total</span>
+                  <span>R{mealsTotal.toFixed(2)}</span>
+                </div>
+                {order.order_type !== 'collection' && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Delivery price</span>
+                    <span>R{deliveryFee.toFixed(2)}</span>
+                  </div>
+                )}
+                {tip > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Tip</span>
+                    <span>R{tip.toFixed(2)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between font-bold pt-2 border-t">
+                  <span>Total due</span>
+                  <span>R{Number(order.total_amount).toFixed(2)}</span>
+                </div>
+              </div>
+            );
+          })()}
           <div className="mt-4 pt-4 border-t space-y-2">
             <p className="text-sm text-muted-foreground">
               {order.order_type === 'collection' ? 'Collection at: ' : 'Delivery: '}{order.delivery_address}

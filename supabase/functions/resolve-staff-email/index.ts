@@ -59,7 +59,19 @@ Deno.serve(async (req) => {
       .eq("owner_id", caller.id)
       .maybeSingle();
 
-    if (!restaurant) {
+    // Allow either the owner or an existing staff member of this restaurant
+    let authorized = !!restaurant;
+    if (!authorized) {
+      const { data: staffRow } = await adminClient
+        .from("restaurant_staff")
+        .select("id")
+        .eq("restaurant_id", restaurant_id)
+        .eq("user_id", caller.id)
+        .maybeSingle();
+      authorized = !!staffRow;
+    }
+
+    if (!authorized) {
       return new Response(JSON.stringify({ success: false, error: "Not authorized for this restaurant" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

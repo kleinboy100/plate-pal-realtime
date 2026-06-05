@@ -15,6 +15,8 @@ interface Order {
   id: string;
   status: string;
   total_amount: number;
+  delivery_fee?: number;
+  tip_amount?: number;
   delivery_address: string;
   notes?: string;
   created_at: string;
@@ -135,9 +137,36 @@ export function RestaurantOrderCard({ order, onUpdateStatus, isNew, canMarkOutFo
             <span className="text-muted-foreground">R{(Number(item.price) * item.quantity).toFixed(2)}</span>
           </div>
         ))}
-        <div className="border-t mt-2 pt-2 flex justify-between font-semibold">
-          <span>Total</span>
-          <span>R{Number(order.total_amount).toFixed(2)}</span>
+        <div className="border-t mt-2 pt-2 space-y-1">
+          {(() => {
+            const deliveryFee = Number(order.delivery_fee ?? 0);
+            const tip = Number(order.tip_amount ?? 0);
+            const mealsTotal = Number(order.total_amount) - deliveryFee - tip;
+            return (
+              <>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Meals total</span>
+                  <span>R{mealsTotal.toFixed(2)}</span>
+                </div>
+                {orderType !== 'collection' && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Delivery price</span>
+                    <span>R{deliveryFee.toFixed(2)}</span>
+                  </div>
+                )}
+                {tip > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Tip</span>
+                    <span>R{tip.toFixed(2)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between font-semibold pt-1 border-t">
+                  <span>Total due</span>
+                  <span>R{Number(order.total_amount).toFixed(2)}</span>
+                </div>
+              </>
+            );
+          })()}
         </div>
       </div>
 
