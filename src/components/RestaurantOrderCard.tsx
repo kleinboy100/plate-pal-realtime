@@ -66,8 +66,12 @@ export function RestaurantOrderCard({ order, onUpdateStatus, isNew, canMarkOutFo
   const [loading, setLoading] = useState(false);
   const orderType = order.order_type || 'delivery';
   const nextAction = getNextAction(order.status, orderType);
-  // Staff are not allowed to mark delivery orders as "out for delivery".
-  const blockedAction = !canMarkOutForDelivery && nextAction?.status === 'out_for_delivery';
+  // Staff are not allowed to move delivery orders "out for delivery" or to
+  // mark them "delivered" — only the assigned driver or the owner can do that.
+  const blockedAction =
+    !canMarkOutForDelivery &&
+    orderType === 'delivery' &&
+    (nextAction?.status === 'out_for_delivery' || nextAction?.status === 'delivered');
 
   const handleAction = async (status: string) => {
     setLoading(true);
@@ -265,7 +269,9 @@ export function RestaurantOrderCard({ order, onUpdateStatus, isNew, canMarkOutFo
 
           {blockedAction && (
             <p className="text-xs text-muted-foreground">
-              Order is ready. A driver will take it out for delivery.
+              {order.status === 'out_for_delivery'
+                ? 'Out for delivery. The driver will mark it delivered.'
+                : 'Order is ready. A driver will take it out for delivery.'}
             </p>
           )}
         </div>
