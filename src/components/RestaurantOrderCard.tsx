@@ -269,7 +269,9 @@ export function RestaurantOrderCard({ order, onUpdateStatus, isNew, canMarkOutFo
 
           {blockedAction && (
             <p className="text-xs text-muted-foreground">
-              Order is ready. A driver will take it out for delivery.
+              {order.status === 'out_for_delivery'
+                ? 'Out for delivery. The driver will mark it delivered.'
+                : 'Order is ready. A driver will take it out for delivery.'}
             </p>
           )}
         </div>
