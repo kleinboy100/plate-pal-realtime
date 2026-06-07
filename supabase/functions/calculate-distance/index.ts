@@ -11,6 +11,7 @@ const OSRM_URL = "https://router.project-osrm.org";
 const RATE_PER_METER = 0.9 / 100; // ZAR: 90c per 100 metres (distances of 5km or more)
 const STANDARD_FLAT_FEE = 36; // ZAR flat delivery fee for distances below 5km
 const FLAT_FEE_DISTANCE_M = 5000; // below 5km uses the flat fee, 5km+ uses per-metre rate
+const ALABAMA_FLAT_FEE = 43; // ZAR flat delivery fee for Alabama, Klerksdorp
 
 
 interface Coord { lat: number; lng: number; }
@@ -105,6 +106,20 @@ serve(async (req) => {
     }
 
     const body: RequestBody = await req.json();
+
+    // Alabama, Klerksdorp gets a flat standard delivery price of R43.
+    const isAlabama = (body.customerAddress ?? "").toLowerCase().includes("alabama");
+    if (isAlabama) {
+      return new Response(JSON.stringify({
+        distanceKm: null,
+        distanceMeters: null,
+        durationMinutes: 20,
+        fee: ALABAMA_FLAT_FEE,
+        customerCoords: body.customerCoords ?? null,
+        restaurantCoords: body.restaurantCoords ?? null,
+        method: "alabama-flat",
+      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
 
     if (body.restaurantCoords && !isCoord(body.restaurantCoords)) {
       return new Response(JSON.stringify({ error: "Invalid restaurant coordinates" }), {
