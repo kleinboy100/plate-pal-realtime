@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Send, MessageCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { playNotification } from '@/lib/notificationSound';
 
 interface Message {
   id: string;
@@ -80,6 +81,8 @@ export function OrderChat({ orderId, userType, className, defaultOpen = false }:
           // Show notification if message is from the other party
           if (newMsg.sender_type !== userType) {
             setUnreadCount(prev => prev + 1);
+            // Voice alert: "New message received"
+            playNotification(`chat-${userType}`, 'New message received');
             if ('Notification' in window && Notification.permission === 'granted') {
               new Notification('New Message', {
                 body: newMsg.content,
