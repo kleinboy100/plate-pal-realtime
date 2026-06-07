@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Send, MessageCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { playNotification } from '@/lib/notificationSound';
 
 interface Message {
   id: string;
