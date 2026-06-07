@@ -106,6 +106,20 @@ serve(async (req) => {
 
     const body: RequestBody = await req.json();
 
+    // Alabama, Klerksdorp gets a flat standard delivery price of R43.
+    const isAlabama = (body.customerAddress ?? "").toLowerCase().includes("alabama");
+    if (isAlabama) {
+      return new Response(JSON.stringify({
+        distanceKm: null,
+        distanceMeters: null,
+        durationMinutes: 20,
+        fee: ALABAMA_FLAT_FEE,
+        customerCoords: body.customerCoords ?? null,
+        restaurantCoords: body.restaurantCoords ?? null,
+        method: "alabama-flat",
+      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     if (body.restaurantCoords && !isCoord(body.restaurantCoords)) {
       return new Response(JSON.stringify({ error: "Invalid restaurant coordinates" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
