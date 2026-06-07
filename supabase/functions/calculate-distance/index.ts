@@ -11,6 +11,7 @@ const OSRM_URL = "https://router.project-osrm.org";
 const RATE_PER_METER = 0.9 / 100; // ZAR: 90c per 100 metres (distances of 5km or more)
 const STANDARD_FLAT_FEE = 36; // ZAR flat delivery fee for distances below 5km
 const FLAT_FEE_DISTANCE_M = 5000; // below 5km uses the flat fee, 5km+ uses per-metre rate
+const ALABAMA_FLAT_FEE = 43; // ZAR flat delivery fee for Alabama, Klerksdorp
 
 
 interface Coord { lat: number; lng: number; }
