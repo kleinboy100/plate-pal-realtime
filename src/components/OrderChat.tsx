@@ -81,6 +81,8 @@ export function OrderChat({ orderId, userType, className, defaultOpen = false }:
           // Show notification if message is from the other party
           if (newMsg.sender_type !== userType) {
             setUnreadCount(prev => prev + 1);
+            // Voice alert: "New message received"
+            playNotification(`chat-${userType}`, 'New message received');
             if ('Notification' in window && Notification.permission === 'granted') {
               new Notification('New Message', {
                 body: newMsg.content,
