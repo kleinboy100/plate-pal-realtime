@@ -8,11 +8,17 @@
     }
   },
   {
-    "relation": ["delegate_permission/common.handle_all_urls"],
+    "relation": [
+      "delegate_permission/common.handle_all_urls",
+      "delegate_permission/common.get_login_creds"
+    ],
     "target": {
       "namespace": "android_app",
       "package_name": "za.co.nosty.www.twa",
-      "sha256_cert_fingerprints": ["7E:2C:8C:3B:1F:0A:E0:68:2E:08:C0:2C:7F:27:E1:63:8E:15:7D:C8:6F:2E:79:4A:22:55:D5:F4:87:6F:E5:BC"]
+      "sha256_cert_fingerprints": [
+        "7E:2C:8C:3B:1F:0A:E0:68:2E:08:C0:2C:7F:27:E1:63:8E:15:7D:C8:6F:2E:79:4A:22:55:D5:F4:87:6F:E5:BC",
+        "66:42:EC:05:6C:4F:41:90:FE:84:2F:19:4E:04:C7:5B:26:2B:6B:2E:E5:9C:AD:B9:85:2B:74:DD:C0:53:A9:E0"
+      ]
     }
   }
 ]
