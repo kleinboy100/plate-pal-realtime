@@ -139,32 +139,47 @@ export default function RestaurantAnalytics() {
     const to = endOfDay(dateRange.to ?? dateRange.from);
     const days = Math.max(1, differenceInDays(to, from) + 1);
 
-    let query = supabase
-      .from('orders')
-      .select('id, total_amount, delivery_fee, status, created_at, order_type')
-      .eq('restaurant_id', selectedRestaurant)
-      .gte('created_at', from.toISOString())
-      .lte('created_at', to.toISOString());
+    const buildQuery = () => {
+      let query = supabase
+        .from('orders')
+        .select('id, total_amount, delivery_fee, status, created_at, order_type')
+        .eq('restaurant_id', selectedRestaurant)
+        .gte('created_at', from.toISOString())
+        .lte('created_at', to.toISOString())
+        .order('created_at', { ascending: true });
 
-    if (statusFilter !== 'all') {
-      query = query.eq('status', statusFilter);
-    }
-    if (paymentFilter !== 'all') {
-      query = query.eq('payment_method', paymentFilter);
-    }
-    if (fulfillmentFilter !== 'all') {
-      query = query.eq('order_type', fulfillmentFilter);
-    }
+      if (statusFilter !== 'all') {
+        query = query.eq('status', statusFilter);
+      }
+      if (paymentFilter !== 'all') {
+        query = query.eq('payment_method', paymentFilter);
+      }
+      if (fulfillmentFilter !== 'all') {
+        query = query.eq('order_type', fulfillmentFilter);
+      }
+      return query;
+    };
 
-    const { data: orders, error } = await query;
+    // PostgREST caps a single response at 1000 rows, so page through all
+    // matching orders to keep counts/revenue accurate beyond 1000 orders.
+    const PAGE_SIZE = 1000;
+    const orderList: any[] = [];
+    let page = 0;
+    while (true) {
+      const { data: batch, error } = await buildQuery()
+        .range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1);
 
-    if (error) {
-      console.error('Error fetching orders:', error);
-      setLoading(false);
-      return;
+      if (error) {
+        console.error('Error fetching orders:', error);
+        setLoading(false);
+        return;
+      }
+
+      if (!batch || batch.length === 0) break;
+      orderList.push(...batch);
+      if (batch.length < PAGE_SIZE) break;
+      page += 1;
     }
-
-    const orderList = orders || [];
 
     const nonCancelled = orderList.filter(o => o.status !== 'cancelled' && o.status !== 'declined');
     const grossRevenue = nonCancelled.reduce((sum, o) => sum + Number(o.total_amount), 0);
