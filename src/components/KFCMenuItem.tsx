@@ -4,6 +4,7 @@ import { useCart } from '@/contexts/CartContext';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { isPromoApplicable, getEffectivePrice, PROMO_LABEL, PROMO_DEADLINE_TEXT } from '@/lib/promo';
 
 interface KFCMenuItemProps {
   id: string;
