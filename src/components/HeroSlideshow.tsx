@@ -111,16 +111,31 @@ export function HeroSlideshow({ menuItems, restaurantId, restaurantName }: HeroS
                   ? "opacity-100 translate-y-0" 
                   : "opacity-0 translate-y-4"
               )}>
+                {isPromoApplicable(slide.id) && (
+                  <div className="mb-2 flex flex-wrap items-center gap-1.5">
+                    <span className="inline-block bg-success text-success-foreground px-2.5 py-0.5 rounded-full text-[10px] md:text-xs font-extrabold shadow animate-pulse">
+                      {PROMO_LABEL}
+                    </span>
+                    <span className="inline-block bg-secondary-foreground/10 text-secondary-foreground px-2.5 py-0.5 rounded-full text-[9px] md:text-[11px] font-semibold">
+                      {PROMO_DEADLINE_TEXT}
+                    </span>
+                  </div>
+                )}
                 <h2 className="font-display text-lg md:text-2xl lg:text-3xl font-bold text-secondary-foreground mb-2 line-clamp-2">
                   {slide.title}
                 </h2>
                 <p className="text-secondary-foreground/70 text-xs md:text-sm lg:text-base line-clamp-2 mb-3">
-                  {slide.subtitle}
+                  {isPromoApplicable(slide.id) ? 'Save 10% on this meal — limited time!' : slide.subtitle}
                 </p>
                 <div className="flex items-center gap-3 flex-wrap">
                   {slide.price > 0 && (
-                    <span className="inline-block bg-secondary-foreground text-secondary px-3 py-1 rounded-full text-sm font-bold shadow-lg">
-                      R{slide.price.toFixed(2)}
+                    <span className="inline-flex items-center gap-1.5 bg-secondary-foreground text-secondary px-3 py-1 rounded-full text-sm font-bold shadow-lg">
+                      {isPromoApplicable(slide.id) && (
+                        <span className="text-secondary/60 line-through text-xs font-semibold">
+                          R{slide.price.toFixed(2)}
+                        </span>
+                      )}
+                      R{getEffectivePrice(slide.id, slide.price).toFixed(2)}
                     </span>
                   )}
                   {slide.id && (
