@@ -95,43 +95,39 @@ export function HeroSlideshow({ menuItems, restaurantId, restaurantName }: HeroS
           )}
         >
           {/* Left side - Text content (50%) */}
-          <div className="w-1/2 flex flex-col px-4 md:px-8 lg:px-12 z-10 bg-gradient-to-br from-secondary via-secondary to-secondary/90">
-            {/* Fresh and Fast - Top Center */}
-            <div className="flex justify-center pt-4 md:pt-6">
-              <span className="text-secondary-foreground/80 text-xs md:text-sm font-semibold tracking-wider uppercase">
+          <div className="w-1/2 flex flex-col z-10 bg-gradient-to-br from-secondary via-secondary to-secondary/90 overflow-y-auto">
+            {/* Main Content - Centered, scrollable so nothing is clipped */}
+            <div className="flex-1 flex flex-col items-center justify-center min-h-0 px-2.5 py-3 md:px-8 md:py-6 lg:px-12">
+              <span className="text-secondary-foreground/80 text-[9px] md:text-sm font-semibold tracking-wider uppercase mb-1.5">
                 Fresh & Fast
               </span>
-            </div>
-            
-            {/* Main Content - Centered */}
-            <div className="flex-1 flex items-center justify-center">
               <div className={cn(
-                "max-w-md transition-all duration-700 delay-200",
+                "w-full max-w-md transition-all duration-700 delay-200",
                 index === currentSlide 
                   ? "opacity-100 translate-y-0" 
                   : "opacity-0 translate-y-4"
               )}>
                 {isPromoApplicable(slide.id) && (
-                  <div className="mb-2 flex flex-wrap items-center gap-1.5">
-                    <span className="inline-block bg-success text-success-foreground px-2.5 py-0.5 rounded-full text-[10px] md:text-xs font-extrabold shadow animate-pulse">
+                  <div className="mb-1.5 flex flex-wrap items-center gap-1">
+                    <span className="inline-block bg-success text-success-foreground px-2 py-0.5 rounded-full text-[9px] md:text-xs font-extrabold shadow animate-pulse">
                       {PROMO_LABEL}
                     </span>
-                    <span className="inline-block bg-secondary-foreground/10 text-secondary-foreground px-2.5 py-0.5 rounded-full text-[9px] md:text-[11px] font-semibold">
+                    <span className="inline-block bg-secondary-foreground/10 text-secondary-foreground px-2 py-0.5 rounded-full text-[8px] md:text-[11px] font-semibold">
                       {PROMO_DEADLINE_TEXT}
                     </span>
                   </div>
                 )}
-                <h2 className="font-display text-lg md:text-2xl lg:text-3xl font-bold text-secondary-foreground mb-2 line-clamp-2">
+                <h2 className="font-display text-sm md:text-2xl lg:text-3xl font-bold text-secondary-foreground mb-1.5 break-words leading-tight">
                   {slide.title}
                 </h2>
-                <p className="text-secondary-foreground/70 text-xs md:text-sm lg:text-base line-clamp-2 mb-3">
+                <p className="text-secondary-foreground/70 text-[10px] md:text-sm lg:text-base mb-2.5 break-words leading-snug">
                   {isPromoApplicable(slide.id) ? 'Save 10% on this meal — limited time!' : slide.subtitle}
                 </p>
-                <div className="flex items-center gap-3 flex-wrap">
+                <div className="flex items-center gap-2 flex-wrap">
                   {slide.price > 0 && (
-                    <span className="inline-flex items-center gap-1.5 bg-secondary-foreground text-secondary px-3 py-1 rounded-full text-sm font-bold shadow-lg">
+                    <span className="inline-flex items-center gap-1.5 bg-secondary-foreground text-secondary px-2.5 py-1 rounded-full text-xs md:text-sm font-bold shadow-lg">
                       {isPromoApplicable(slide.id) && (
-                        <span className="text-secondary/60 line-through text-xs font-semibold">
+                        <span className="text-secondary/60 line-through text-[10px] md:text-xs font-semibold">
                           R{slide.price.toFixed(2)}
                         </span>
                       )}
@@ -146,9 +142,9 @@ export function HeroSlideshow({ menuItems, restaurantId, restaurantName }: HeroS
                         e.stopPropagation();
                         handleOrderNow(slide);
                       }}
-                      className="h-5 md:h-6 text-[9px] md:text-[10px] px-2 gap-1 bg-secondary-foreground text-secondary hover:bg-secondary-foreground/90 rounded-full shadow-lg transition-all duration-200 hover:scale-105 [&_svg]:size-2.5"
+                      className="h-6 md:h-7 text-[9px] md:text-[11px] px-2.5 gap-1 bg-secondary-foreground text-secondary hover:bg-secondary-foreground/90 rounded-full shadow-lg transition-all duration-200 hover:scale-105 [&_svg]:size-3"
                     >
-                      <ShoppingCart size={10} />
+                      <ShoppingCart size={12} />
                       Order Now
                     </Button>
                   )}
