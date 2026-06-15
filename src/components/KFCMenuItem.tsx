@@ -77,10 +77,29 @@ export function KFCMenuItem({
         
         {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-        
+
+        {/* Promo ribbon */}
+        {onPromo && (
+          <div className="absolute top-2 left-2 z-10 flex flex-col items-start gap-1">
+            <span className="bg-success text-success-foreground px-2.5 py-1 rounded-full font-extrabold text-xs shadow-lg animate-pulse">
+              {PROMO_LABEL}
+            </span>
+            <span className="bg-black/70 text-white px-2 py-0.5 rounded-full font-semibold text-[9px] shadow">
+              {PROMO_DEADLINE_TEXT}
+            </span>
+          </div>
+        )}
+
         {/* Price Badge */}
-        <div className="absolute top-2 right-2 bg-primary text-primary-foreground px-2.5 py-1 rounded-full font-bold text-xs shadow-lg backdrop-blur-sm">
-          R{price.toFixed(0)}
+        <div className="absolute top-2 right-2 flex flex-col items-end gap-0.5">
+          {onPromo && (
+            <span className="text-white/90 line-through text-[10px] font-semibold drop-shadow">
+              R{price.toFixed(0)}
+            </span>
+          )}
+          <span className="bg-primary text-primary-foreground px-2.5 py-1 rounded-full font-bold text-xs shadow-lg backdrop-blur-sm">
+            R{effectivePrice.toFixed(0)}
+          </span>
         </div>
         
         {/* Add Button */}
