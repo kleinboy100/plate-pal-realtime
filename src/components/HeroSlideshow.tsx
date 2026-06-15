@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { ShoppingCart } from 'lucide-react';
+import { ShoppingCart, Flame, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useCart } from '@/contexts/CartContext';
 import { Button } from '@/components/ui/button';
@@ -89,94 +89,100 @@ export function HeroSlideshow({ menuItems, restaurantId, restaurantName }: HeroS
   };
 
   return (
-    <div className="absolute inset-0 overflow-hidden rounded-2xl mx-4 my-2">
-      {/* Slides */}
-      {slides.map((slide, index) => (
-        <div
-          key={index}
-          className={cn(
-            "absolute inset-0 transition-all duration-700 ease-out flex",
-            index === currentSlide 
-              ? "opacity-100 z-10" 
-              : "opacity-0 z-0"
-          )}
-        >
-          {/* Left side - Text content (50%) */}
-          <div className="w-1/2 flex flex-col z-10 bg-gradient-to-br from-secondary via-secondary to-secondary/90 overflow-y-auto">
-            {/* Main Content - Centered, scrollable so nothing is clipped */}
-            <div className="flex-1 flex flex-col items-center justify-center min-h-0 px-2.5 py-3 md:px-8 md:py-6 lg:px-12">
-              <span className="text-secondary-foreground/80 text-[9px] md:text-sm font-semibold tracking-wider uppercase mb-1.5">
-                Fresh & Fast
-              </span>
-              <div className={cn(
-                "w-full max-w-md transition-all duration-700 delay-200",
-                index === currentSlide 
-                  ? "opacity-100 translate-y-0" 
-                  : "opacity-0 translate-y-4"
-              )}>
-                {isPromoApplicable(slide.id) && (
-                  <div className="mb-1.5 flex flex-wrap items-center gap-1">
-                    <span className="inline-block bg-success text-success-foreground px-2 py-0.5 rounded-full text-[9px] md:text-xs font-extrabold shadow animate-pulse">
-                      {PROMO_LABEL}
-                    </span>
-                    <span className="inline-block bg-secondary-foreground/10 text-secondary-foreground px-2 py-0.5 rounded-full text-[8px] md:text-[11px] font-semibold">
-                      {PROMO_DEADLINE_TEXT}
-                    </span>
-                  </div>
-                )}
-                <h2 className="font-display text-sm md:text-2xl lg:text-3xl font-bold text-secondary-foreground mb-1.5 break-words leading-tight">
-                  {slide.title}
-                </h2>
-                <p className="text-secondary-foreground/70 text-[10px] md:text-sm lg:text-base mb-2.5 break-words leading-snug">
-                  {isPromoApplicable(slide.id) ? 'Save 10% on this meal — limited time!' : slide.subtitle}
-                </p>
-                <div className="flex items-center gap-2 flex-wrap">
-                  {slide.price > 0 && (
-                    <span className="inline-flex items-center gap-1.5 bg-secondary-foreground text-secondary px-2.5 py-1 rounded-full text-xs md:text-sm font-bold shadow-lg">
-                      {isPromoApplicable(slide.id) && (
-                        <span className="text-secondary/60 line-through text-[10px] md:text-xs font-semibold">
-                          R{slide.price.toFixed(2)}
-                        </span>
-                      )}
-                      R{getEffectivePrice(slide.id, slide.price).toFixed(2)}
-                    </span>
-                  )}
-                  {slide.id && (
-                    <Button
-                      size="sm"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        handleOrderNow(slide);
-                      }}
-                      className="h-6 md:h-7 text-[9px] md:text-[11px] px-2.5 gap-1 bg-secondary-foreground text-secondary hover:bg-secondary-foreground/90 rounded-full shadow-lg transition-all duration-200 hover:scale-105 [&_svg]:size-3"
-                    >
-                      <ShoppingCart size={12} />
-                      Order Now
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          {/* Right side - Image (50%) */}
-          <div className="w-1/2 relative overflow-hidden">
+    <div className="absolute inset-0 overflow-hidden rounded-2xl mx-4 my-2 bg-secondary group">
+      {/* Slides — full-bleed immersive image with cinematic overlay */}
+      {slides.map((slide, index) => {
+        const active = index === currentSlide;
+        const promo = isPromoApplicable(slide.id);
+        return (
+          <div
+            key={index}
+            className={cn(
+              "absolute inset-0 transition-all duration-[900ms] ease-out",
+              active ? "opacity-100 z-10 scale-100" : "opacity-0 z-0 scale-105"
+            )}
+          >
+            {/* Background image with slow Ken Burns zoom */}
             <img
               src={slide.image}
               alt={slide.title}
               className={cn(
-                "absolute inset-0 w-full h-full object-cover transition-transform duration-[5000ms] ease-out",
-                index === currentSlide ? "scale-110" : "scale-100"
+                "absolute inset-0 w-full h-full object-cover transition-transform duration-[6000ms] ease-out",
+                active ? "scale-125" : "scale-100"
               )}
             />
-            {/* Gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-r from-secondary/20 to-transparent" />
-          </div>
-        </div>
-      ))}
 
-      {/* Dots Indicator */}
+            {/* Cinematic overlays: dark bottom for text, warm brand glow */}
+            <div className="absolute inset-0 bg-gradient-to-t from-secondary via-secondary/55 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-tr from-primary/30 via-transparent to-transparent" />
+
+            {/* Top tags */}
+            <div className="absolute top-3 left-3 right-3 z-20 flex items-start justify-between gap-2">
+              <span className="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-[10px] md:text-xs font-extrabold uppercase tracking-wider text-primary-foreground shadow-lg">
+                <Flame size={13} className="animate-pulse" />
+                {promo ? PROMO_LABEL : "Today's Pick"}
+              </span>
+              {promo && (
+                <span className="rounded-full bg-card/90 px-2.5 py-1 text-[9px] md:text-[11px] font-bold text-secondary shadow backdrop-blur-sm">
+                  {PROMO_DEADLINE_TEXT}
+                </span>
+              )}
+            </div>
+
+            {/* Bottom content */}
+            <div
+              className={cn(
+                "absolute inset-x-0 bottom-0 z-20 px-4 pb-12 pt-16 md:px-8 md:pb-14 transition-all duration-700 delay-150",
+                active ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
+              )}
+            >
+              <span className="inline-flex items-center gap-1.5 text-card/85 text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] mb-1.5">
+                <Star size={12} className="fill-primary text-primary" />
+                Fresh &amp; Fast
+              </span>
+
+              <h2 className="font-display text-2xl md:text-4xl lg:text-5xl font-black text-card drop-shadow-lg leading-[1.05] break-words">
+                {slide.title}
+              </h2>
+
+              <p className="text-card/85 text-xs md:text-base mt-1.5 mb-3 max-w-md break-words leading-snug line-clamp-2">
+                {promo ? 'Grab it now — 10% off for a limited time only!' : slide.subtitle}
+              </p>
+
+              <div className="flex items-center gap-3 flex-wrap">
+                {slide.price > 0 && (
+                  <div className="flex items-baseline gap-2 rounded-2xl bg-card px-3.5 py-2 shadow-xl">
+                    {promo && (
+                      <span className="text-muted-foreground line-through text-xs md:text-sm font-semibold">
+                        R{slide.price.toFixed(2)}
+                      </span>
+                    )}
+                    <span className="text-primary text-lg md:text-2xl font-black leading-none">
+                      R{getEffectivePrice(slide.id, slide.price).toFixed(2)}
+                    </span>
+                  </div>
+                )}
+
+                {slide.id && (
+                  <Button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleOrderNow(slide);
+                    }}
+                    className="h-10 md:h-12 px-5 md:px-7 gap-2 rounded-full bg-primary text-primary-foreground text-sm md:text-base font-extrabold shadow-xl shadow-primary/30 transition-all duration-200 hover:scale-105 hover:shadow-primary/50 active:scale-95"
+                  >
+                    <ShoppingCart size={18} />
+                    Order Now
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })}
+
+      {/* Progress dots */}
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex gap-2">
         {slides.map((_, index) => (
           <button
@@ -189,9 +195,9 @@ export function HeroSlideshow({ menuItems, restaurantId, restaurantName }: HeroS
             }}
             className={cn(
               "rounded-full transition-all duration-300 cursor-pointer",
-              index === currentSlide 
-                ? "bg-primary w-6 h-2 shadow-md" 
-                : "bg-card/50 hover:bg-card/80 w-2 h-2"
+              index === currentSlide
+                ? "bg-primary w-7 h-2 shadow-md"
+                : "bg-card/60 hover:bg-card/90 w-2 h-2"
             )}
             aria-label={`Go to slide ${index + 1}`}
           />
