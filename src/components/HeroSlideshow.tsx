@@ -69,11 +69,11 @@ export function HeroSlideshow({ menuItems, restaurantId, restaurantName }: HeroS
 
   const handleOrderNow = (slide: typeof slides[0]) => {
     if (!slide.id) return;
-    
+
     addItem({
       menuItemId: slide.id,
       name: slide.title,
-      price: slide.price,
+      price: getEffectivePrice(slide.id, slide.price),
       quantity: 1,
       restaurantId,
       restaurantName,
