@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 import { useCart } from '@/contexts/CartContext';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { isPromoApplicable, getEffectivePrice, PROMO_LABEL, PROMO_DEADLINE_TEXT } from '@/lib/promo';
+import { isPromoApplicable, isPromoItem, isPromoActive, getEffectivePrice, PROMO_LABEL, PROMO_DEADLINE_TEXT } from '@/lib/promo';
 
 interface MenuItem {
   id: string;
@@ -26,11 +26,18 @@ export function HeroSlideshow({ menuItems, restaurantId, restaurantName }: HeroS
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const { addItem } = useCart();
 
-  // Top 5 Kota Menu items, sorted from most expensive to least expensive
-  const kotaItems = menuItems
-    .filter(item => item.category?.toLowerCase() === 'kota menu')
-    .sort((a, b) => Number(b.price) - Number(a.price))
-    .slice(0, 5);
+  const promoActive = isPromoActive();
+
+  // While the promo is active, only show promo meals in the slideshow.
+  // Otherwise, top 5 Kota Menu items, sorted from most expensive to least expensive.
+  const kotaItems = promoActive
+    ? menuItems
+        .filter(item => isPromoItem(item.id))
+        .sort((a, b) => Number(b.price) - Number(a.price))
+    : menuItems
+        .filter(item => item.category?.toLowerCase() === 'kota menu')
+        .sort((a, b) => Number(b.price) - Number(a.price))
+        .slice(0, 5);
 
   const slides = kotaItems.length > 0
     ? kotaItems.map(item => ({
