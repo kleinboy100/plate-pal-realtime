@@ -30,6 +30,9 @@ export function KFCMenuItem({
   const { toast } = useToast();
   const [isAdding, setIsAdding] = useState(false);
 
+  const onPromo = isPromoApplicable(id);
+  const effectivePrice = getEffectivePrice(id, price);
+
   const handleAddToCart = () => {
     if (isAdding) return;
     
@@ -46,7 +49,7 @@ export function KFCMenuItem({
     addItem({
       menuItemId: id,
       name,
-      price,
+      price: effectivePrice,
       quantity: 1,
       restaurantId,
       restaurantName
