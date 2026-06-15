@@ -157,7 +157,7 @@ export default function Index() {
                 {/* Temporary: show closed today message on May 31, 2026 */}
                 {new Date().toDateString() === 'Sun May 31 2026'
                   ? "The store will be closed today"
-                  : isOpen ? "We're open!" : "Today we open at 11:00am to 18:00pm"
+                  : isOpen ? "We're open!" : "Open 10AM to 6PM"
                 }
               </span>
             </div>
