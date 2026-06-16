@@ -27,3 +27,12 @@ export function getEffectivePrice(id: string | null | undefined, price: number):
   if (!isPromoApplicable(id)) return price;
   return Math.round(price * (1 - PROMO_DISCOUNT) * 100) / 100;
 }
+
+// Youth Day (16 June) — feature the commemorative poster only on the day itself,
+// until midnight South African time.
+export const YOUTH_DAY_END = new Date("2026-06-16T23:59:59+02:00");
+
+export function isYouthDay(now: Date = new Date()): boolean {
+  const start = new Date("2026-06-16T00:00:00+02:00");
+  return now >= start && now <= YOUTH_DAY_END;
+}
