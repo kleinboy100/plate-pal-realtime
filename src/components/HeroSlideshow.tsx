@@ -4,7 +4,8 @@ import { cn } from '@/lib/utils';
 import { useCart } from '@/contexts/CartContext';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { isPromoApplicable, isPromoItem, isPromoActive, getEffectivePrice, PROMO_LABEL, PROMO_DEADLINE_TEXT } from '@/lib/promo';
+import { isPromoApplicable, isPromoItem, isPromoActive, getEffectivePrice, PROMO_LABEL, PROMO_DEADLINE_TEXT, isYouthDay } from '@/lib/promo';
+import { YouthDaySlide } from '@/components/YouthDaySlide';
 
 interface MenuItem {
   id: string;
@@ -39,17 +40,23 @@ export function HeroSlideshow({ menuItems, restaurantId, restaurantName }: HeroS
         .sort((a, b) => Number(b.price) - Number(a.price))
         .slice(0, 5);
 
-  const slides = kotaItems.length > 0
+  const mealSlides = kotaItems.length > 0
     ? kotaItems.map(item => ({
         id: item.id,
+        youthDay: false,
         image: item.image_url || 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1200',
         title: item.name,
         subtitle: item.description || item.category,
         price: item.price
       }))
     : [
-        { id: '', image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=1200', title: 'Delicious Meals', subtitle: 'Fresh & Fast', price: 0 }
+        { id: '', youthDay: false, image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=1200', title: 'Delicious Meals', subtitle: 'Fresh & Fast', price: 0 }
       ];
+
+  // On Youth Day (16 June), feature the commemorative poster as the first slide.
+  const slides = isYouthDay()
+    ? [{ id: 'youth-day', youthDay: true, image: '', title: 'Youth Day', subtitle: '', price: 0 }, ...mealSlides]
+    : mealSlides;
 
   const startAutoPlay = useCallback(() => {
     if (intervalRef.current) {
@@ -93,6 +100,9 @@ export function HeroSlideshow({ menuItems, restaurantId, restaurantName }: HeroS
       {/* Slides — full-bleed immersive image with cinematic overlay */}
       {slides.map((slide, index) => {
         const active = index === currentSlide;
+        if (slide.youthDay) {
+          return <YouthDaySlide key={index} active={active} />;
+        }
         const promo = isPromoApplicable(slide.id);
         return (
           <div
