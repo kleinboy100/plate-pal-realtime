@@ -112,9 +112,9 @@ export function HeroSlideshow({ menuItems, restaurantId, restaurantName }: HeroS
               )}
             />
 
-            {/* Cinematic overlays: dark bottom for text, warm brand glow */}
-            <div className="absolute inset-0 bg-gradient-to-t from-secondary via-secondary/55 to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-tr from-primary/30 via-transparent to-transparent" />
+            {/* Cinematic overlays: strong dark bottom for guaranteed text contrast */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/45 to-black/15" />
+            <div className="absolute inset-0 bg-gradient-to-tr from-primary/25 via-transparent to-transparent" />
 
             {/* Top tags */}
             <div className="absolute top-3 left-3 right-3 z-20 flex items-start justify-between gap-2">
@@ -123,7 +123,7 @@ export function HeroSlideshow({ menuItems, restaurantId, restaurantName }: HeroS
                 {promo ? PROMO_LABEL : "Today's Pick"}
               </span>
               {promo && (
-                <span className="rounded-full bg-card/90 px-2.5 py-1 text-[9px] md:text-[11px] font-bold text-secondary shadow backdrop-blur-sm">
+                <span className="rounded-full bg-white/95 px-2.5 py-1 text-[9px] md:text-[11px] font-bold text-black shadow backdrop-blur-sm">
                   {PROMO_DEADLINE_TEXT}
                 </span>
               )}
@@ -132,26 +132,26 @@ export function HeroSlideshow({ menuItems, restaurantId, restaurantName }: HeroS
             {/* Bottom content */}
             <div
               className={cn(
-                "absolute inset-x-0 bottom-0 z-20 px-4 pb-12 pt-16 md:px-8 md:pb-14 transition-all duration-700 delay-150",
+                "absolute inset-x-0 bottom-0 z-20 flex flex-col px-4 pb-12 pt-12 md:px-8 md:pb-16 md:pt-20 transition-all duration-700 delay-150",
                 active ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
               )}
             >
-              <span className="inline-flex items-center gap-1.5 text-card/85 text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] mb-1.5">
+              <span className="hidden md:inline-flex items-center gap-1.5 text-white/90 text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] mb-2">
                 <Star size={12} className="fill-primary text-primary" />
                 Fresh &amp; Fast
               </span>
 
-              <h2 className="font-display text-2xl md:text-4xl lg:text-5xl font-black text-card drop-shadow-lg leading-[1.05] break-words">
+              <h2 className="font-display text-xl md:text-4xl lg:text-5xl font-black text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] leading-[1.1] break-words">
                 {slide.title}
               </h2>
 
-              <p className="text-card/85 text-xs md:text-base mt-1.5 mb-3 max-w-md break-words leading-snug line-clamp-2">
+              <p className="text-white/90 text-xs md:text-base mt-1.5 mb-3 md:mt-2 md:mb-4 max-w-md break-words leading-relaxed line-clamp-2 drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)]">
                 {promo ? 'Grab it now — 10% off for a limited time only!' : slide.subtitle}
               </p>
 
               <div className="flex items-center gap-3 flex-wrap">
                 {slide.price > 0 && (
-                  <div className="flex items-baseline gap-2 rounded-2xl bg-card px-3.5 py-2 shadow-xl">
+                  <div className="flex items-baseline gap-2 rounded-2xl bg-white px-3.5 py-2 shadow-xl">
                     {promo && (
                       <span className="text-muted-foreground line-through text-xs md:text-sm font-semibold">
                         R{slide.price.toFixed(2)}
