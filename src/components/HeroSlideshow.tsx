@@ -100,6 +100,9 @@ export function HeroSlideshow({ menuItems, restaurantId, restaurantName }: HeroS
       {/* Slides — full-bleed immersive image with cinematic overlay */}
       {slides.map((slide, index) => {
         const active = index === currentSlide;
+        if (slide.youthDay) {
+          return <YouthDaySlide key={index} active={active} />;
+        }
         const promo = isPromoApplicable(slide.id);
         return (
           <div
