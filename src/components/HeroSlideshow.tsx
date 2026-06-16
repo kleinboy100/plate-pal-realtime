@@ -4,7 +4,8 @@ import { cn } from '@/lib/utils';
 import { useCart } from '@/contexts/CartContext';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { isPromoApplicable, isPromoItem, isPromoActive, getEffectivePrice, PROMO_LABEL, PROMO_DEADLINE_TEXT } from '@/lib/promo';
+import { isPromoApplicable, isPromoItem, isPromoActive, getEffectivePrice, PROMO_LABEL, PROMO_DEADLINE_TEXT, isYouthDay } from '@/lib/promo';
+import { YouthDaySlide } from '@/components/YouthDaySlide';
 
 interface MenuItem {
   id: string;
