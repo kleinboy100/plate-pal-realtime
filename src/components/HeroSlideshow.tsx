@@ -132,20 +132,20 @@ export function HeroSlideshow({ menuItems, restaurantId, restaurantName }: HeroS
             {/* Bottom content */}
             <div
               className={cn(
-                "absolute inset-x-0 bottom-0 z-20 flex flex-col px-4 pb-14 pt-20 md:px-8 md:pb-16 transition-all duration-700 delay-150",
+                "absolute inset-x-0 bottom-0 z-20 flex flex-col px-4 pb-12 pt-12 md:px-8 md:pb-16 md:pt-20 transition-all duration-700 delay-150",
                 active ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
               )}
             >
-              <span className="inline-flex items-center gap-1.5 text-white/90 text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] mb-2">
+              <span className="hidden md:inline-flex items-center gap-1.5 text-white/90 text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] mb-2">
                 <Star size={12} className="fill-primary text-primary" />
                 Fresh &amp; Fast
               </span>
 
-              <h2 className="font-display text-2xl md:text-4xl lg:text-5xl font-black text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] leading-[1.1] break-words">
+              <h2 className="font-display text-xl md:text-4xl lg:text-5xl font-black text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] leading-[1.1] break-words">
                 {slide.title}
               </h2>
 
-              <p className="text-white/90 text-xs md:text-base mt-2 mb-4 max-w-md break-words leading-relaxed line-clamp-2 drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)]">
+              <p className="text-white/90 text-xs md:text-base mt-1.5 mb-3 md:mt-2 md:mb-4 max-w-md break-words leading-relaxed line-clamp-2 drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)]">
                 {promo ? 'Grab it now — 10% off for a limited time only!' : slide.subtitle}
               </p>
 
