@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { loadGoogleMaps } from '@/lib/googleMapsLoader';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import { Loader2, Navigation } from 'lucide-react';
+import { getRoute } from '@/lib/freeMaps';
 
 interface DriverMapProps {
   destination: { lat: number; lng: number; address?: string };
@@ -9,13 +11,22 @@ interface DriverMapProps {
   onEta?: (etaMinutes: number, distanceKm: number) => void;
 }
 
+function dotIcon(color: string) {
+  return L.divIcon({
+    className: '',
+    html: `<div style="width:18px;height:18px;border-radius:50%;background:${color};border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.4)"></div>`,
+    iconSize: [18, 18],
+    iconAnchor: [9, 9],
+  });
+}
+
 export function DriverMap({ destination, restaurant, className, onEta }: DriverMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<google.maps.Map | null>(null);
-  const driverMarkerRef = useRef<google.maps.Marker | null>(null);
-  const rendererRef = useRef<google.maps.DirectionsRenderer | null>(null);
-  const dirServiceRef = useRef<google.maps.DirectionsService | null>(null);
+  const mapRef = useRef<L.Map | null>(null);
+  const driverMarkerRef = useRef<L.Marker | null>(null);
+  const routeLineRef = useRef<L.Polyline | null>(null);
   const fittedRef = useRef(false);
+  const lastRouteAtRef = useRef(0);
   const [ready, setReady] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -25,69 +36,38 @@ export function DriverMap({ destination, restaurant, className, onEta }: DriverM
   // Init map
   useEffect(() => {
     let cancelled = false;
-    (async () => {
-      try {
-        await loadGoogleMaps();
-        if (cancelled || !containerRef.current) return;
-        const map = new google.maps.Map(containerRef.current, {
-          center: destination,
-          zoom: 14,
-          disableDefaultUI: true,
-          zoomControl: true,
-          gestureHandling: 'greedy',
-        });
-        mapRef.current = map;
+    try {
+      if (!containerRef.current) return;
+      const map = L.map(containerRef.current, {
+        center: [destination.lat, destination.lng],
+        zoom: 14,
+        zoomControl: true,
+      });
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap',
+      }).addTo(map);
+      mapRef.current = map;
 
-        new google.maps.Marker({
-          map,
-          position: destination,
-          title: 'Customer',
-          icon: {
-            path: google.maps.SymbolPath.CIRCLE,
-            scale: 9,
-            fillColor: '#16a34a',
-            fillOpacity: 1,
-            strokeColor: '#fff',
-            strokeWeight: 2,
-          },
-        });
-
-        if (restaurant) {
-          new google.maps.Marker({
-            map,
-            position: restaurant,
-            title: 'Restaurant',
-            icon: {
-              path: google.maps.SymbolPath.CIRCLE,
-              scale: 9,
-              fillColor: '#f97316',
-              fillOpacity: 1,
-              strokeColor: '#fff',
-              strokeWeight: 2,
-            },
-          });
-        }
-
-        rendererRef.current = new google.maps.DirectionsRenderer({
-          map,
-          suppressMarkers: true,
-          preserveViewport: true,
-          polylineOptions: { strokeColor: '#2563eb', strokeWeight: 5, strokeOpacity: 0.9 },
-        });
-        dirServiceRef.current = new google.maps.DirectionsService();
-
-        setReady(true);
-        setLoading(false);
-      } catch (e) {
-        console.error('Maps load error', e);
-        if (!cancelled) {
-          setError('Map unavailable');
-          setLoading(false);
-        }
+      L.marker([destination.lat, destination.lng], { icon: dotIcon('#16a34a'), title: 'Customer' }).addTo(map);
+      if (restaurant) {
+        L.marker([restaurant.lat, restaurant.lng], { icon: dotIcon('#f97316'), title: 'Restaurant' }).addTo(map);
       }
-    })();
+
+      setTimeout(() => map.invalidateSize(), 100);
+      setReady(true);
+      setLoading(false);
+    } catch (e) {
+      console.error('Map load error', e);
+      if (!cancelled) {
+        setError('Map unavailable');
+        setLoading(false);
+      }
+    }
     return () => {
       cancelled = true;
+      mapRef.current?.remove();
+      mapRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -111,55 +91,45 @@ export function DriverMap({ destination, restaurant, className, onEta }: DriverM
 
     const origin = driverPos || restaurant;
     if (!origin) {
-      map.setCenter(destination);
-      map.setZoom(16);
+      map.setView([destination.lat, destination.lng], 16);
       return;
     }
 
     if (driverPos) {
       if (!driverMarkerRef.current) {
-        driverMarkerRef.current = new google.maps.Marker({
-          map,
-          position: driverPos,
+        driverMarkerRef.current = L.marker([driverPos.lat, driverPos.lng], {
+          icon: dotIcon('#2563eb'),
           title: 'You',
-          icon: {
-            path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
-            scale: 6,
-            fillColor: '#2563eb',
-            fillOpacity: 1,
-            strokeColor: '#fff',
-            strokeWeight: 2,
-          },
-        });
+        }).addTo(map);
       } else {
-        driverMarkerRef.current.setPosition(driverPos);
+        driverMarkerRef.current.setLatLng([driverPos.lat, driverPos.lng]);
       }
     }
 
-    if (dirServiceRef.current && rendererRef.current) {
-      dirServiceRef.current.route(
-        { origin, destination, travelMode: google.maps.TravelMode.DRIVING },
-        (result, status) => {
-          if (status === google.maps.DirectionsStatus.OK && result) {
-            rendererRef.current!.setDirections(result);
-            const leg = result.routes[0]?.legs[0];
-            if (leg) {
-              const next = {
-                km: Math.round(((leg.distance?.value ?? 0) / 1000) * 10) / 10,
-                min: Math.round((leg.duration?.value ?? 0) / 60),
-              };
-              setEta(next);
-              onEta?.(next.min, next.km);
-            }
-            if (!fittedRef.current && result.routes[0]?.bounds) {
-              map.fitBounds(result.routes[0].bounds, 60);
-              fittedRef.current = true;
-            }
-          }
-        },
-      );
-    }
-  }, [ready, driverPos, restaurant, destination, onEta]);
+    const now = Date.now();
+    if (now - lastRouteAtRef.current < 10000 && eta) return;
+    lastRouteAtRef.current = now;
+
+    (async () => {
+      const route = await getRoute(origin, destination);
+      if (!route || !mapRef.current) return;
+      if (routeLineRef.current) routeLineRef.current.remove();
+      routeLineRef.current = L.polyline(route.coordinates, {
+        color: '#2563eb',
+        weight: 5,
+        opacity: 0.9,
+      }).addTo(mapRef.current);
+
+      const next = { km: route.distanceKm, min: route.durationMin };
+      setEta(next);
+      onEta?.(next.min, next.km);
+
+      if (!fittedRef.current) {
+        mapRef.current.fitBounds(routeLineRef.current.getBounds(), { padding: [50, 50] });
+        fittedRef.current = true;
+      }
+    })();
+  }, [ready, driverPos, restaurant, destination, onEta, eta]);
 
   if (error) {
     return (
