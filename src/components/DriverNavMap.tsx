@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { loadGoogleMaps } from '@/lib/googleMapsLoader';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import { Loader2, Navigation, Volume2, VolumeX, Crosshair, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { getRoute, distanceMeters, type RouteStep } from '@/lib/freeMaps';
 
 interface DriverNavMapProps {
   destination: { lat: number; lng: number; address?: string };
@@ -10,30 +12,21 @@ interface DriverNavMapProps {
   onClose?: () => void;
 }
 
-// Strip HTML tags Google embeds in maneuver instructions.
-function stripHtml(html: string): string {
-  const tmp = document.createElement('div');
-  tmp.innerHTML = html;
-  return tmp.textContent || tmp.innerText || '';
-}
-
-function distanceMeters(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
-  const R = 6371000;
-  const dLat = ((b.lat - a.lat) * Math.PI) / 180;
-  const dLng = ((b.lng - a.lng) * Math.PI) / 180;
-  const lat1 = (a.lat * Math.PI) / 180;
-  const lat2 = (b.lat * Math.PI) / 180;
-  const h = Math.sin(dLat / 2) ** 2 + Math.sin(dLng / 2) ** 2 * Math.cos(lat1) * Math.cos(lat2);
-  return 2 * R * Math.asin(Math.sqrt(h));
+function navIcon(color: string) {
+  return L.divIcon({
+    className: '',
+    html: `<div style="width:18px;height:18px;border-radius:50%;background:${color};border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.4)"></div>`,
+    iconSize: [18, 18],
+    iconAnchor: [9, 9],
+  });
 }
 
 export function DriverNavMap({ destination, origin, orderLabel, onClose }: DriverNavMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<google.maps.Map | null>(null);
-  const driverMarkerRef = useRef<google.maps.Marker | null>(null);
-  const rendererRef = useRef<google.maps.DirectionsRenderer | null>(null);
-  const dirServiceRef = useRef<google.maps.DirectionsService | null>(null);
-  const stepsRef = useRef<google.maps.DirectionsStep[]>([]);
+  const mapRef = useRef<L.Map | null>(null);
+  const driverMarkerRef = useRef<L.Marker | null>(null);
+  const routeLineRef = useRef<L.Polyline | null>(null);
+  const stepsRef = useRef<RouteStep[]>([]);
   const spokenStepRef = useRef<number>(-1);
   const lastRouteAtRef = useRef<number>(0);
   const followRef = useRef(true);
@@ -66,52 +59,40 @@ export function DriverNavMap({ destination, origin, orderLabel, onClose }: Drive
   // Init map
   useEffect(() => {
     let cancelled = false;
-    (async () => {
-      try {
-        await loadGoogleMaps();
-        if (cancelled || !containerRef.current) return;
-        const map = new google.maps.Map(containerRef.current, {
-          center: origin || destination,
-          zoom: 16,
-          disableDefaultUI: true,
-          zoomControl: true,
-          gestureHandling: 'greedy',
-        });
-        mapRef.current = map;
-        map.addListener('dragstart', () => (followRef.current = false));
+    try {
+      if (!containerRef.current) return;
+      const center = origin || destination;
+      const map = L.map(containerRef.current, {
+        center: [center.lat, center.lng],
+        zoom: 16,
+        zoomControl: true,
+        attributionControl: false,
+      });
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+      }).addTo(map);
+      mapRef.current = map;
+      map.on('dragstart', () => (followRef.current = false));
 
-        rendererRef.current = new google.maps.DirectionsRenderer({
-          map,
-          suppressMarkers: false,
-          preserveViewport: true,
-          polylineOptions: { strokeColor: '#2563eb', strokeWeight: 6, strokeOpacity: 0.9 },
-        });
-        dirServiceRef.current = new google.maps.DirectionsService();
-        new google.maps.Marker({
-          map,
-          position: destination,
-          title: 'Customer',
-          icon: {
-            path: google.maps.SymbolPath.CIRCLE,
-            scale: 9,
-            fillColor: '#16a34a',
-            fillOpacity: 1,
-            strokeColor: '#fff',
-            strokeWeight: 2,
-          },
-        });
+      L.marker([destination.lat, destination.lng], {
+        icon: navIcon('#16a34a'),
+        title: 'Customer',
+      }).addTo(map);
+
+      setTimeout(() => map.invalidateSize(), 100);
+      setLoading(false);
+    } catch (e) {
+      console.error('Nav map load error', e);
+      if (!cancelled) {
+        setError('Map unavailable. Check your connection.');
         setLoading(false);
-      } catch (e) {
-        console.error('Nav map load error', e);
-        if (!cancelled) {
-          setError('Map unavailable. Check your connection.');
-          setLoading(false);
-        }
       }
-    })();
+    }
     return () => {
       cancelled = true;
       if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+      mapRef.current?.remove();
+      mapRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -136,48 +117,31 @@ export function DriverNavMap({ destination, origin, orderLabel, onClose }: Drive
     if (!map || !driverPos) return;
 
     if (!driverMarkerRef.current) {
-      driverMarkerRef.current = new google.maps.Marker({
-        map,
-        position: driverPos,
+      driverMarkerRef.current = L.marker([driverPos.lat, driverPos.lng], {
+        icon: navIcon('#2563eb'),
         title: 'You',
-        icon: {
-          path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
-          scale: 6,
-          fillColor: '#2563eb',
-          fillOpacity: 1,
-          strokeColor: '#fff',
-          strokeWeight: 2,
-        },
-      });
+      }).addTo(map);
     } else {
-      driverMarkerRef.current.setPosition(driverPos);
+      driverMarkerRef.current.setLatLng([driverPos.lat, driverPos.lng]);
     }
-    if (followRef.current) map.panTo(driverPos);
+    if (followRef.current) map.panTo([driverPos.lat, driverPos.lng]);
 
     // Recompute the route from current position at most every 12s.
     const now = Date.now();
-    if (dirServiceRef.current && rendererRef.current && now - lastRouteAtRef.current > 12000) {
+    if (now - lastRouteAtRef.current > 12000) {
       lastRouteAtRef.current = now;
-      dirServiceRef.current.route(
-        {
-          origin: driverPos,
-          destination,
-          travelMode: google.maps.TravelMode.DRIVING,
-        },
-        (result, status) => {
-          if (status === google.maps.DirectionsStatus.OK && result) {
-            rendererRef.current!.setDirections(result);
-            const leg = result.routes[0]?.legs[0];
-            if (leg) {
-              stepsRef.current = leg.steps;
-              setEta({
-                km: Math.round(((leg.distance?.value ?? 0) / 1000) * 10) / 10,
-                min: Math.round((leg.duration?.value ?? 0) / 60),
-              });
-            }
-          }
-        },
-      );
+      (async () => {
+        const route = await getRoute(driverPos, destination);
+        if (!route || !mapRef.current) return;
+        if (routeLineRef.current) routeLineRef.current.remove();
+        routeLineRef.current = L.polyline(route.coordinates, {
+          color: '#2563eb',
+          weight: 6,
+          opacity: 0.9,
+        }).addTo(mapRef.current);
+        stepsRef.current = route.steps;
+        setEta({ km: route.distanceKm, min: route.durationMin });
+      })();
     }
 
     // Voice: announce the next maneuver when close to the current step start.
@@ -186,16 +150,15 @@ export function DriverNavMap({ destination, origin, orderLabel, onClose }: Drive
       let idx = 0;
       let best = Infinity;
       steps.forEach((s, i) => {
-        const start = { lat: s.start_location.lat(), lng: s.start_location.lng() };
-        const d = distanceMeters(driverPos, start);
+        const d = distanceMeters(driverPos, { lat: s.lat, lng: s.lng });
         if (d < best) {
           best = d;
           idx = i;
         }
       });
       const current = steps[idx];
-      const text = stripHtml(current.instructions || '');
-      setInstruction(text || 'Continue to the destination');
+      const text = current.instruction || 'Continue to the destination';
+      setInstruction(text);
       if (idx !== spokenStepRef.current && best < 60) {
         spokenStepRef.current = idx;
         speak(text);
@@ -215,8 +178,7 @@ export function DriverNavMap({ destination, origin, orderLabel, onClose }: Drive
   const recenter = () => {
     followRef.current = true;
     if (mapRef.current && driverPos) {
-      mapRef.current.panTo(driverPos);
-      mapRef.current.setZoom(16);
+      mapRef.current.setView([driverPos.lat, driverPos.lng], 16);
     }
   };
 
@@ -236,7 +198,7 @@ export function DriverNavMap({ destination, origin, orderLabel, onClose }: Drive
       )}
 
       {/* Top instruction banner */}
-      <div className="absolute top-0 inset-x-0 p-3 pt-4">
+      <div className="absolute top-0 inset-x-0 p-3 pt-4 z-[1000]">
         <div className="bg-blue-600 text-white rounded-2xl shadow-lg px-4 py-3 flex items-center gap-3">
           <Navigation size={22} className="shrink-0" />
           <div className="min-w-0 flex-1">
@@ -252,7 +214,7 @@ export function DriverNavMap({ destination, origin, orderLabel, onClose }: Drive
       </div>
 
       {/* Bottom controls + ETA */}
-      <div className="absolute bottom-0 inset-x-0 p-3 pb-5 flex items-end justify-between gap-3">
+      <div className="absolute bottom-0 inset-x-0 p-3 pb-5 flex items-end justify-between gap-3 z-[1000]">
         <div className="bg-card/95 backdrop-blur rounded-2xl shadow-lg px-4 py-2 border border-border/50">
           {eta ? (
             <div className="flex items-center gap-2 text-sm font-semibold">

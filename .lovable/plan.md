@@ -1,48 +1,45 @@
-# Switch Maps to Leaflet + OpenStreetMap
+# Switch maps from Google to free OpenStreetMap
 
-## Why
+## Goal
+The "This page can't load Google Maps correctly" error happens because the Google Cloud key has run out of credit/billing. We'll replace all browser Google Maps usage with **Leaflet + OpenStreetMap** (already installed) plus the free **Nominatim** (geocoding/search) and **OSRM** (driving routes) services — which your backend already uses. No paid key needed, and the error goes away for users.
 
-The Lovable-managed Google Maps key is referrer-restricted by Google to `*.lovable.app` / `*.lovableproject.com`. It cannot be used on your Netlify domain, which is why the map breaks once deployed. Lifting that restriction requires either your own Google Cloud API key + billing, or switching providers.
+## What uses Google Maps today
+1. `src/components/AddressAutocomplete.tsx` — address search, reverse geocoding, and the "Pin exact spot" map.
+2. `src/components/DriverMap.tsx` — customer/restaurant markers + driving route + ETA.
+3. `src/components/DriverNavMap.tsx` — full-screen turn-by-turn driver navigation with voice.
+4. `src/lib/googleMapsLoader.ts` — loader for the Google JS API.
 
-We will switch back to Leaflet + OpenStreetMap (Nominatim for address search, OSRM for routing). This matches your original project rule ("OpenStreetMap & OSRM exclusively. No external API keys.") and works on any domain — Netlify, custom domains, or Lovable — with no secrets, no billing, and nothing to expose.
+## Changes
 
-## What changes
+### 1. New free-map helpers (`src/lib/freeMaps.ts`)
+- `searchAddresses(query)` → Nominatim search (biased to South Africa / Klerksdorp area), returns `{ text, lat, lng, placeId }[]`.
+- `reverseGeocode(lat, lng)` → Nominatim reverse lookup, returns a formatted address string.
+- `getRoute(from, to)` → OSRM driving route, returns `{ coordinates: [lat,lng][], distanceKm, durationMin, steps }`.
+- All calls go directly to the public OSM/OSRM endpoints (same ones the `calculate-distance` edge function already uses), with graceful fallbacks.
 
-### Frontend
+### 2. `AddressAutocomplete.tsx`
+- Replace Google Places autocomplete with `searchAddresses` (debounced, same dropdown UI).
+- Replace Google reverse geocode with the Nominatim version.
+- Rebuild the "Pin exact spot" dialog map with **Leaflet**: OSM tile layer, a draggable marker, click-to-move, and the "My GPS" button — same behavior, same UX.
 
-- **Install Leaflet**: add `leaflet` and `@types/leaflet` (Mapbox GL is already in package.json but we won't use it — Leaflet is lighter and matches the OSM stack).
-- **`src/components/DriverMap.tsx`**: rewrite to use Leaflet. Same props (`destination`, `restaurant`, `onEta`, `className`). Renders OSM tiles, customer marker (green), restaurant marker (orange), driver marker (blue arrow) updated from `navigator.geolocation.watchPosition`. Calls the `calculate-distance` edge function for the route polyline and ETA.
-- **`src/components/AddressAutocomplete.tsx`**: rewrite to use Nominatim only.
-  - Search suggestions: Nominatim `/search` with `addressdetails=1`, `zoom=18`, viewbox biased to Klerksdorp/Jouberton, `bounded=1`, returning street-level results (your latest preference for exact location, not municipal).
-  - "Use current location": browser GPS + Nominatim reverse geocode.
-  - "Drop a pin": Leaflet map dialog with a draggable marker; on confirm, reverse-geocode the marker position.
-  - Same `AddressLocation` shape and callbacks as today, so callers (`Cart.tsx`, `RestaurantRegister.tsx`, `Profile`, etc.) don't change.
-- **Delete `src/lib/googleMapsLoader.ts`** — no longer needed.
+### 3. `DriverMap.tsx`
+- Rebuild with Leaflet: customer marker (green), restaurant marker (orange), driver marker (blue), OSM tiles.
+- Draw the route polyline from OSRM and show the same km / min ETA badge via `onEta`.
 
-### Backend (edge functions)
+### 4. `DriverNavMap.tsx`
+- Rebuild with Leaflet: full-screen map, driver + customer markers, OSRM route polyline, follow-driver panning, recenter button.
+- Keep voice guidance using OSRM step instructions (announce next maneuver when near it, plus arrival). Keep the existing top banner and bottom ETA/controls UI.
 
-- **`supabase/functions/calculate-distance/index.ts`**: replace Google Routes/Geocoding paths with:
-  - Geocoding fallback via Nominatim.
-  - Routing via OSRM public endpoint `https://router.project-osrm.org/route/v1/driving/{lng1},{lat1};{lng2},{lat2}?overview=full&geometries=polyline`.
-  - Keeps the existing response shape (`distanceKm`, `durationMinutes`, `encodedPolyline`, `fee`) so the frontend doesn't change. Keeps the 5 km / 15 min haversine fallback.
-- **Delete `supabase/functions/get-maps-key/index.ts`** and remove its `[functions.get-maps-key]` block from `supabase/config.toml`.
+### 5. Cleanup
+- Remove `src/lib/googleMapsLoader.ts` and all `loadGoogleMaps` imports.
+- Leave the `get-maps-key` edge function in place (harmless; can be removed later).
 
-### Secrets / env
-
-- Remove `VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY` and `VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_TRACKING_ID` from `.env`.
-- Optionally disconnect the Google Maps connector afterwards (you can do this from Connectors → Google Maps; not required for the app to work).
-
-## Trade-offs to know
-
-- **Nominatim suggestions** are less precise than Google Places, especially for informal addresses. We bias hard to the Klerksdorp/Jouberton viewbox and use `zoom=18` to keep results street-level — but for very specific spots, the "drop a pin" flow is the most reliable.
-- **Nominatim usage policy** requires a descriptive User-Agent (we already send `PlatePal-Delivery-App/1.0`) and asks apps to debounce requests — we debounce to 1 every 400 ms.
-- **OSRM public server** is best-effort. If it ever rate-limits, the edge function falls back to the existing 5 km / 15 min estimate so checkout never blocks.
+## Notes / trade-offs
+- Free OSM autocomplete is slightly less "fancy" than Google Places, but works well for SA addresses and is what your delivery distance calc already relies on, so results stay consistent.
+- Turn-by-turn voice will use OSRM step text instead of Google's, so phrasing differs slightly but remains clear.
+- The public OSRM/Nominatim servers are rate-limited for very heavy traffic; fine for normal restaurant volume. If you later outgrow them we can self-host or use a paid tier.
 
 ## Verification
-
-After implementation:
-1. Address search returns street-level suggestions in Klerksdorp/Jouberton.
-2. "Drop a pin" opens a Leaflet map, marker is draggable, confirm fills the address.
-3. Driver tracking map renders OSM tiles, shows the route polyline and ETA.
-4. `.env` no longer contains any Google Maps keys.
-5. Works identically on Lovable preview and Netlify production.
+- Load the cart/checkout address field: search, current location, and pin picker all work with no Google error.
+- Driver dashboard: route + ETA render on Leaflet; navigation view tracks GPS and speaks directions.
+- Confirm no remaining `loadGoogleMaps` / `google.maps` references and a clean build.
