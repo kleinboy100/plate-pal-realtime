@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { isPromoApplicable, isPromoItem, isPromoActive, getEffectivePrice, PROMO_LABEL, PROMO_DEADLINE_TEXT, isYouthDay } from '@/lib/promo';
 import { YouthDaySlide } from '@/components/YouthDaySlide';
-import { WorldCupOverlay } from '@/components/WorldCupOverlay';
+import { WorldCupTransition } from '@/components/WorldCupTransition';
 
 interface MenuItem {
   id: string;
@@ -44,35 +44,49 @@ export function HeroSlideshow({ menuItems, restaurantId, restaurantName }: HeroS
   const mealSlides = kotaItems.length > 0
     ? kotaItems.map(item => ({
         id: item.id,
-        youthDay: false,
+        kind: 'meal' as const,
         image: item.image_url || 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1200',
         title: item.name,
         subtitle: item.description || item.category,
         price: item.price
       }))
     : [
-        { id: '', youthDay: false, image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=1200', title: 'Delicious Meals', subtitle: 'Fresh & Fast', price: 0 }
+        { id: '', kind: 'meal' as const, image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=1200', title: 'Delicious Meals', subtitle: 'Fresh & Fast', price: 0 }
       ];
+
+  // Insert a World Cup transition slide before every meal.
+  const mealsWithTransitions = mealSlides.flatMap((meal, i) => [
+    { id: `wc-${i}`, kind: 'transition' as const, image: '', title: '', subtitle: '', price: 0 },
+    meal,
+  ]);
 
   // On Youth Day (16 June), feature the commemorative poster as the first slide.
   const slides = isYouthDay()
-    ? [{ id: 'youth-day', youthDay: true, image: '', title: 'Youth Day', subtitle: '', price: 0 }, ...mealSlides]
-    : mealSlides;
+    ? [{ id: 'youth-day', kind: 'youthDay' as const, image: '', title: 'Youth Day', subtitle: '', price: 0 }, ...mealsWithTransitions]
+    : mealsWithTransitions;
 
   const startAutoPlay = useCallback(() => {
     if (intervalRef.current) {
-      clearInterval(intervalRef.current);
+      clearTimeout(intervalRef.current);
     }
-    intervalRef.current = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % slides.length);
-    }, 5000);
+    const tick = () => {
+      setCurrentSlide((prev) => {
+        const next = (prev + 1) % slides.length;
+        // Transition slides flash by quickly; meals/posters linger.
+        const delay = slides[next]?.kind === 'transition' ? 1300 : 5000;
+        intervalRef.current = setTimeout(tick, delay);
+        return next;
+      });
+    };
+    const firstDelay = slides[currentSlide]?.kind === 'transition' ? 1300 : 5000;
+    intervalRef.current = setTimeout(tick, firstDelay);
   }, [slides.length]);
 
   useEffect(() => {
     startAutoPlay();
     return () => {
       if (intervalRef.current) {
-        clearInterval(intervalRef.current);
+        clearTimeout(intervalRef.current);
       }
     };
   }, [startAutoPlay]);
@@ -101,8 +115,11 @@ export function HeroSlideshow({ menuItems, restaurantId, restaurantName }: HeroS
       {/* Slides — full-bleed immersive image with cinematic overlay */}
       {slides.map((slide, index) => {
         const active = index === currentSlide;
-        if (slide.youthDay) {
+        if (slide.kind === 'youthDay') {
           return <YouthDaySlide key={index} active={active} />;
+        }
+        if (slide.kind === 'transition') {
+          return <WorldCupTransition key={index} active={active} />;
         }
         const promo = isPromoApplicable(slide.id);
         return (
@@ -152,11 +169,11 @@ export function HeroSlideshow({ menuItems, restaurantId, restaurantName }: HeroS
                 Fresh &amp; Fast
               </span>
 
-              <h2 className="font-display text-xl md:text-4xl lg:text-5xl font-black text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] leading-[1.1] break-words">
+              <h2 className="font-display text-lg md:text-4xl lg:text-5xl font-black text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] leading-tight break-words line-clamp-2">
                 {slide.title}
               </h2>
 
-              <p className="text-white/90 text-xs md:text-base mt-1.5 mb-3 md:mt-2 md:mb-4 max-w-md break-words leading-relaxed line-clamp-2 drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)]">
+              <p className="text-white/85 text-xs md:text-base mt-2 mb-4 max-w-md break-words leading-relaxed line-clamp-2 drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)]">
                 {promo ? 'Grab it now — 10% off for a limited time only!' : slide.subtitle}
               </p>
 
@@ -192,9 +209,6 @@ export function HeroSlideshow({ menuItems, restaurantId, restaurantName }: HeroS
           </div>
         );
       })}
-
-      {/* FIFA World Cup theme: bouncing ball + Bafana Bafana support */}
-      <WorldCupOverlay />
 
       {/* Progress dots */}
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex gap-2">
