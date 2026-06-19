@@ -210,9 +210,6 @@ export function HeroSlideshow({ menuItems, restaurantId, restaurantName }: HeroS
         );
       })}
 
-      {/* FIFA World Cup theme: bouncing ball + Bafana Bafana support */}
-      <WorldCupOverlay />
-
       {/* Progress dots */}
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex gap-2">
         {slides.map((_, index) => (
