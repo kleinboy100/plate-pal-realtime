@@ -73,12 +73,12 @@ export function HeroSlideshow({ menuItems, restaurantId, restaurantName }: HeroS
       setCurrentSlide((prev) => {
         const next = (prev + 1) % slides.length;
         // Transition slides flash by quickly; meals/posters linger.
-        const delay = slides[next]?.kind === 'transition' ? 1300 : 5000;
+        const delay = slides[next]?.kind === 'transition' ? 9000 : 5000;
         intervalRef.current = setTimeout(tick, delay);
         return next;
       });
     };
-    const firstDelay = slides[currentSlide]?.kind === 'transition' ? 1300 : 5000;
+    const firstDelay = slides[currentSlide]?.kind === 'transition' ? 9000 : 5000;
     intervalRef.current = setTimeout(tick, firstDelay);
   }, [slides.length]);
 
@@ -146,15 +146,15 @@ export function HeroSlideshow({ menuItems, restaurantId, restaurantName }: HeroS
 
             {/* Top tags */}
             <div className="absolute top-3 left-3 right-3 z-20 flex items-start justify-between gap-2">
+              {promo ? (
+                <span className="rounded-full bg-white/95 px-2.5 py-1 text-[9px] md:text-[11px] font-bold text-black shadow backdrop-blur-sm">
+                  {PROMO_DEADLINE_TEXT}
+                </span>
+              ) : <span />}
               <span className="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-[10px] md:text-xs font-extrabold uppercase tracking-wider text-primary-foreground shadow-lg">
                 <Flame size={13} className="animate-pulse" />
                 {promo ? PROMO_LABEL : "Today's Pick"}
               </span>
-              {promo && (
-                <span className="rounded-full bg-white/95 px-2.5 py-1 text-[9px] md:text-[11px] font-bold text-black shadow backdrop-blur-sm">
-                  {PROMO_DEADLINE_TEXT}
-                </span>
-              )}
             </div>
 
             {/* Bottom content */}
