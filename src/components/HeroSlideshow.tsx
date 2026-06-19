@@ -169,11 +169,11 @@ export function HeroSlideshow({ menuItems, restaurantId, restaurantName }: HeroS
                 Fresh &amp; Fast
               </span>
 
-              <h2 className="font-display text-xl md:text-4xl lg:text-5xl font-black text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] leading-[1.1] break-words">
+              <h2 className="font-display text-lg md:text-4xl lg:text-5xl font-black text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] leading-tight break-words line-clamp-2">
                 {slide.title}
               </h2>
 
-              <p className="text-white/90 text-xs md:text-base mt-1.5 mb-3 md:mt-2 md:mb-4 max-w-md break-words leading-relaxed line-clamp-2 drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)]">
+              <p className="text-white/85 text-xs md:text-base mt-2 mb-4 max-w-md break-words leading-relaxed line-clamp-2 drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)]">
                 {promo ? 'Grab it now — 10% off for a limited time only!' : slide.subtitle}
               </p>
 
