@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { isPromoApplicable, isPromoItem, isPromoActive, getEffectivePrice, PROMO_LABEL, PROMO_DEADLINE_TEXT, isYouthDay } from '@/lib/promo';
 import { YouthDaySlide } from '@/components/YouthDaySlide';
+import { WorldCupOverlay } from '@/components/WorldCupOverlay';
 
 interface MenuItem {
   id: string;
@@ -191,6 +192,9 @@ export function HeroSlideshow({ menuItems, restaurantId, restaurantName }: HeroS
           </div>
         );
       })}
+
+      {/* FIFA World Cup theme: bouncing ball + Bafana Bafana support */}
+      <WorldCupOverlay />
 
       {/* Progress dots */}
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex gap-2">
