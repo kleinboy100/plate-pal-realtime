@@ -44,35 +44,49 @@ export function HeroSlideshow({ menuItems, restaurantId, restaurantName }: HeroS
   const mealSlides = kotaItems.length > 0
     ? kotaItems.map(item => ({
         id: item.id,
-        youthDay: false,
+        kind: 'meal' as const,
         image: item.image_url || 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1200',
         title: item.name,
         subtitle: item.description || item.category,
         price: item.price
       }))
     : [
-        { id: '', youthDay: false, image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=1200', title: 'Delicious Meals', subtitle: 'Fresh & Fast', price: 0 }
+        { id: '', kind: 'meal' as const, image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=1200', title: 'Delicious Meals', subtitle: 'Fresh & Fast', price: 0 }
       ];
+
+  // Insert a World Cup transition slide before every meal.
+  const mealsWithTransitions = mealSlides.flatMap((meal, i) => [
+    { id: `wc-${i}`, kind: 'transition' as const, image: '', title: '', subtitle: '', price: 0 },
+    meal,
+  ]);
 
   // On Youth Day (16 June), feature the commemorative poster as the first slide.
   const slides = isYouthDay()
-    ? [{ id: 'youth-day', youthDay: true, image: '', title: 'Youth Day', subtitle: '', price: 0 }, ...mealSlides]
-    : mealSlides;
+    ? [{ id: 'youth-day', kind: 'youthDay' as const, image: '', title: 'Youth Day', subtitle: '', price: 0 }, ...mealsWithTransitions]
+    : mealsWithTransitions;
 
   const startAutoPlay = useCallback(() => {
     if (intervalRef.current) {
-      clearInterval(intervalRef.current);
+      clearTimeout(intervalRef.current);
     }
-    intervalRef.current = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % slides.length);
-    }, 5000);
+    const tick = () => {
+      setCurrentSlide((prev) => {
+        const next = (prev + 1) % slides.length;
+        // Transition slides flash by quickly; meals/posters linger.
+        const delay = slides[next]?.kind === 'transition' ? 1300 : 5000;
+        intervalRef.current = setTimeout(tick, delay);
+        return next;
+      });
+    };
+    const firstDelay = slides[currentSlide]?.kind === 'transition' ? 1300 : 5000;
+    intervalRef.current = setTimeout(tick, firstDelay);
   }, [slides.length]);
 
   useEffect(() => {
     startAutoPlay();
     return () => {
       if (intervalRef.current) {
-        clearInterval(intervalRef.current);
+        clearTimeout(intervalRef.current);
       }
     };
   }, [startAutoPlay]);
