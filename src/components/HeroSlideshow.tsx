@@ -73,12 +73,12 @@ export function HeroSlideshow({ menuItems, restaurantId, restaurantName }: HeroS
       setCurrentSlide((prev) => {
         const next = (prev + 1) % slides.length;
         // Transition slides flash by quickly; meals/posters linger.
-        const delay = slides[next]?.kind === 'transition' ? 1300 : 5000;
+        const delay = slides[next]?.kind === 'transition' ? 9000 : 5000;
         intervalRef.current = setTimeout(tick, delay);
         return next;
       });
     };
-    const firstDelay = slides[currentSlide]?.kind === 'transition' ? 1300 : 5000;
+    const firstDelay = slides[currentSlide]?.kind === 'transition' ? 9000 : 5000;
     intervalRef.current = setTimeout(tick, firstDelay);
   }, [slides.length]);
 
