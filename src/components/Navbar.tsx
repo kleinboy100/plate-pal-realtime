@@ -184,6 +184,23 @@ export function Navbar() {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center gap-2">
+            {isCustomer && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleOpenChat}
+                aria-label="Chat"
+                className={cn(
+                  "rounded-xl hover:bg-muted/50 relative",
+                  hasUnreadMessage && "bg-primary text-primary-foreground animate-attention-flash"
+                )}
+              >
+                <MessageSquare size={20} />
+                {hasUnreadMessage && (
+                  <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-[10px] rounded-full h-4 w-4 flex items-center justify-center font-bold shadow-md">!</span>
+                )}
+              </Button>
+            )}
             <Link to="/cart" className="relative">
               <Button variant="ghost" size="icon" className="rounded-xl hover:bg-muted/50">
                 <ShoppingCart size={20} />
@@ -208,6 +225,23 @@ export function Navbar() {
           <div className="md:hidden flex items-center gap-1">
             {user ? (
               <>
+                {isCustomer && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleOpenChat}
+                    aria-label="Chat"
+                    className={cn(
+                      "rounded-xl relative",
+                      hasUnreadMessage && "bg-primary text-primary-foreground animate-attention-flash"
+                    )}
+                  >
+                    <MessageSquare size={20} />
+                    {hasUnreadMessage && (
+                      <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-[10px] rounded-full h-4 w-4 flex items-center justify-center font-bold shadow-md">!</span>
+                    )}
+                  </Button>
+                )}
                 <Link to="/cart" className="relative">
                   <Button variant="ghost" size="icon" className="rounded-xl" aria-label="Cart">
                     <ShoppingCart size={20} />
