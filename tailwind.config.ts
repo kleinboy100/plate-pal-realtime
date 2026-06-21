@@ -120,11 +120,22 @@ export default {
   				to: {
   					height: '0'
   				}
+  			},
+  			'attention-flash': {
+  				'0%, 100%': {
+  					transform: 'scale(1)',
+  					boxShadow: '0 0 0 0 hsl(var(--primary) / 0.5)'
+  				},
+  				'50%': {
+  					transform: 'scale(1.08)',
+  					boxShadow: '0 0 0 6px hsl(var(--primary) / 0)'
+  				}
   			}
   		},
   		animation: {
   			'accordion-down': 'accordion-down 0.2s ease-out',
-  			'accordion-up': 'accordion-up 0.2s ease-out'
+  			'accordion-up': 'accordion-up 0.2s ease-out',
+  			'attention-flash': 'attention-flash 1.2s ease-in-out infinite'
   		},
   		boxShadow: {
   			'2xs': 'var(--shadow-2xs)',

@@ -9,7 +9,7 @@ import { DeliveryETA } from '@/components/DeliveryETA';
 import { supabase } from '@/integrations/supabase/client';
 import { Bell, XCircle, Star, Banknote, CreditCard, Loader2 } from 'lucide-react';
 import { usePushNotifications, ORDER_STATUS_MESSAGES } from '@/hooks/usePushNotifications';
-import { NotificationSoundPicker } from '@/components/NotificationSoundPicker';
+
 import { playNotification } from '@/lib/notificationSound';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -351,10 +351,7 @@ export default function OrderDetail() {
           </div>
         )}
 
-        {/* Custom Notification Sound */}
-        <div className="card-elevated p-4 mb-6">
-          <NotificationSoundPicker storageKey={soundKey} previewText="Your order status has changed" />
-        </div>
+        
         
 
         
