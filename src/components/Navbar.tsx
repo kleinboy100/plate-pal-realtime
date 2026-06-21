@@ -28,6 +28,8 @@ export function Navbar() {
   const { isDriver } = useIsRestaurantDriver();
 
   const isStaffSide = isOwner || isStaff || isDriver;
+  const isCustomer = !!user && !isStaffSide;
+  const { hasActiveOrder, hasUnreadMessage } = useCustomerAlerts();
 
   const { toast } = useToast();
 
