@@ -351,10 +351,7 @@ export default function OrderDetail() {
           </div>
         )}
 
-        {/* Custom Notification Sound */}
-        <div className="card-elevated p-4 mb-6">
-          <NotificationSoundPicker storageKey={soundKey} previewText="Your order status has changed" />
-        </div>
+        
         
 
         
