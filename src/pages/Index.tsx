@@ -154,10 +154,11 @@ export default function Index() {
               )} />
               <Clock className="w-4 h-4" />
               <span className="font-semibold">
-                {/* Temporary: show closed today message on May 31, 2026 */}
-                {new Date().toDateString() === 'Sun May 31 2026'
-                  ? "The store will be closed today"
-                  : isOpen ? "We're open" : "Closed for orders"
+                {isOpen 
+                  ? "We're open" 
+                  : new Date().toDateString() === 'Mon Jun 22 2026'
+                    ? "Closed due to power outage, we will be back in a while"
+                    : "Closed for orders"
                 }
               </span>
             </div>
