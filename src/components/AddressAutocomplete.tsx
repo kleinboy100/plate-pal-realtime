@@ -49,7 +49,7 @@ export function AddressAutocomplete({
   value,
   onChange,
   onCoordinatesChange,
-  placeholder = "Enter full address e.g 123 Ext 6, street name, Jouberton",
+  placeholder = "3 Sam str, Jouberton",
   disabled = false,
   className,
   showLocationButton = true,

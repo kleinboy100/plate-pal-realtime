@@ -381,7 +381,7 @@ export default function Cart() {
                       value={deliveryAddress}
                       onChange={setDeliveryAddress}
                       onCoordinatesChange={setDeliveryCoords}
-                      placeholder="e.g 15095 Flamboyant Street, Jouberton, 2574"
+                      placeholder="3 Sam str, Jouberton"
                       showLocationButton={true}
                       enableSuggestions={false}
                     />
