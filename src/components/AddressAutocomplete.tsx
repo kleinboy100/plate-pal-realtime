@@ -32,6 +32,7 @@ interface AddressAutocompleteProps {
   disabled?: boolean;
   className?: string;
   showLocationButton?: boolean;
+  enableSuggestions?: boolean;
 }
 
 // Build a small coloured pin marker icon for Leaflet.
@@ -52,6 +53,7 @@ export function AddressAutocomplete({
   disabled = false,
   className,
   showLocationButton = true,
+  enableSuggestions = true,
 }: AddressAutocompleteProps) {
   const [query, setQuery] = useState(value);
   const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([]);
@@ -108,6 +110,8 @@ export function AddressAutocomplete({
     setQuery(newValue);
     onChange(newValue);
     onCoordinatesChange?.(null);
+
+    if (!enableSuggestions) return;
 
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
@@ -228,7 +232,7 @@ export function AddressAutocomplete({
         </div>
       )}
 
-      {showDropdown && (
+      {enableSuggestions && showDropdown && (
         <div
           ref={dropdownRef}
           className="absolute z-50 w-full mt-1 bg-background border border-border rounded-lg shadow-lg overflow-hidden"

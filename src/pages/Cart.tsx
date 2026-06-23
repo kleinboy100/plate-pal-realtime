@@ -18,6 +18,16 @@ const MAX_NOTES_LENGTH = 1000;
 const MAX_ADDRESS_LENGTH = 500;
 const RATE_PER_METER = 0.80 / 90; // R0.80 per 90m (areas outside Jouberton)
 
+// Text-based delivery fee used when an address can't be located on the map.
+function fallbackFeeFromAddress(address: string): number {
+  const a = (address || '').toLowerCase();
+  if (a.includes('alabama')) return 44;
+  if (a.includes('jouberton') || a.includes('ext') || a.includes('kanana')) return 36;
+  return 100; // Klerksdorp and all other areas
+}
+
+
+
 
 export default function Cart() {
   const { items, updateQuantity, removeItem, clearCart, total, restaurantId } = useCart();
@@ -82,15 +92,17 @@ export default function Cart() {
           setServerFee(data.fee);
           setFeeError(null);
         } else {
+          // Address couldn't be located — fall back to a text-based delivery fee
+          // so the customer can always proceed with their typed-in address.
           setDistanceKm(null);
-          setServerFee(null);
-          setFeeError("We couldn't locate that address on the map. Please refine it or drop a pin.");
+          setServerFee(fallbackFeeFromAddress(deliveryAddress));
+          setFeeError(null);
         }
       } catch (err) {
         console.error('Distance calc error:', err);
         setDistanceKm(null);
-        setServerFee(null);
-        setFeeError("Couldn't calculate the delivery fee. Please try again.");
+        setServerFee(fallbackFeeFromAddress(deliveryAddress));
+        setFeeError(null);
       } finally {
         setCalculatingFee(false);
       }
@@ -369,8 +381,9 @@ export default function Cart() {
                       value={deliveryAddress}
                       onChange={setDeliveryAddress}
                       onCoordinatesChange={setDeliveryCoords}
-                      placeholder="Search for your address"
+                      placeholder="e.g 15095 Flamboyant Street, Jouberton, 2574"
                       showLocationButton={true}
+                      enableSuggestions={false}
                     />
                   </div>
                 )}
