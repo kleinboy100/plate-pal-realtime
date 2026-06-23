@@ -82,15 +82,17 @@ export default function Cart() {
           setServerFee(data.fee);
           setFeeError(null);
         } else {
+          // Address couldn't be located — fall back to a text-based delivery fee
+          // so the customer can always proceed with their typed-in address.
           setDistanceKm(null);
-          setServerFee(null);
-          setFeeError("We couldn't locate that address on the map. Please refine it or drop a pin.");
+          setServerFee(fallbackFeeFromAddress(deliveryAddress));
+          setFeeError(null);
         }
       } catch (err) {
         console.error('Distance calc error:', err);
         setDistanceKm(null);
-        setServerFee(null);
-        setFeeError("Couldn't calculate the delivery fee. Please try again.");
+        setServerFee(fallbackFeeFromAddress(deliveryAddress));
+        setFeeError(null);
       } finally {
         setCalculatingFee(false);
       }
