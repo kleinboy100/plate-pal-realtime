@@ -32,6 +32,7 @@ interface AddressAutocompleteProps {
   disabled?: boolean;
   className?: string;
   showLocationButton?: boolean;
+  enableSuggestions?: boolean;
 }
 
 // Build a small coloured pin marker icon for Leaflet.
