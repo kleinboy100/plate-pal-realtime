@@ -111,6 +111,8 @@ export function AddressAutocomplete({
     onChange(newValue);
     onCoordinatesChange?.(null);
 
+    if (!enableSuggestions) return;
+
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
       searchAddresses(newValue);
