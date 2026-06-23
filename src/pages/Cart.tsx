@@ -385,6 +385,9 @@ export default function Cart() {
                       showLocationButton={true}
                       enableSuggestions={false}
                     />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Enter House Number, Street name, Suburb.
+                    </p>
                   </div>
                 )}
 
