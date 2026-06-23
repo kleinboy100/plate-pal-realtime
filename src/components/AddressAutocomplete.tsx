@@ -232,7 +232,7 @@ export function AddressAutocomplete({
         </div>
       )}
 
-      {showDropdown && (
+      {enableSuggestions && showDropdown && (
         <div
           ref={dropdownRef}
           className="absolute z-50 w-full mt-1 bg-background border border-border rounded-lg shadow-lg overflow-hidden"
