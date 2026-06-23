@@ -369,8 +369,9 @@ export default function Cart() {
                       value={deliveryAddress}
                       onChange={setDeliveryAddress}
                       onCoordinatesChange={setDeliveryCoords}
-                      placeholder="Search for your address"
+                      placeholder="e.g 15095 Flamboyant Street, Jouberton, 2574"
                       showLocationButton={true}
+                      enableSuggestions={false}
                     />
                   </div>
                 )}
