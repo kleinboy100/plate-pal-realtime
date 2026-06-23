@@ -18,6 +18,16 @@ const MAX_NOTES_LENGTH = 1000;
 const MAX_ADDRESS_LENGTH = 500;
 const RATE_PER_METER = 0.80 / 90; // R0.80 per 90m (areas outside Jouberton)
 
+// Text-based delivery fee used when an address can't be located on the map.
+function fallbackFeeFromAddress(address: string): number {
+  const a = (address || '').toLowerCase();
+  if (a.includes('alabama')) return 44;
+  if (a.includes('jouberton') || a.includes('ext') || a.includes('kanana')) return 36;
+  return 100; // Klerksdorp and all other areas
+}
+
+
+
 
 export default function Cart() {
   const { items, updateQuantity, removeItem, clearCart, total, restaurantId } = useCart();
