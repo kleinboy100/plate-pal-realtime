@@ -53,6 +53,7 @@ export function AddressAutocomplete({
   disabled = false,
   className,
   showLocationButton = true,
+  enableSuggestions = true,
 }: AddressAutocompleteProps) {
   const [query, setQuery] = useState(value);
   const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([]);
