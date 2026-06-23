@@ -1,4 +1,6 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+
+const CART_STORAGE_KEY = 'nosty_cart';
 
 interface CartItem {
   id: string;
