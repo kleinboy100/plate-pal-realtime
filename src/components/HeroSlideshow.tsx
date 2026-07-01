@@ -38,7 +38,7 @@ export function HeroSlideshow({ menuItems, restaurantId, restaurantName }: HeroS
     : menuItems
         .filter(item => item.category?.toLowerCase() === 'kota menu')
         .sort((a, b) => Number(b.price) - Number(a.price))
-        .slice(0, 5);
+        .slice(0, 10);
 
   const mealSlides = kotaItems.length > 0
     ? kotaItems.map(item => ({
@@ -53,16 +53,10 @@ export function HeroSlideshow({ menuItems, restaurantId, restaurantName }: HeroS
         { id: '', kind: 'meal' as const, image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=1200', title: 'Delicious Meals', subtitle: 'Fresh & Fast', price: 0 }
       ];
 
-  // Insert a World Cup transition slide before every meal.
-  const mealsWithTransitions = mealSlides.flatMap((meal, i) => [
-    { id: `wc-${i}`, kind: 'transition' as const, image: '', title: '', subtitle: '', price: 0 },
-    meal,
-  ]);
-
   // On Youth Day (16 June), feature the commemorative poster as the first slide.
   const slides = isYouthDay()
-    ? [{ id: 'youth-day', kind: 'youthDay' as const, image: '', title: 'Youth Day', subtitle: '', price: 0 }, ...mealsWithTransitions]
-    : mealsWithTransitions;
+    ? [{ id: 'youth-day', kind: 'youthDay' as const, image: '', title: 'Youth Day', subtitle: '', price: 0 }, ...mealSlides]
+    : mealSlides;
 
   const startAutoPlay = useCallback(() => {
     if (intervalRef.current) {
