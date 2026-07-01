@@ -405,6 +405,7 @@ export default function DriverDashboard() {
                         <p className="font-bold">Order #{String(o.order_number).padStart(5, '0')}</p>
                         <p className="text-xs text-muted-foreground flex items-start gap-1"><MapPin size={12} className="mt-0.5"/> {o.delivery_address}</p>
                       </div>
+                      <OrderItemsList orderId={o.id} />
                       <OrderMoneyBreakdown order={o} />
 
                       <div className="flex items-center gap-2">
