@@ -65,14 +65,11 @@ export function HeroSlideshow({ menuItems, restaurantId, restaurantName }: HeroS
     const tick = () => {
       setCurrentSlide((prev) => {
         const next = (prev + 1) % slides.length;
-        // World Cup transitions appear for 3s; meals / other slides appear for 9s.
-        const delay = slides[next]?.kind === 'transition' ? 3000 : 9000;
-        intervalRef.current = setTimeout(tick, delay);
+        intervalRef.current = setTimeout(tick, 9000);
         return next;
       });
     };
-    const firstDelay = slides[currentSlide]?.kind === 'transition' ? 3000 : 9000;
-    intervalRef.current = setTimeout(tick, firstDelay);
+    intervalRef.current = setTimeout(tick, 9000);
   }, [slides.length]);
 
   useEffect(() => {
