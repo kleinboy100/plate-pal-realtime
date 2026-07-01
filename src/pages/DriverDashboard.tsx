@@ -81,6 +81,40 @@ function OrderMoneyBreakdown({ order }: { order: Order }) {
   );
 }
 
+type OrderItem = { id: string; item_name: string; quantity: number };
+
+function OrderItemsList({ orderId }: { orderId: string }) {
+  const [items, setItems] = useState<OrderItem[]>([]);
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const { data } = await supabase
+        .from('order_items')
+        .select('id, item_name, quantity')
+        .eq('order_id', orderId);
+      if (active) setItems((data as OrderItem[] | null) || []);
+    })();
+    return () => { active = false; };
+  }, [orderId]);
+
+  if (items.length === 0) return null;
+  return (
+    <div className="rounded-lg border p-3 space-y-1 text-sm">
+      <p className="font-semibold text-xs text-muted-foreground uppercase tracking-wide flex items-center gap-1">
+        <Package size={13} /> Meals ordered
+      </p>
+      {items.map((it) => (
+        <div key={it.id} className="flex justify-between">
+          <span>{it.item_name}</span>
+          <span className="text-muted-foreground">× {it.quantity}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+
+
 
 export default function DriverDashboard() {
   const { user, loading: authLoading } = useAuth();
