@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { isPromoApplicable, isPromoItem, isPromoActive, getEffectivePrice, PROMO_LABEL, PROMO_DEADLINE_TEXT, isYouthDay } from '@/lib/promo';
 import { YouthDaySlide } from '@/components/YouthDaySlide';
-import { WorldCupTransition } from '@/components/WorldCupTransition';
 
 interface MenuItem {
   id: string;
@@ -39,7 +38,7 @@ export function HeroSlideshow({ menuItems, restaurantId, restaurantName }: HeroS
     : menuItems
         .filter(item => item.category?.toLowerCase() === 'kota menu')
         .sort((a, b) => Number(b.price) - Number(a.price))
-        .slice(0, 5);
+        .slice(0, 10);
 
   const mealSlides = kotaItems.length > 0
     ? kotaItems.map(item => ({
@@ -54,16 +53,10 @@ export function HeroSlideshow({ menuItems, restaurantId, restaurantName }: HeroS
         { id: '', kind: 'meal' as const, image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=1200', title: 'Delicious Meals', subtitle: 'Fresh & Fast', price: 0 }
       ];
 
-  // Insert a World Cup transition slide before every meal.
-  const mealsWithTransitions = mealSlides.flatMap((meal, i) => [
-    { id: `wc-${i}`, kind: 'transition' as const, image: '', title: '', subtitle: '', price: 0 },
-    meal,
-  ]);
-
   // On Youth Day (16 June), feature the commemorative poster as the first slide.
   const slides = isYouthDay()
-    ? [{ id: 'youth-day', kind: 'youthDay' as const, image: '', title: 'Youth Day', subtitle: '', price: 0 }, ...mealsWithTransitions]
-    : mealsWithTransitions;
+    ? [{ id: 'youth-day', kind: 'youthDay' as const, image: '', title: 'Youth Day', subtitle: '', price: 0 }, ...mealSlides]
+    : mealSlides;
 
   const startAutoPlay = useCallback(() => {
     if (intervalRef.current) {
@@ -72,14 +65,11 @@ export function HeroSlideshow({ menuItems, restaurantId, restaurantName }: HeroS
     const tick = () => {
       setCurrentSlide((prev) => {
         const next = (prev + 1) % slides.length;
-        // World Cup transitions appear for 3s; meals / other slides appear for 9s.
-        const delay = slides[next]?.kind === 'transition' ? 3000 : 9000;
-        intervalRef.current = setTimeout(tick, delay);
+        intervalRef.current = setTimeout(tick, 9000);
         return next;
       });
     };
-    const firstDelay = slides[currentSlide]?.kind === 'transition' ? 3000 : 9000;
-    intervalRef.current = setTimeout(tick, firstDelay);
+    intervalRef.current = setTimeout(tick, 9000);
   }, [slides.length]);
 
   useEffect(() => {
@@ -117,9 +107,6 @@ export function HeroSlideshow({ menuItems, restaurantId, restaurantName }: HeroS
         const active = index === currentSlide;
         if (slide.kind === 'youthDay') {
           return <YouthDaySlide key={index} active={active} />;
-        }
-        if (slide.kind === 'transition') {
-          return <WorldCupTransition key={index} active={active} />;
         }
         const promo = isPromoApplicable(slide.id);
         return (
