@@ -197,7 +197,7 @@ export function OrderChat({ orderId, userType, className, defaultOpen = false }:
 
       {/* Chat Panel */}
       {isOpen && (
-        <div className="fixed inset-x-4 bottom-20 md:absolute md:inset-auto md:top-full md:right-0 md:left-auto md:bottom-auto md:mt-2 w-auto md:w-72 max-w-[calc(100vw-2rem)] bg-card border rounded-lg shadow-lg z-50">
+        <div className="fixed inset-x-4 bottom-20 md:absolute md:inset-auto md:top-full md:right-0 md:left-auto md:bottom-auto md:mt-2 w-auto md:w-72 max-w-[calc(100vw-2rem)] bg-card border rounded-lg shadow-lg z-[1200]">
           <div className="p-3 border-b flex justify-between items-center">
             <span className="font-semibold text-sm">Order Chat</span>
             <Button variant="ghost" size="sm" onClick={() => setIsOpen(false)}>
