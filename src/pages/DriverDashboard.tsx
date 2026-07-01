@@ -373,6 +373,7 @@ export default function DriverDashboard() {
                       <MapPin size={14} className="mt-0.5 shrink-0" />
                       <span>{o.delivery_address}</span>
                     </div>
+                    <OrderItemsList orderId={o.id} />
                     <OrderMoneyBreakdown order={o} />
                     <div className="flex gap-2">
                       <Button onClick={() => accept(o.id)} disabled={busyId === o.id} className="flex-1 btn-primary">
