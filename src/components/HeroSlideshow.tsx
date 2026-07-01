@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { isPromoApplicable, isPromoItem, isPromoActive, getEffectivePrice, PROMO_LABEL, PROMO_DEADLINE_TEXT, isYouthDay } from '@/lib/promo';
 import { YouthDaySlide } from '@/components/YouthDaySlide';
-import { WorldCupTransition } from '@/components/WorldCupTransition';
 
 interface MenuItem {
   id: string;
