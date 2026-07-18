@@ -9,9 +9,10 @@ const isCustomDomain = () =>
   !window.location.hostname.includes('lovable.app') &&
   !window.location.hostname.includes('lovableproject.com');
 
-export function GoogleAuth() {
+export function GoogleAuth({ nextPath = '/' }: { nextPath?: string } = {}) {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const redirectTarget = `${window.location.origin}${nextPath.startsWith('/') ? nextPath : '/' + nextPath}`;
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
@@ -22,7 +23,7 @@ export function GoogleAuth() {
         const { data, error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
           options: {
-            redirectTo: `${window.location.origin}/`,
+            redirectTo: redirectTarget,
             skipBrowserRedirect: true,
             queryParams: { prompt: 'select_account' },
           },
@@ -32,7 +33,7 @@ export function GoogleAuth() {
       } else {
         // On Lovable preview, use managed auth
         const { error } = await lovable.auth.signInWithOAuth('google', {
-          redirect_uri: window.location.origin,
+          redirect_uri: redirectTarget,
           extraParams: { prompt: 'select_account' },
         });
         if (error) throw error;

@@ -1,22 +1,31 @@
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { EmailAuth } from '@/components/auth/EmailAuth';
 import { GoogleAuth } from '@/components/auth/GoogleAuth';
 import heroFood from '@/assets/hero-food.jpg';
 
+function sanitizeNext(raw: string | null): string {
+  if (!raw) return '/';
+  // Only allow same-origin relative paths (must start with a single "/").
+  if (!raw.startsWith('/') || raw.startsWith('//')) return '/';
+  return raw;
+}
+
 export default function Auth() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const next = sanitizeNext(params.get('next'));
 
   useEffect(() => {
     if (user) {
-      navigate('/');
+      window.location.href = next;
     }
-  }, [user, navigate]);
+  }, [user, next]);
 
   const handleSuccess = () => {
-    navigate('/');
+    window.location.href = next;
   };
 
   return (
@@ -35,7 +44,7 @@ export default function Auth() {
             </p>
           </div>
 
-          <GoogleAuth />
+          <GoogleAuth nextPath={next} />
 
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
@@ -46,7 +55,7 @@ export default function Auth() {
             </div>
           </div>
 
-          <EmailAuth onSuccess={handleSuccess} />
+          <EmailAuth onSuccess={handleSuccess} nextPath={next} />
         </div>
       </div>
     </div>
