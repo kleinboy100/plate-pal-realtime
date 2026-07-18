@@ -8,9 +8,10 @@ import { Mail, Lock, User, ArrowRight, CheckCircle } from 'lucide-react';
 
 interface EmailAuthProps {
   onSuccess: () => void;
+  nextPath?: string;
 }
 
-export function EmailAuth({ onSuccess }: EmailAuthProps) {
+export function EmailAuth({ onSuccess, nextPath = '/' }: EmailAuthProps) {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -20,7 +21,7 @@ export function EmailAuth({ onSuccess }: EmailAuthProps) {
   
   const { toast } = useToast();
 
-  const getRedirectUrl = () => `${window.location.origin}/`;
+  const getRedirectUrl = () => `${window.location.origin}${nextPath.startsWith('/') ? nextPath : '/' + nextPath}`;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
