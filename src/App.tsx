@@ -25,6 +25,7 @@ import DeleteAccount from "./pages/DeleteAccount";
 import DriverDashboard from "./pages/DriverDashboard";
 import NotificationSettings from "./pages/NotificationSettings";
 import Earnings from "./pages/Earnings";
+import OAuthConsent from "./pages/OAuthConsent";
 
 const queryClient = new QueryClient();
 
@@ -56,6 +57,7 @@ const App = () => (
                 <Route path="/earnings" element={<Earnings />} />
                 <Route path="/privacy" element={<Privacy />} />
                 <Route path="/delete-account" element={<DeleteAccount />} />
+                <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </div>
