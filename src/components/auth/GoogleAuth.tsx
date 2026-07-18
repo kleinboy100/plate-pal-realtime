@@ -33,7 +33,7 @@ export function GoogleAuth({ nextPath = '/' }: { nextPath?: string } = {}) {
       } else {
         // On Lovable preview, use managed auth
         const { error } = await lovable.auth.signInWithOAuth('google', {
-          redirect_uri: window.location.origin,
+          redirect_uri: redirectTarget,
           extraParams: { prompt: 'select_account' },
         });
         if (error) throw error;
