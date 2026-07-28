@@ -12,6 +12,7 @@ import { usePushNotifications, ORDER_STATUS_MESSAGES } from '@/hooks/usePushNoti
 
 import { playNotification } from '@/lib/notificationSound';
 import { Button } from '@/components/ui/button';
+import { AdSenseBanner } from '@/components/AdSenseBanner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
