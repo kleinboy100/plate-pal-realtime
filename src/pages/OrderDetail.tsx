@@ -589,8 +589,11 @@ export default function OrderDetail() {
               <Banknote size={16} />
               <span>Payment: {order.payment_confirmed ? (order.payment_method === 'cash' ? 'Cash on Delivery' : 'Paid Online') : 'Pending selection'}</span>
             </div>
-          </div>
         </div>
+        <AdSenseBanner adClient="ca-pub-4449020882721592" adSlot="6551610214" />
+      </div>
+    </div>
+
       </div>
     </div>
   );
