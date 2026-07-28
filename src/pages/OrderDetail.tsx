@@ -12,6 +12,7 @@ import { usePushNotifications, ORDER_STATUS_MESSAGES } from '@/hooks/usePushNoti
 
 import { playNotification } from '@/lib/notificationSound';
 import { Button } from '@/components/ui/button';
+import { AdSenseBanner } from '@/components/AdSenseBanner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -590,7 +591,9 @@ export default function OrderDetail() {
             </div>
           </div>
         </div>
+        <AdSenseBanner adClient="ca-pub-4449020882721592" adSlot="6551610214" />
       </div>
     </div>
   );
+
 }
