@@ -79,8 +79,20 @@ export default function Privacy() {
           <h2 className="font-semibold text-xl mt-6">Security</h2>
           <p>While We strive to use commercially reasonable means to protect Your Personal Data, no method of transmission over the Internet or electronic storage is 100% secure.</p>
 
+          <h2 className="font-semibold text-xl mt-6">Cookies and Similar Technologies</h2>
+          <p>We use cookies and local storage to keep You signed in, remember the contents of Your cart, and understand how the Service is used. You can clear or block cookies in Your browser settings, but some parts of the Service (such as signing in and checkout) may then not work.</p>
+
+          <h2 className="font-semibold text-xl mt-6">Advertising and Google AdSense</h2>
+          <ul className="list-disc pl-6 space-y-1">
+            <li>Third-party vendors, including Google, use cookies to serve ads based on Your prior visits to this website or other websites.</li>
+            <li>Google's use of advertising cookies enables it and its partners to serve ads to You based on Your visit to our Service and/or other sites on the Internet.</li>
+            <li>You may opt out of personalised advertising by visiting Google's Ads Settings at <a className="underline" href="https://www.google.com/settings/ads" target="_blank" rel="noopener noreferrer">google.com/settings/ads</a>, or opt out of third-party vendors' use of cookies at <a className="underline" href="https://www.aboutads.info/choices/" target="_blank" rel="noopener noreferrer">aboutads.info/choices</a>.</li>
+            <li>We do not share Your name, email address, phone number or delivery address with advertisers.</li>
+          </ul>
+
           <h2 className="font-semibold text-xl mt-6">Third-Party Services</h2>
-          <p>We use Google Places to return information about places. Information gathered is held in accordance with Google's Privacy Policy.</p>
+          <p>We use OpenStreetMap and Nominatim for address lookup and route estimates, Yoco for card payments, and Google AdSense for advertising. Information handled by these providers is held in accordance with their own privacy policies.</p>
+
 
           <h2 className="font-semibold text-xl mt-6">Children's Privacy</h2>
           <p>Our Service does not address anyone under the age of 13. We do not knowingly collect personally identifiable information from anyone under 13.</p>
@@ -92,7 +104,8 @@ export default function Privacy() {
           <p>We may update Our Privacy Policy from time to time. We will notify You via email and/or a prominent notice on Our Service prior to changes becoming effective.</p>
 
           <h2 className="font-semibold text-xl mt-6">Contact Us</h2>
-          <p>If you have any questions about this Privacy Policy, You can contact us through the in-app support channels.</p>
+          <p>If you have any questions about this Privacy Policy, You can contact us by email at <a className="underline" href="mailto:busta.d2@gmail.com">busta.d2@gmail.com</a> or through the in-app support chat.</p>
+
         </article>
       </div>
     </div>

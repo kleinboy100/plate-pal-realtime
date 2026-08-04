@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { KFCMenuItem } from '@/components/KFCMenuItem';
 import { HeroSlideshow } from '@/components/HeroSlideshow';
 import { PrivacyPolicyDialog } from '@/components/PrivacyPolicyDialog';
+import { SiteFooter } from '@/components/SiteFooter';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRestaurantOperatingStatus } from '@/hooks/useRestaurantOperatingStatus';
@@ -276,6 +277,8 @@ export default function Index() {
           )}
         </div>
       </section>
+
+      <SiteFooter />
     </div>
   );
 }

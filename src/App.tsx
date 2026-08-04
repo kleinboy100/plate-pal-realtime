@@ -26,6 +26,10 @@ import DriverDashboard from "./pages/DriverDashboard";
 import NotificationSettings from "./pages/NotificationSettings";
 import Earnings from "./pages/Earnings";
 import OAuthConsent from "./pages/OAuthConsent";
+import About from "./pages/About";
+import Contact from "./pages/Contact";
+import Terms from "./pages/Terms";
+import FAQ from "./pages/FAQ";
 
 const queryClient = new QueryClient();
 
@@ -56,6 +60,10 @@ const App = () => (
                 <Route path="/notifications" element={<NotificationSettings />} />
                 <Route path="/earnings" element={<Earnings />} />
                 <Route path="/privacy" element={<Privacy />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/terms" element={<Terms />} />
+                <Route path="/faq" element={<FAQ />} />
                 <Route path="/delete-account" element={<DeleteAccount />} />
                 <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
                 <Route path="*" element={<NotFound />} />
