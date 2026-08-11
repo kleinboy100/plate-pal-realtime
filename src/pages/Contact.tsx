@@ -17,7 +17,7 @@ export default function Contact() {
             <div>
               <h2 className="font-semibold text-foreground">Email</h2>
               <p className="text-muted-foreground text-sm">
-                <a className="hover:text-primary" href="mailto:busta.d2@gmail.com">busta.d2@gmail.com</a><br />
+                <a className="hover:text-primary" href="mailto:mozksolutions@gmail.com">mozksolutions@gmail.com</a><br />
                 We reply to most emails within one business day.
               </p>
             </div>
