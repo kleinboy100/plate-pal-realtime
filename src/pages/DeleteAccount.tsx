@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Trash2, ArrowLeft, Mail } from 'lucide-react';
+import { SiteFooter } from '@/components/SiteFooter';
 
 export default function DeleteAccount() {
   return (
@@ -74,6 +75,7 @@ export default function DeleteAccount() {
           </p>
         </article>
       </div>
+      <SiteFooter />
     </div>
   );
 }

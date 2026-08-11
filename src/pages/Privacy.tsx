@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { ShieldCheck, ArrowLeft } from 'lucide-react';
+import { SiteFooter } from '@/components/SiteFooter';
 
 export default function Privacy() {
   return (
@@ -108,6 +109,7 @@ export default function Privacy() {
 
         </article>
       </div>
+      <SiteFooter />
     </div>
   );
 }

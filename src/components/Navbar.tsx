@@ -149,6 +149,19 @@ export function Navbar() {
             >
               Menu
             </Link>
+            {!isStaffSide && (
+              <>
+                <Link to="/about" className="px-3 py-2 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all">
+                  About
+                </Link>
+                <Link to="/faq" className="px-3 py-2 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all">
+                  FAQ
+                </Link>
+                <Link to="/contact" className="px-3 py-2 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all">
+                  Contact
+                </Link>
+              </>
+            )}
             {user && (
               <>
                 <Link 

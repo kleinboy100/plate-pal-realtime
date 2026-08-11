@@ -6,6 +6,7 @@ import { KFCMenuItem } from '@/components/KFCMenuItem';
 import { HeroSlideshow } from '@/components/HeroSlideshow';
 import { PrivacyPolicyDialog } from '@/components/PrivacyPolicyDialog';
 import { SiteFooter } from '@/components/SiteFooter';
+import { AdSenseBanner } from '@/components/AdSenseBanner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRestaurantOperatingStatus } from '@/hooks/useRestaurantOperatingStatus';
@@ -277,6 +278,52 @@ export default function Index() {
           )}
         </div>
       </section>
+
+      <section className="bg-card border-y border-border" aria-labelledby="local-food-heading">
+        <div className="container mx-auto max-w-5xl px-4 py-10 md:py-14">
+          <div className="grid gap-8 md:grid-cols-2">
+            <div>
+              <h2 id="local-food-heading" className="font-display text-2xl font-bold text-foreground mb-3">
+                Fresh kasi food, made in Jouberton
+              </h2>
+              <p className="text-muted-foreground leading-relaxed mb-3">
+                Nosty&apos;$ prepares every kota, dagwood, loaf and portion of chips after you order.
+                We buy fresh bread, layer each meal by hand and pack hot orders for delivery or collection.
+                Nothing is pre-made and left waiting on a shelf.
+              </p>
+              <p className="text-muted-foreground leading-relaxed">
+                Our menu follows the food our Klerksdorp customers know: slap chips with vinegar and spice,
+                quarter-loaf kotas with atchar and your chosen fillings, stacked dagwoods, sharing loafs and
+                value combos. Prices are shown in South African Rand before you add anything to your cart.
+              </p>
+            </div>
+            <div>
+              <h2 className="font-display text-2xl font-bold text-foreground mb-3">Ordering and delivery</h2>
+              <p className="text-muted-foreground leading-relaxed mb-3">
+                Choose delivery or free collection at checkout. The kitchen confirms availability before
+                payment, so you are not charged for a meal we cannot prepare. Delivery charges are itemised
+                separately and the complete total is shown before you submit the order.
+              </p>
+              <p className="text-muted-foreground leading-relaxed">
+                We serve Jouberton and nearby parts of Klerksdorp, including Alabama and Kanana. After the
+                kitchen accepts your order, its progress page shows preparation and delivery updates. For
+                detailed delivery, payment and cancellation answers, visit our FAQ below.
+              </p>
+            </div>
+          </div>
+          <div className="mt-8 border-t border-border pt-5">
+            <nav aria-label="Restaurant information" className="flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
+              <a href="/about" className="text-primary hover:underline">Our story</a>
+              <a href="/faq" className="text-primary hover:underline">Delivery &amp; FAQ</a>
+              <a href="/contact" className="text-primary hover:underline">Contact the kitchen</a>
+            </nav>
+          </div>
+        </div>
+      </section>
+
+      <div className="container mx-auto max-w-5xl px-4 py-2" aria-label="Advertisement">
+        <AdSenseBanner adClient="ca-pub-4449020882721592" adSlot="6551610214" />
+      </div>
 
       <SiteFooter />
     </div>
