@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Smartphone, Download, Share, Plus, Check } from "lucide-react";
+import { SiteFooter } from "@/components/SiteFooter";
 
 type BIPEvent = Event & {
   prompt: () => Promise<void>;
@@ -41,8 +42,9 @@ const Install = () => {
   };
 
   return (
-    <main className="min-h-screen bg-background py-10 px-4">
-      <div className="max-w-xl mx-auto space-y-6">
+    <div className="min-h-screen bg-background">
+      <main className="py-10 px-4">
+        <div className="max-w-xl mx-auto space-y-6">
         <header className="text-center space-y-2">
           <div className="inline-flex items-center justify-center h-16 w-16 rounded-2xl bg-primary text-primary-foreground mb-2">
             <Smartphone className="h-8 w-8" />
@@ -137,8 +139,10 @@ const Install = () => {
             Note: The install option only appears on the live published site, not inside the editor preview.
           </p>
         </Card>
-      </div>
-    </main>
+        </div>
+      </main>
+      <SiteFooter />
+    </div>
   );
 };
 
