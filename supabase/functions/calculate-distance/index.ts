@@ -12,6 +12,7 @@ const RATE_PER_METER = 0.9 / 100; // ZAR: 90c per 100 metres (distances of 5km o
 const STANDARD_FLAT_FEE = 36; // ZAR flat delivery fee for distances below 5km
 const FLAT_FEE_DISTANCE_M = 5000; // below 5km uses the flat fee, 5km+ uses per-metre rate
 const ALABAMA_FLAT_FEE = 45; // ZAR flat delivery fee for Alabama, Klerksdorp
+const KANANA_FLAT_FEE = 65; // ZAR flat delivery fee for Kanana
 
 
 interface Coord { lat: number; lng: number; }
@@ -107,19 +108,25 @@ serve(async (req) => {
 
     const body: RequestBody = await req.json();
 
-    // Alabama, Klerksdorp gets a flat standard delivery price of R43.
-    const isAlabama = (body.customerAddress ?? "").toLowerCase().includes("alabama");
-    if (isAlabama) {
+    // Flat-fee areas: no distance calculation.
+    const addr = (body.customerAddress ?? "").toLowerCase();
+    const flatArea = addr.includes("alabama")
+      ? { fee: ALABAMA_FLAT_FEE, method: "alabama-flat" }
+      : addr.includes("kanana")
+        ? { fee: KANANA_FLAT_FEE, method: "kanana-flat" }
+        : null;
+    if (flatArea) {
       return new Response(JSON.stringify({
         distanceKm: null,
         distanceMeters: null,
         durationMinutes: 20,
-        fee: ALABAMA_FLAT_FEE,
+        fee: flatArea.fee,
         customerCoords: body.customerCoords ?? null,
         restaurantCoords: body.restaurantCoords ?? null,
-        method: "alabama-flat",
+        method: flatArea.method,
       }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
+
 
     if (body.restaurantCoords && !isCoord(body.restaurantCoords)) {
       return new Response(JSON.stringify({ error: "Invalid restaurant coordinates" }), {
