@@ -1,45 +1,24 @@
-# Switch maps from Google to free OpenStreetMap
+# Weekly Manual Stock Recording Sheet (PDF)
 
-## Goal
-The "This page can't load Google Maps correctly" error happens because the Google Cloud key has run out of credit/billing. We'll replace all browser Google Maps usage with **Leaflet + OpenStreetMap** (already installed) plus the free **Nominatim** (geocoding/search) and **OSRM** (driving routes) services — which your backend already uses. No paid key needed, and the error goes away for users.
+Agent integrations (MCP) are already live on this app (server "Nosty's Fresh Fast Food" with `whoami`, `list_menu`, `list_my_orders`, `get_my_order`), so no work is needed there. This plan covers the new request: a printable weekly stock sheet.
 
-## What uses Google Maps today
-1. `src/components/AddressAutocomplete.tsx` — address search, reverse geocoding, and the "Pin exact spot" map.
-2. `src/components/DriverMap.tsx` — customer/restaurant markers + driving route + ETA.
-3. `src/components/DriverNavMap.tsx` — full-screen turn-by-turn driver navigation with voice.
-4. `src/lib/googleMapsLoader.ts` — loader for the Google JS API.
+## What you get
 
-## Changes
+A downloadable A4 landscape PDF, one page per week, for writing stock counts by hand each day.
 
-### 1. New free-map helpers (`src/lib/freeMaps.ts`)
-- `searchAddresses(query)` → Nominatim search (biased to South Africa / Klerksdorp area), returns `{ text, lat, lng, placeId }[]`.
-- `reverseGeocode(lat, lng)` → Nominatim reverse lookup, returns a formatted address string.
-- `getRoute(from, to)` → OSRM driving route, returns `{ coordinates: [lat,lng][], distanceKm, durationMin, steps }`.
-- All calls go directly to the public OSM/OSRM endpoints (same ones the `calculate-distance` edge function already uses), with graceful fallbacks.
+Layout per page:
+- Header: Nosty's Fresh Fast Food, "Weekly Stock Record", blank lines for Week starting / Recorded by / Store.
+- One row per ingredient (all 30 currently in the system: Atchar, Bacon, Boere Wors, Bread, Burger, Cheese, Cheesy Russian, Chicken Russian, Chicken Stripes, Chips, Club Stake, Curry Fish, Egg, Fish Fillet, Frankfurter, Ham, Lettuce, Liver, Magwenya, Mince, Nosty Sauce, Onion, Polony, Rib Burger, Russian, Secret Sauce, Special Garlic, Tomato, Unico Russian, Vienna).
+- Columns: Ingredient | Unit | Opening | Mon | Tue | Wed | Thu | Fri | Sat | Sun | Closing | Notes — all daily cells blank for handwriting.
+- Alternating row shading, red header band matching the brand, footer with page number and a signature line.
+- A second page with blank ruled rows for ingredients not on the list (new stock items).
 
-### 2. `AddressAutocomplete.tsx`
-- Replace Google Places autocomplete with `searchAddresses` (debounced, same dropdown UI).
-- Replace Google reverse geocode with the Nominatim version.
-- Rebuild the "Pin exact spot" dialog map with **Leaflet**: OSM tile layer, a draggable marker, click-to-move, and the "My GPS" button — same behavior, same UX.
+## How it's built
 
-### 3. `DriverMap.tsx`
-- Rebuild with Leaflet: customer marker (green), restaurant marker (orange), driver marker (blue), OSM tiles.
-- Draw the route polyline from OSRM and show the same km / min ETA badge via `onEta`.
+Generated once with Python + reportlab, ingredient names pulled from the `ingredient_stock` table, saved to `/mnt/documents/` as a PDF you can download and print each week. Each page is rendered to an image and visually checked for clipped columns or overflow before delivery.
 
-### 4. `DriverNavMap.tsx`
-- Rebuild with Leaflet: full-screen map, driver + customer markers, OSRM route polyline, follow-driver panning, recenter button.
-- Keep voice guidance using OSRM step instructions (announce next maneuver when near it, plus arrival). Keep the existing top banner and bottom ETA/controls UI.
+No app code changes.
 
-### 5. Cleanup
-- Remove `src/lib/googleMapsLoader.ts` and all `loadGoogleMaps` imports.
-- Leave the `get-maps-key` edge function in place (harmless; can be removed later).
+## Optional (say the word)
 
-## Notes / trade-offs
-- Free OSM autocomplete is slightly less "fancy" than Google Places, but works well for SA addresses and is what your delivery distance calc already relies on, so results stay consistent.
-- Turn-by-turn voice will use OSRM step text instead of Google's, so phrasing differs slightly but remains clear.
-- The public OSRM/Nominatim servers are rate-limited for very heavy traffic; fine for normal restaurant volume. If you later outgrow them we can self-host or use a paid tier.
-
-## Verification
-- Load the cart/checkout address field: search, current location, and pin picker all work with no Google error.
-- Driver dashboard: route + ETA render on Leaflet; navigation view tracks GPS and speaks directions.
-- Confirm no remaining `loadGoogleMaps` / `google.maps` references and a clean build.
+Add a "Download stock sheet" button in the dashboard Stock tab that generates the same sheet in-browser from the live ingredient list, so it always matches current ingredients.
