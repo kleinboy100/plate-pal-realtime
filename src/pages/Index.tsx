@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { KFCMenuItem } from '@/components/KFCMenuItem';
 import { HeroSlideshow } from '@/components/HeroSlideshow';
 import { PrivacyPolicyDialog } from '@/components/PrivacyPolicyDialog';
-import { SiteFooter } from '@/components/SiteFooter';
+
 import { AdSenseBanner } from '@/components/AdSenseBanner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
