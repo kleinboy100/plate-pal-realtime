@@ -279,7 +279,7 @@ export default function Index() {
         </div>
       </section>
 
-      <div className="container mx-auto max-w-5xl px-4 py-2" aria-label="Advertisement">
+      <div className="container mx-auto max-w-5xl px-4 empty:hidden" aria-label="Advertisement">
         <AdSenseBanner adClient="ca-pub-4449020882721592" adSlot="6551610214" />
       </div>
 
