@@ -378,6 +378,7 @@ export function MenuManager({ restaurantId }: MenuManagerProps) {
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {items.length === 0 ? (

@@ -177,6 +177,7 @@ export function RecipeManager() {
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       <div>
