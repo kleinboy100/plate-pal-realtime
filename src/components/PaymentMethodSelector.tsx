@@ -27,7 +27,7 @@ export function PaymentMethodSelector({ value, onChange, onlinePaymentAvailable 
           <Banknote className="w-5 h-5" />
         </div>
         <div className="flex-1 text-left">
-          <p className="font-medium">Cash on Delivery</p>
+          <p className="font-medium">Cash or Swipe</p>
           <p className="text-sm text-muted-foreground">Pay when your order arrives</p>
           <p className="text-xs text-muted-foreground mt-0.5">We accept card payment on collection</p>
         </div>
