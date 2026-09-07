@@ -207,6 +207,7 @@ export function StockManager({ restaurantId }: StockManagerProps) {
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {items.length === 0 ? (
