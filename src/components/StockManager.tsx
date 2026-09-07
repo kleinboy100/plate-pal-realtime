@@ -6,8 +6,9 @@ import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Pencil, Trash2, Loader2, Package, AlertTriangle } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, Package, AlertTriangle, Download } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { downloadCsv } from '@/lib/exportCsv';
 
 interface StockItem {
   id: string;
@@ -149,6 +150,16 @@ export function StockManager({ restaurantId }: StockManagerProps) {
   if (loading) {
     return <div className="flex items-center justify-center py-12"><Loader2 className="animate-spin text-muted-foreground" size={32} /></div>;
   }
+
+  const handleDownload = () => {
+    downloadCsv<StockItem>('stock', [
+      ['Item Name', i => i.item_name],
+      ['Current Stock', i => i.current_stock ?? 0],
+      ['Min Stock', i => i.min_stock ?? ''],
+      ['Max Stock', i => i.max_stock ?? ''],
+      ['Status', i => getStockStatus(i)],
+    ], items);
+  };
 
   const lowStockCount = items.filter(i => getStockStatus(i) !== 'ok').length;
 
