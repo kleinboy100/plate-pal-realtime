@@ -8,7 +8,8 @@ import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Pencil, Trash2, Loader2, Upload, X } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, Upload, X, Download } from 'lucide-react';
+import { downloadCsv } from '@/lib/exportCsv';
 
 interface MenuItem {
   id: string;
@@ -64,6 +65,17 @@ export function MenuManager({ restaurantId }: MenuManagerProps) {
       setItems(data || []);
     }
     setLoading(false);
+  };
+
+  const handleDownload = () => {
+    downloadCsv<MenuItem>('menu-items', [
+      ['Name', i => i.name],
+      ['Category', i => i.category],
+      ['Price (ZAR)', i => Number(i.price).toFixed(2)],
+      ['Available', i => (i.is_available ? 'Yes' : 'No')],
+      ['Description', i => i.description ?? ''],
+      ['Image URL', i => i.image_url ?? ''],
+    ], items);
   };
 
   const resetForm = () => {
@@ -248,6 +260,10 @@ export function MenuManager({ restaurantId }: MenuManagerProps) {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h2 className="font-semibold text-lg">Menu Items ({items.length})</h2>
+        <div className="flex items-center gap-2">
+        <Button variant="outline" onClick={handleDownload} disabled={items.length === 0}>
+          <Download size={16} className="mr-2" /> Download
+        </Button>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button className="btn-primary" onClick={openAddDialog}>
@@ -362,6 +378,7 @@ export function MenuManager({ restaurantId }: MenuManagerProps) {
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {items.length === 0 ? (
