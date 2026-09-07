@@ -164,6 +164,10 @@ export function StockManager({ restaurantId }: StockManagerProps) {
             </Badge>
           )}
         </div>
+        <div className="flex items-center gap-2">
+        <Button variant="outline" size="sm" onClick={handleDownload} disabled={items.length === 0}>
+          <Download size={16} className="mr-1" /> Download
+        </Button>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button className="btn-primary" size="sm" onClick={() => { resetForm(); setDialogOpen(true); }}>
