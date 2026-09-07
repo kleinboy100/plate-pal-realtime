@@ -6,7 +6,8 @@ import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Pencil, Trash2, Loader2, ChefHat } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, ChefHat, Download } from 'lucide-react';
+import { downloadCsv } from '@/lib/exportCsv';
 
 interface Recipe {
   id: string;
@@ -40,6 +41,15 @@ export function RecipeManager() {
       setRecipes(data || []);
     }
     setLoading(false);
+  };
+
+  const handleDownload = () => {
+    downloadCsv<Recipe>('meal-recipes', [
+      ['Meal', r => r.meal_name],
+      ['Ingredient', r => r.ingredient_name],
+      ['Quantity Per Meal', r => r.quantity_per_meal],
+      ['Unit', r => r.unit],
+    ], recipes);
   };
 
   const resetForm = () => {
@@ -119,6 +129,10 @@ export function RecipeManager() {
           <ChefHat size={20} className="text-primary" />
           <h2 className="font-semibold text-lg">Meal Recipes ({recipes.length})</h2>
         </div>
+        <div className="flex items-center gap-2">
+        <Button variant="outline" size="sm" onClick={handleDownload} disabled={recipes.length === 0}>
+          <Download size={16} className="mr-1" /> Download
+        </Button>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button className="btn-primary" size="sm" onClick={() => { resetForm(); setDialogOpen(true); }}>
