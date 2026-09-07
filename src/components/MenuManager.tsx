@@ -8,8 +8,9 @@ import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Pencil, Trash2, Loader2, Upload, X, Download } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, Upload, X, Download, FileText } from 'lucide-react';
 import { downloadCsv } from '@/lib/exportCsv';
+import { downloadPdf } from '@/lib/exportPdf';
 
 interface MenuItem {
   id: string;
@@ -67,16 +68,16 @@ export function MenuManager({ restaurantId }: MenuManagerProps) {
     setLoading(false);
   };
 
-  const handleDownload = () => {
-    downloadCsv<MenuItem>('menu-items', [
-      ['Name', i => i.name],
-      ['Category', i => i.category],
-      ['Price (ZAR)', i => Number(i.price).toFixed(2)],
-      ['Available', i => (i.is_available ? 'Yes' : 'No')],
-      ['Description', i => i.description ?? ''],
-      ['Image URL', i => i.image_url ?? ''],
-    ], items);
-  };
+  const menuColumns: Array<[string, (i: MenuItem) => unknown]> = [
+    ['Name', i => i.name],
+    ['Category', i => i.category],
+    ['Price (ZAR)', i => Number(i.price).toFixed(2)],
+    ['Available', i => (i.is_available ? 'Yes' : 'No')],
+    ['Description', i => i.description ?? ''],
+  ];
+
+  const handleDownload = () => downloadCsv<MenuItem>('menu-items', [...menuColumns, ['Image URL', i => i.image_url ?? '']], items);
+  const handleDownloadPdf = () => downloadPdf<MenuItem>('menu-items', 'Menu Items', menuColumns, items);
 
   const resetForm = () => {
     setForm({ name: '', description: '', price: '', category: 'Mains', is_available: true, image_url: '' });
@@ -262,7 +263,10 @@ export function MenuManager({ restaurantId }: MenuManagerProps) {
         <h2 className="font-semibold text-lg">Menu Items ({items.length})</h2>
         <div className="flex items-center gap-2">
         <Button variant="outline" onClick={handleDownload} disabled={items.length === 0}>
-          <Download size={16} className="mr-2" /> Download
+          <Download size={16} className="mr-2" /> CSV
+        </Button>
+        <Button variant="outline" onClick={handleDownloadPdf} disabled={items.length === 0}>
+          <FileText size={16} className="mr-2" /> PDF
         </Button>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>

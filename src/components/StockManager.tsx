@@ -6,9 +6,10 @@ import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Pencil, Trash2, Loader2, Package, AlertTriangle, Download } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, Package, AlertTriangle, Download, FileText } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { downloadCsv } from '@/lib/exportCsv';
+import { downloadPdf } from '@/lib/exportPdf';
 
 interface StockItem {
   id: string;
@@ -151,15 +152,16 @@ export function StockManager({ restaurantId }: StockManagerProps) {
     return <div className="flex items-center justify-center py-12"><Loader2 className="animate-spin text-muted-foreground" size={32} /></div>;
   }
 
-  const handleDownload = () => {
-    downloadCsv<StockItem>('stock', [
-      ['Item Name', i => i.item_name],
-      ['Current Stock', i => i.current_stock ?? 0],
-      ['Min Stock', i => i.min_stock ?? ''],
-      ['Max Stock', i => i.max_stock ?? ''],
-      ['Status', i => getStockStatus(i)],
-    ], items);
-  };
+  const stockColumns: Array<[string, (i: StockItem) => unknown]> = [
+    ['Item Name', i => i.item_name],
+    ['Current Stock', i => i.current_stock ?? 0],
+    ['Min Stock', i => i.min_stock ?? ''],
+    ['Max Stock', i => i.max_stock ?? ''],
+    ['Status', i => getStockStatus(i)],
+  ];
+
+  const handleDownload = () => downloadCsv<StockItem>('stock', stockColumns, items);
+  const handleDownloadPdf = () => downloadPdf<StockItem>('stock', 'Stock Levels', stockColumns, items);
 
   const lowStockCount = items.filter(i => getStockStatus(i) !== 'ok').length;
 
@@ -177,7 +179,10 @@ export function StockManager({ restaurantId }: StockManagerProps) {
         </div>
         <div className="flex items-center gap-2">
         <Button variant="outline" size="sm" onClick={handleDownload} disabled={items.length === 0}>
-          <Download size={16} className="mr-1" /> Download
+          <Download size={16} className="mr-1" /> CSV
+        </Button>
+        <Button variant="outline" size="sm" onClick={handleDownloadPdf} disabled={items.length === 0}>
+          <FileText size={16} className="mr-1" /> PDF
         </Button>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
