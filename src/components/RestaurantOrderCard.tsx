@@ -206,7 +206,7 @@ export function RestaurantOrderCard({ order, onUpdateStatus, isNew, canMarkOutFo
         <div className="bg-green-50 border border-green-200 rounded-lg p-2 mb-3 flex items-center gap-2">
           <CreditCard className="text-green-600" size={16} />
           <p className="text-sm text-green-800">
-            Payment: {order.payment_method === 'cash' ? 'Cash on Delivery' : 'Paid Online'}
+            Payment: {order.payment_method === 'cash' ? 'Cash or Swipe' : 'Paid Online'}
           </p>
         </div>
       )}

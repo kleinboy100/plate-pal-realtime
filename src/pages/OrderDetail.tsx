@@ -500,7 +500,7 @@ export default function OrderDetail() {
                   ) : paymentMethod === 'online' ? (
                     'Pay Now'
                   ) : (
-                    'Confirm Cash on Delivery'
+                    'Confirm Cash or Swipe'
                   )}
                 </Button>
               </>
@@ -586,7 +586,7 @@ export default function OrderDetail() {
             </p>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Banknote size={16} />
-              <span>Payment: {order.payment_confirmed ? (order.payment_method === 'cash' ? 'Cash on Delivery' : 'Paid Online') : 'Pending selection'}</span>
+              <span>Payment: {order.payment_confirmed ? (order.payment_method === 'cash' ? 'Cash or Swipe' : 'Paid Online') : 'Pending selection'}</span>
             </div>
           </div>
         </div>

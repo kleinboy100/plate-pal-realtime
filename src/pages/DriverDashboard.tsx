@@ -49,7 +49,7 @@ function OrderMoneyBreakdown({ order }: { order: Order }) {
   const mealsTotal = Number(order.total_amount) - deliveryFee - tip;
   const paymentLabel = order.payment_confirmed
     ? order.payment_method === 'cash'
-      ? 'Cash on Delivery'
+      ? 'Cash or Swipe'
       : 'Paid Online'
     : 'Payment pending';
   const isCash = order.payment_confirmed && order.payment_method === 'cash';
