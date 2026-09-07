@@ -6,8 +6,9 @@ import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Pencil, Trash2, Loader2, ChefHat, Download } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, ChefHat, Download, FileText } from 'lucide-react';
 import { downloadCsv } from '@/lib/exportCsv';
+import { downloadPdf } from '@/lib/exportPdf';
 
 interface Recipe {
   id: string;
@@ -43,14 +44,15 @@ export function RecipeManager() {
     setLoading(false);
   };
 
-  const handleDownload = () => {
-    downloadCsv<Recipe>('meal-recipes', [
-      ['Meal', r => r.meal_name],
-      ['Ingredient', r => r.ingredient_name],
-      ['Quantity Per Meal', r => r.quantity_per_meal],
-      ['Unit', r => r.unit],
-    ], recipes);
-  };
+  const recipeColumns: Array<[string, (r: Recipe) => unknown]> = [
+    ['Meal', r => r.meal_name],
+    ['Ingredient', r => r.ingredient_name],
+    ['Quantity Per Meal', r => r.quantity_per_meal],
+    ['Unit', r => r.unit],
+  ];
+
+  const handleDownload = () => downloadCsv<Recipe>('meal-recipes', recipeColumns, recipes);
+  const handleDownloadPdf = () => downloadPdf<Recipe>('meal-recipes', 'Meal Recipes', recipeColumns, recipes);
 
   const resetForm = () => {
     setForm({ meal_name: '', ingredient_name: '', quantity_per_meal: '', unit: 'piece' });
@@ -131,7 +133,10 @@ export function RecipeManager() {
         </div>
         <div className="flex items-center gap-2">
         <Button variant="outline" size="sm" onClick={handleDownload} disabled={recipes.length === 0}>
-          <Download size={16} className="mr-1" /> Download
+          <Download size={16} className="mr-1" /> CSV
+        </Button>
+        <Button variant="outline" size="sm" onClick={handleDownloadPdf} disabled={recipes.length === 0}>
+          <FileText size={16} className="mr-1" /> PDF
         </Button>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
