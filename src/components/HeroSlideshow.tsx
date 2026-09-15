@@ -118,6 +118,10 @@ export function HeroSlideshow({ menuItems, restaurantId, restaurantName }: HeroS
         if (slide.kind === 'youthDay') {
           return <YouthDaySlide key={index} active={active} />;
         }
+        if (slide.kind === 'advert') {
+          return <AdvertiseSlide key={index} active={active} />;
+        }
+
         const promo = isPromoApplicable(slide.id);
         return (
           <div
