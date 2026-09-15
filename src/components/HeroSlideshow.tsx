@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { isPromoApplicable, isPromoItem, isPromoActive, getEffectivePrice, PROMO_LABEL, PROMO_DEADLINE_TEXT, isYouthDay } from '@/lib/promo';
 import { YouthDaySlide } from '@/components/YouthDaySlide';
+import { AdvertiseSlide } from '@/components/AdvertiseSlide';
+
 
 interface MenuItem {
   id: string;
@@ -53,10 +55,20 @@ export function HeroSlideshow({ menuItems, restaurantId, restaurantName }: HeroS
         { id: '', kind: 'meal' as const, image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=1200', title: 'Delicious Meals', subtitle: 'Fresh & Fast', price: 0 }
       ];
 
+  // Insert an "advertise here" slide after every second meal slide.
+  const withAds: Array<typeof mealSlides[0] | { id: string; kind: 'advert'; image: string; title: string; subtitle: string; price: number }> = [];
+  mealSlides.forEach((slide, i) => {
+    withAds.push(slide);
+    if ((i + 1) % 2 === 0) {
+      withAds.push({ id: `advert-${i}`, kind: 'advert' as const, image: '', title: 'Advertise here', subtitle: '', price: 0 });
+    }
+  });
+
   // On Youth Day (16 June), feature the commemorative poster as the first slide.
   const slides = isYouthDay()
-    ? [{ id: 'youth-day', kind: 'youthDay' as const, image: '', title: 'Youth Day', subtitle: '', price: 0 }, ...mealSlides]
-    : mealSlides;
+    ? [{ id: 'youth-day', kind: 'youthDay' as const, image: '', title: 'Youth Day', subtitle: '', price: 0 }, ...withAds]
+    : withAds;
+
 
   const startAutoPlay = useCallback(() => {
     if (intervalRef.current) {
@@ -108,6 +120,10 @@ export function HeroSlideshow({ menuItems, restaurantId, restaurantName }: HeroS
         if (slide.kind === 'youthDay') {
           return <YouthDaySlide key={index} active={active} />;
         }
+        if (slide.kind === 'advert') {
+          return <AdvertiseSlide key={index} active={active} />;
+        }
+
         const promo = isPromoApplicable(slide.id);
         return (
           <div
