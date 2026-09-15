@@ -194,20 +194,9 @@ export function HeroSlideshow({ menuItems, restaurantId, restaurantName }: HeroS
 
               <div className="mt-2 h-1 w-16 md:w-24" style={{ backgroundImage: 'repeating-linear-gradient(90deg, #E11D2E 0 10px, #111111 10px 13px, #F5B301 13px 23px, #111111 23px 26px, #1D4ED8 26px 36px, #111111 36px 39px)' }} />
 
-              {slide.subtitle && (
-                <div className="mt-2 mb-3 max-w-md rounded-md border-2 border-black bg-black/80 px-3 py-2 backdrop-blur-sm">
-                  <p className="text-white text-[13px] md:text-lg font-semibold break-words leading-snug line-clamp-4">
-                    {slide.subtitle}
-                  </p>
-                </div>
-              )}
-
-              {promo && (
-                <p className="text-[#F5B301] text-xs md:text-base font-bold mb-3 drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)]">
-                  Grab it now — 10% off for a limited time only!
-                </p>
-              )}
-
+              <p className="text-white text-xs md:text-base mt-2 mb-4 max-w-md break-words leading-relaxed line-clamp-2 drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)]">
+                {promo ? 'Grab it now — 10% off for a limited time only!' : slide.subtitle}
+              </p>
 
               <div className="flex items-center gap-3 flex-wrap">
                 {slide.price > 0 && (
