@@ -132,12 +132,18 @@ export function MenuManager({ restaurantId }: MenuManagerProps) {
   };
 
   const uploadImage = async (file: File): Promise<string | null> => {
-    const fileExt = file.name.split('.').pop();
+    const rawExt = (file.name.split('.').pop() || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const typeExt = (file.type.split('/')[1] || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const fileExt = rawExt || typeExt || 'jpg';
     const fileName = `${restaurantId}/${crypto.randomUUID()}.${fileExt}`;
-    
+
     const { error: uploadError } = await supabase.storage
       .from('menu-images')
-      .upload(fileName, file, { cacheControl: '3600', upsert: false });
+      .upload(fileName, file, {
+        cacheControl: '3600',
+        upsert: false,
+        contentType: file.type || 'image/jpeg',
+      });
 
     if (uploadError) {
       console.error('Upload error:', uploadError);
@@ -150,6 +156,7 @@ export function MenuManager({ restaurantId }: MenuManagerProps) {
 
     return publicUrl;
   };
+
 
   const handleSave = async () => {
     if (!form.name || !form.price) {
@@ -167,8 +174,13 @@ export function MenuManager({ restaurantId }: MenuManagerProps) {
         setUploading(true);
         try {
           imageUrl = await uploadImage(imageFile) || '';
-        } catch (uploadErr) {
-          toast({ title: 'Upload failed', description: 'Failed to upload image', variant: 'destructive' });
+        } catch (uploadErr: any) {
+          toast({
+            title: 'Upload failed',
+            description: uploadErr?.message || 'Failed to upload image',
+            variant: 'destructive',
+          });
+
           setSaving(false);
           setUploading(false);
           return;
