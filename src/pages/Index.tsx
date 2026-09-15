@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Clock } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { KFCMenuItem } from '@/components/KFCMenuItem';
+import { AdvertiseHereCard } from '@/components/AdvertiseHereCard';
+
 import { HeroSlideshow } from '@/components/HeroSlideshow';
 import { PrivacyPolicyDialog } from '@/components/PrivacyPolicyDialog';
 
