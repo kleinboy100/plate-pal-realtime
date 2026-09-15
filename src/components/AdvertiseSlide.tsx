@@ -37,7 +37,7 @@ export function AdvertiseSlide({ active }: { active: boolean }) {
         </h2>
 
         <p className="mt-1.5 text-white text-sm md:text-lg font-black">
-          R250 per month
+          R250 per month OR R10 per day
         </p>
 
         <p className="mt-1 mb-3 flex items-center gap-1.5 text-white/90 text-[11px] md:text-base font-semibold">
