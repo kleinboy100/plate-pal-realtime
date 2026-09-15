@@ -19,7 +19,7 @@ export function AdvertiseSlide({ active }: { active: boolean }) {
       <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary/90 to-black" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.18),transparent_60%)]" />
 
-      <div className="absolute top-3 left-3 z-20">
+      <div className="absolute bottom-3 right-3 z-30">
         <span className="inline-flex items-center gap-1 rounded-full bg-white/95 px-3 py-1 text-[10px] md:text-xs font-extrabold uppercase tracking-wider text-black shadow">
           <Megaphone size={13} />
           Ad space available
@@ -36,7 +36,11 @@ export function AdvertiseSlide({ active }: { active: boolean }) {
           Advertise your business on this space
         </h2>
 
-        <p className="mt-2 mb-4 flex items-center gap-2 text-white/90 text-xs md:text-base font-semibold">
+        <p className="mt-2 text-white text-sm md:text-lg font-black">
+          R250 per month
+        </p>
+
+        <p className="mt-1 mb-4 flex items-center gap-2 text-white/90 text-xs md:text-base font-semibold">
           <Phone size={16} className="shrink-0" />
           Call or WhatsApp {ADVERT_DISPLAY_NUMBER}
         </p>
