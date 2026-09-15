@@ -259,32 +259,24 @@ export default function Index() {
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
               {filteredItems.map((item, index) => (
-                <Fragment key={item.id}>
-                  <div 
-                    className="animate-fade-in opacity-0"
-                    style={{ animationDelay: `${index * 0.05}s`, animationFillMode: 'forwards' }}
-                  >
-                    <KFCMenuItem
-                      name={item.name}
-                      description={item.description}
-                      price={Number(item.price)}
-                      imageUrl={item.image_url}
-                      category={item.category}
-                      restaurantId={restaurant?.id || NOSTY_RESTAURANT_ID}
-                      restaurantName={restaurant?.name || "Nosty's Fresh Fast Food"}
-                      id={item.id}
-                    />
-                  </div>
-                  {(index + 1) % 6 === 0 && index !== filteredItems.length - 1 && (
-                    <div
-                      className="animate-fade-in opacity-0"
-                      style={{ animationDelay: `${index * 0.05}s`, animationFillMode: 'forwards' }}
-                    >
-                      <AdvertiseHereCard />
-                    </div>
-                  )}
-                </Fragment>
+                <div
+                  key={item.id}
+                  className="animate-fade-in opacity-0"
+                  style={{ animationDelay: `${index * 0.05}s`, animationFillMode: 'forwards' }}
+                >
+                  <KFCMenuItem
+                    name={item.name}
+                    description={item.description}
+                    price={Number(item.price)}
+                    imageUrl={item.image_url}
+                    category={item.category}
+                    restaurantId={restaurant?.id || NOSTY_RESTAURANT_ID}
+                    restaurantName={restaurant?.name || "Nosty's Fresh Fast Food"}
+                    id={item.id}
+                  />
+                </div>
               ))}
+
 
             </div>
           )}
