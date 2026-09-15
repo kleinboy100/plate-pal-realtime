@@ -174,8 +174,13 @@ export function MenuManager({ restaurantId }: MenuManagerProps) {
         setUploading(true);
         try {
           imageUrl = await uploadImage(imageFile) || '';
-        } catch (uploadErr) {
-          toast({ title: 'Upload failed', description: 'Failed to upload image', variant: 'destructive' });
+        } catch (uploadErr: any) {
+          toast({
+            title: 'Upload failed',
+            description: uploadErr?.message || 'Failed to upload image',
+            variant: 'destructive',
+          });
+
           setSaving(false);
           setUploading(false);
           return;
