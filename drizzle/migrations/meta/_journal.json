@@ -8,6 +8,13 @@
       "when": 1789447109234,
       "tag": "0000_auto_accept_orders",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1789454097865,
+      "tag": "0001_menu_images_staff_upload",
+      "breakpoints": true
     }
   ]
 }
