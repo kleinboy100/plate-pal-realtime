@@ -133,56 +133,74 @@ export function HeroSlideshow({ menuItems, restaurantId, restaurantName }: HeroS
               active ? "opacity-100 z-10 scale-100" : "opacity-0 z-0 scale-105"
             )}
           >
-            {/* Background image with slow Ken Burns zoom */}
+            {/* Background image — kept bright and clear */}
             <img
               src={slide.image}
               alt={slide.title}
               className={cn(
-                "absolute inset-0 w-full h-full object-cover transition-transform duration-[6000ms] ease-out",
-                active ? "scale-125" : "scale-100"
+                "absolute inset-0 w-full h-full object-cover transition-transform duration-[9000ms] ease-out",
+                active ? "scale-110" : "scale-100"
               )}
             />
 
-            {/* Cinematic overlays: strong dark bottom for guaranteed text contrast */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/45 to-black/15" />
-            <div className="absolute inset-0 bg-gradient-to-tr from-primary/25 via-transparent to-transparent" />
+            {/* Only a soft bottom shade so the meal stays fully visible */}
+            <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
+
+            {/* Ndebele geometric frame */}
+            <div className="pointer-events-none absolute inset-0 z-20 border-[3px] md:border-4 border-black/90 rounded-2xl" />
+            <div
+              className="pointer-events-none absolute top-0 inset-x-0 z-20 h-2 md:h-3"
+              style={{
+                backgroundImage:
+                  'repeating-linear-gradient(90deg, #E11D2E 0 14px, #111111 14px 18px, #F5B301 18px 32px, #111111 32px 36px, #1D4ED8 36px 50px, #111111 50px 54px, #FFFFFF 54px 68px, #111111 68px 72px)',
+              }}
+            />
+            <div
+              className="pointer-events-none absolute bottom-0 inset-x-0 z-20 h-2 md:h-3"
+              style={{
+                backgroundImage:
+                  'repeating-linear-gradient(90deg, #1D4ED8 0 14px, #111111 14px 18px, #FFFFFF 18px 32px, #111111 32px 36px, #F5B301 36px 50px, #111111 50px 54px, #E11D2E 54px 68px, #111111 68px 72px)',
+              }}
+            />
 
             {/* Top tags */}
-            <div className="absolute top-3 left-3 right-3 z-20 flex items-start justify-between gap-2">
+            <div className="absolute top-5 left-3 right-3 z-30 flex items-start justify-between gap-2">
               {promo ? (
-                <span className="rounded-full bg-white/95 px-2.5 py-1 text-[9px] md:text-[11px] font-bold text-black shadow backdrop-blur-sm">
+                <span className="rounded-md bg-white px-2.5 py-1 text-[9px] md:text-[11px] font-bold text-black shadow border-2 border-black">
                   {PROMO_DEADLINE_TEXT}
                 </span>
               ) : <span />}
-              <span className="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-[10px] md:text-xs font-extrabold uppercase tracking-wider text-primary-foreground shadow-lg">
+              <span className="inline-flex items-center gap-1 rounded-md border-2 border-black bg-primary px-3 py-1 text-[10px] md:text-xs font-extrabold uppercase tracking-wider text-primary-foreground shadow-lg">
                 <Flame size={13} className="animate-pulse" />
                 {promo ? PROMO_LABEL : "Today's Pick"}
               </span>
             </div>
 
-            {/* Bottom content */}
+            {/* Bottom content — panel with Ndebele accent */}
             <div
               className={cn(
-                "absolute inset-x-0 bottom-0 z-20 flex flex-col px-4 pb-12 pt-12 md:px-8 md:pb-16 md:pt-20 transition-all duration-700 delay-150",
+                "absolute inset-x-0 bottom-0 z-30 flex flex-col px-4 pb-10 pt-6 md:px-8 md:pb-14 md:pt-10 transition-all duration-700 delay-150",
                 active ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
               )}
             >
-              <span className="hidden md:inline-flex items-center gap-1.5 text-white/90 text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] mb-2">
-                <Star size={12} className="fill-primary text-primary" />
+              <span className="hidden md:inline-flex items-center gap-1.5 text-[#F5B301] text-[10px] md:text-xs font-bold uppercase tracking-[0.25em] mb-2">
+                <Star size={12} className="fill-[#F5B301] text-[#F5B301]" />
                 Fresh &amp; Fast
               </span>
 
-              <h2 className="font-display text-lg md:text-4xl lg:text-5xl font-black text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] leading-tight break-words line-clamp-2">
+              <h2 className="font-display text-lg md:text-4xl lg:text-5xl font-black text-white drop-shadow-[0_3px_10px_rgba(0,0,0,0.95)] leading-tight break-words line-clamp-2">
                 {slide.title}
               </h2>
 
-              <p className="text-white/85 text-xs md:text-base mt-2 mb-4 max-w-md break-words leading-relaxed line-clamp-2 drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)]">
+              <div className="mt-2 h-1 w-16 md:w-24" style={{ backgroundImage: 'repeating-linear-gradient(90deg, #E11D2E 0 10px, #111111 10px 13px, #F5B301 13px 23px, #111111 23px 26px, #1D4ED8 26px 36px, #111111 36px 39px)' }} />
+
+              <p className="text-white text-xs md:text-base mt-2 mb-4 max-w-md break-words leading-relaxed line-clamp-2 drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)]">
                 {promo ? 'Grab it now — 10% off for a limited time only!' : slide.subtitle}
               </p>
 
               <div className="flex items-center gap-3 flex-wrap">
                 {slide.price > 0 && (
-                  <div className="flex items-baseline gap-2 rounded-2xl bg-white px-3.5 py-2 shadow-xl">
+                  <div className="flex items-baseline gap-2 rounded-md border-2 border-black bg-white px-3.5 py-2 shadow-xl">
                     {promo && (
                       <span className="text-muted-foreground line-through text-xs md:text-sm font-semibold">
                         R{slide.price.toFixed(2)}
@@ -201,7 +219,7 @@ export function HeroSlideshow({ menuItems, restaurantId, restaurantName }: HeroS
                       e.stopPropagation();
                       handleOrderNow(slide);
                     }}
-                    className="h-10 md:h-12 px-5 md:px-7 gap-2 rounded-full bg-primary text-primary-foreground text-sm md:text-base font-extrabold shadow-xl shadow-primary/30 transition-all duration-200 hover:scale-105 hover:shadow-primary/50 active:scale-95"
+                    className="h-10 md:h-12 px-5 md:px-7 gap-2 rounded-md border-2 border-black bg-primary text-primary-foreground text-sm md:text-base font-extrabold shadow-xl transition-all duration-200 hover:scale-105 active:scale-95"
                   >
                     <ShoppingCart size={18} />
                     Order Now
@@ -209,6 +227,7 @@ export function HeroSlideshow({ menuItems, restaurantId, restaurantName }: HeroS
                 )}
               </div>
             </div>
+
           </div>
         );
       })}
