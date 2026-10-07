@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { isPromoApplicable, isPromoItem, isPromoActive, getEffectivePrice, PROMO_LABEL, PROMO_DEADLINE_TEXT, isYouthDay } from '@/lib/promo';
 import { YouthDaySlide } from '@/components/YouthDaySlide';
-import { AdvertiseSlide } from '@/components/AdvertiseSlide';
+import { ZeeHotWingsSlide } from '@/components/ZeeHotWingsSlide';
 
 
 interface MenuItem {
@@ -55,12 +55,12 @@ export function HeroSlideshow({ menuItems, restaurantId, restaurantName }: HeroS
         { id: '', kind: 'meal' as const, image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=1200', title: 'Delicious Meals', subtitle: 'Fresh & Fast', price: 0 }
       ];
 
-  // Insert an "advertise here" slide after every second meal slide.
-  const withAds: Array<typeof mealSlides[0] | { id: string; kind: 'advert'; image: string; title: string; subtitle: string; price: number }> = [];
+  // Insert a Zee Hot Wings advert slide after every second meal slide.
+  const withAds: Array<typeof mealSlides[0] | { id: string; kind: 'hotWings'; image: string; title: string; subtitle: string; price: number }> = [];
   mealSlides.forEach((slide, i) => {
     withAds.push(slide);
     if ((i + 1) % 2 === 0) {
-      withAds.push({ id: `advert-${i}`, kind: 'advert' as const, image: '', title: 'Advertise here', subtitle: '', price: 0 });
+      withAds.push({ id: `zee-hot-wings-${i}`, kind: 'hotWings' as const, image: '', title: 'Zee Hot Wings', subtitle: '', price: 0 });
     }
   });
 
@@ -120,8 +120,8 @@ export function HeroSlideshow({ menuItems, restaurantId, restaurantName }: HeroS
         if (slide.kind === 'youthDay') {
           return <YouthDaySlide key={index} active={active} />;
         }
-        if (slide.kind === 'advert') {
-          return <AdvertiseSlide key={index} active={active} />;
+        if (slide.kind === 'hotWings') {
+          return <ZeeHotWingsSlide key={index} active={active} />;
         }
 
         const promo = isPromoApplicable(slide.id);
