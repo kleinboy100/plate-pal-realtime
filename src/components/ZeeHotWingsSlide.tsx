@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion';
 import zeePhone from '@/assets/zee-large-phone.jpg';
 import zeeWide from '@/assets/zee-slide-wide.jpg';
 import zeeFull from '@/assets/zee-slide-full.jpg';
@@ -17,11 +16,11 @@ export const ZEE_WHATSAPP_URL =
  */
 export function ZeeHotWingsSlide({ active }: { active: boolean }) {
   return (
-    <motion.div
-      className="absolute inset-0 cursor-pointer"
-      initial={{ opacity: 0, scale: 1.02 }}
-      animate={{ opacity: active ? 1 : 0, scale: active ? 1 : 1.02 }}
-      transition={{ duration: 0.6, ease: 'easeOut' }}
+    <div
+      className={
+        'absolute inset-0 cursor-pointer transition-all duration-[900ms] ease-out ' +
+        (active ? 'opacity-100 z-10 scale-100' : 'opacity-0 z-0 scale-105')
+      }
       aria-hidden={!active}
     >
       <a
@@ -76,6 +75,6 @@ export function ZeeHotWingsSlide({ active }: { active: boolean }) {
           className="pointer-events-none absolute inset-0 z-20 rounded-2xl border-[3px] border-black/90 md:border-4"
         />
       </a>
-    </motion.div>
+    </div>
   );
 }
