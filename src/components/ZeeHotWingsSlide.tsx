@@ -1,0 +1,86 @@
+import { Phone, MessageCircle } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import zeePoster from '@/assets/zee-hot-wings-poster.jpg';
+
+const ZEE_WHATSAPP_NUMBER = '27817915471';
+export const ZEE_DISPLAY_NUMBER = '081 791 5471';
+export const ZEE_WHATSAPP_URL = `https://wa.me/${ZEE_WHATSAPP_NUMBER}?text=${encodeURIComponent(
+  "Hi Zee Hot Wings, I'd like to pre-order 1kg Hot Wings at R100."
+)}`;
+
+/** Slideshow slide advertising Zee Hot Wings — 1kg raw hot wings, pre-orders only. */
+export function ZeeHotWingsSlide({ active }: { active: boolean }) {
+  return (
+    <div
+      className={cn(
+        'absolute inset-0 transition-all duration-[900ms] ease-out',
+        active ? 'opacity-100 z-10 scale-100' : 'opacity-0 z-0 scale-105'
+      )}
+    >
+      {/* Backdrop — charcoal with a warm ember glow, matching the poster */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[#1a1010] via-[#2b1210] to-black" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_78%_18%,rgba(225,29,46,0.35),transparent_62%)]" />
+
+      {/* Poster artwork on the right — shown whole, never cropped */}
+      <div className="absolute right-2 top-1/2 -translate-y-1/2 z-20 h-[86%] aspect-square overflow-hidden rounded-lg border-2 border-black shadow-2xl">
+        <img
+          src={zeePoster}
+          alt="Zee Hot Wings poster: raw hot wings, 1kg for R100, pre-orders only"
+          width={1024}
+          height={1024}
+          loading="lazy"
+          className="h-full w-full object-cover"
+        />
+      </div>
+
+      {/* Message on the left */}
+      <div
+        className={cn(
+          'absolute inset-y-0 left-0 z-20 flex w-[58%] flex-col justify-center gap-1 px-3 transition-all duration-700 delay-150 md:gap-2 md:px-6',
+          active ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+        )}
+      >
+        <span className="w-fit rounded-md border-2 border-black bg-[#F5B301] px-2 py-0.5 text-[8px] font-extrabold uppercase tracking-wider text-black md:text-[11px]">
+          Pre-orders only
+        </span>
+
+        <h2 className="font-display text-lg font-black uppercase leading-[0.95] text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)] sm:text-2xl md:text-4xl">
+          Zee
+          <br />
+          Hot Wings
+        </h2>
+
+        <div className="flex items-baseline gap-1.5">
+          <span className="font-display text-xl font-black leading-none text-[#F5B301] drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)] md:text-3xl">
+            R100
+          </span>
+          <span className="text-[11px] font-extrabold uppercase text-white md:text-lg">1kg</span>
+        </div>
+
+        <span className="w-fit rounded-md border-2 border-black bg-white px-2 py-0.5 text-[8px] font-extrabold uppercase tracking-wide text-black md:text-[11px]">
+          Raw — not cooked
+        </span>
+
+        <p className="text-[9px] font-bold leading-snug text-white/90 md:text-sm">
+          Delivery in Jouberton, Klerksdorp &amp; Alabama
+        </p>
+
+        <a
+          href={ZEE_WHATSAPP_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          className="inline-flex w-fit items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-[10px] font-extrabold text-primary shadow-xl transition-all duration-200 hover:scale-105 active:scale-95 md:gap-2 md:px-5 md:py-2.5 md:text-base"
+        >
+          <MessageCircle size={14} className="shrink-0 md:hidden" />
+          <MessageCircle size={18} className="hidden shrink-0 md:block" />
+          <span className="flex items-center gap-1">
+            <Phone size={11} className="md:hidden" />
+            <Phone size={14} className="hidden md:block" />
+            {ZEE_DISPLAY_NUMBER}
+          </span>
+        </a>
+      </div>
+    </div>
+  );
+}
