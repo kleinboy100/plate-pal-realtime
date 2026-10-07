@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
 import zeePhone from '@/assets/zee-hot-wings-phone.jpg';
-import zeeWide from '@/assets/zee-hot-wings-wide-v2.jpg';
+import zeeWide from '@/assets/zee-hot-wings-wide-v3.jpg';
 import zeeFull from '@/assets/zee-hot-wings-full.jpg';
 
 const ZEE_NUMBER = '27817915471';
