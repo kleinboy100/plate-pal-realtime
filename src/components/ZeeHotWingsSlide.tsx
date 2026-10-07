@@ -22,7 +22,7 @@ export function ZeeHotWingsSlide({ active }: { active: boolean }) {
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_78%_18%,rgba(225,29,46,0.35),transparent_62%)]" />
 
       {/* Poster artwork on the right — shown whole, never cropped */}
-      <div className="absolute right-2 top-1/2 -translate-y-1/2 z-20 h-[86%] aspect-square overflow-hidden rounded-lg border-2 border-black shadow-2xl">
+      <div className="absolute right-2 top-1/2 z-20 aspect-square h-[78%] -translate-y-1/2 overflow-hidden rounded-lg border-2 border-black shadow-2xl md:right-3 md:h-[88%]">
         <img
           src={zeePoster}
           alt="Zee Hot Wings poster: raw hot wings, 1kg for R100, pre-orders only"
@@ -33,17 +33,13 @@ export function ZeeHotWingsSlide({ active }: { active: boolean }) {
         />
       </div>
 
-      {/* Message on the left */}
+      {/* Message on the left — kept clear of the slide dots at the bottom */}
       <div
         className={cn(
-          'absolute inset-y-0 left-0 z-20 flex w-[58%] flex-col justify-center gap-1 px-3 transition-all duration-700 delay-150 md:gap-2 md:px-6',
+          'absolute inset-y-0 left-0 z-20 flex w-[56%] flex-col justify-center gap-1 px-3 pb-7 transition-all duration-700 delay-150 md:w-[64%] md:gap-2.5 md:px-6 md:pb-0',
           active ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
         )}
       >
-        <span className="w-fit rounded-md border-2 border-black bg-[#F5B301] px-2 py-0.5 text-[8px] font-extrabold uppercase tracking-wider text-black md:text-[11px]">
-          Pre-orders only
-        </span>
-
         <h2 className="font-display text-lg font-black uppercase leading-[0.95] text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)] sm:text-2xl md:text-4xl">
           Zee
           <br />
@@ -57,9 +53,14 @@ export function ZeeHotWingsSlide({ active }: { active: boolean }) {
           <span className="text-[11px] font-extrabold uppercase text-white md:text-lg">1kg</span>
         </div>
 
-        <span className="w-fit rounded-md border-2 border-black bg-white px-2 py-0.5 text-[8px] font-extrabold uppercase tracking-wide text-black md:text-[11px]">
-          Raw — not cooked
-        </span>
+        <div className="flex flex-wrap items-center gap-1 md:gap-1.5">
+          <span className="rounded-md border-2 border-black bg-white px-1.5 py-0.5 text-[8px] font-extrabold uppercase tracking-wide text-black md:text-[11px]">
+            Raw — not cooked
+          </span>
+          <span className="rounded-md border-2 border-black bg-[#F5B301] px-1.5 py-0.5 text-[8px] font-extrabold uppercase tracking-wide text-black md:text-[11px]">
+            Pre-orders only
+          </span>
+        </div>
 
         <p className="text-[9px] font-bold leading-snug text-white/90 md:text-sm">
           Delivery in Jouberton, Klerksdorp &amp; Alabama
@@ -70,12 +71,12 @@ export function ZeeHotWingsSlide({ active }: { active: boolean }) {
           target="_blank"
           rel="noopener noreferrer"
           onClick={(e) => e.stopPropagation()}
-          className="inline-flex w-fit items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-[10px] font-extrabold text-primary shadow-xl transition-all duration-200 hover:scale-105 active:scale-95 md:gap-2 md:px-5 md:py-2.5 md:text-base"
+          className="mt-0.5 inline-flex w-fit items-center gap-1 rounded-full bg-white px-2.5 py-1.5 text-[10px] font-extrabold text-primary shadow-xl transition-all duration-200 hover:scale-105 active:scale-95 md:mt-1 md:gap-2 md:px-5 md:py-2.5 md:text-base"
         >
-          <MessageCircle size={14} className="shrink-0 md:hidden" />
+          <MessageCircle size={13} className="shrink-0 md:hidden" />
           <MessageCircle size={18} className="hidden shrink-0 md:block" />
-          <span className="flex items-center gap-1">
-            <Phone size={11} className="md:hidden" />
+          <span className="flex items-center gap-0.5 md:gap-1">
+            <Phone size={10} className="md:hidden" />
             <Phone size={14} className="hidden md:block" />
             {ZEE_DISPLAY_NUMBER}
           </span>
