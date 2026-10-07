@@ -1,6 +1,5 @@
 import zeePhone from '@/assets/zee-large-phone.jpg';
 import zeeWide from '@/assets/zee-slide-wide.jpg';
-import zeeFull from '@/assets/zee-slide-full.jpg';
 
 export const ZEE_DISPLAY_NUMBER = '081 791 5471';
 export const ZEE_WHATSAPP_URL =
@@ -9,10 +8,11 @@ export const ZEE_WHATSAPP_URL =
 /**
  * Zee Hot Wings advert slide.
  *
- * The poster fills the whole slide (phone crop on small screens, wide crop on
- * tablet and desktop). The "Order Now on WhatsApp" pill floats over the top
- * right of the artwork, clear of the headline and clear of the slide dots at
- * the bottom. The whole slide is a link, so tapping anywhere opens the chat.
+ * The poster fills the slide above a reserved maroon strip at the bottom, so
+ * the slideshow's progress dots never sit on the wording. The strip is the same
+ * maroon as the poster, so the slide reads as one panel. The "Order Now" pill
+ * floats over the top right, clear of the headline, and the whole slide is a
+ * link so tapping anywhere opens WhatsApp with the pre-order message ready.
  */
 export function ZeeHotWingsSlide({ active }: { active: boolean }) {
   return (
@@ -39,25 +39,16 @@ export function ZeeHotWingsSlide({ active }: { active: boolean }) {
           width={1536}
           height={768}
           draggable={false}
-          className="absolute inset-0 h-full w-full object-contain sm:hidden"
+          className="absolute inset-x-0 top-0 bottom-7 h-auto w-full object-contain sm:hidden"
         />
         <img
           src={zeeWide}
           alt={`Zee Hot Wings, R100 for 1kg, raw not cooked, pre-orders only. WhatsApp or call ${ZEE_DISPLAY_NUMBER}. Delivery in Jouberton, Klerksdorp and Alabama.`}
           loading="lazy"
-          width={2010}
+          width={2370}
           height={600}
           draggable={false}
-          className="absolute inset-0 hidden h-full w-full object-contain sm:block lg:hidden"
-        />
-        <img
-          src={zeeFull}
-          alt={`Zee Hot Wings, R100 for 1kg, raw not cooked, pre-orders only. WhatsApp or call ${ZEE_DISPLAY_NUMBER}. Delivery in Jouberton, Klerksdorp and Alabama.`}
-          loading="lazy"
-          width={2796}
-          height={608}
-          draggable={false}
-          className="absolute inset-0 hidden h-full w-full object-contain lg:block"
+          className="absolute inset-x-0 top-0 bottom-7 hidden h-auto w-full object-contain sm:block md:bottom-9"
         />
 
         <span className="absolute right-2 top-2 z-30 flex items-center gap-1.5 rounded-full bg-[#ffc107] px-3 py-1.5 text-[12px] font-black uppercase tracking-wide text-[#42060a] shadow-lg md:right-4 md:top-3 md:px-5 md:py-2 md:text-base">
