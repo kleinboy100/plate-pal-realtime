@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import zeeMobile from '@/assets/zee-hot-wings-mobile.jpg';
+import zeePhone from '@/assets/zee-hot-wings-phone.jpg';
 import zeeWide from '@/assets/zee-hot-wings-wide-v2.jpg';
 import zeeFull from '@/assets/zee-hot-wings-full.jpg';
 
@@ -30,29 +30,23 @@ export function ZeeHotWingsSlide({ active }: { active: boolean }) {
         className="absolute inset-0 block"
         style={{ backgroundColor: '#42060a' }}
       >
-        {/* Phones: the phone-shaped banner fills the slide edge to edge. */}
+        {/* Phones */}
         <img
-          src={zeeMobile}
+          src={zeePhone}
           alt={ALT}
-          className={cn(
-            'absolute inset-0 h-full w-full object-cover sm:hidden transition-transform duration-[9000ms] ease-out',
-            active ? 'scale-110' : 'scale-100'
-          )}
+          className="absolute inset-0 h-full w-full object-contain sm:hidden"
         />
-        {/* Narrow windows: show the whole wide banner, maroon fills the sides. */}
+        {/* Narrow windows */}
         <img
           src={zeeWide}
           alt={ALT}
           className="absolute inset-0 hidden h-full w-full object-contain sm:block lg:hidden"
         />
-        {/* Screens: the wide banner with maroon margins fills the slide with nothing cropped. */}
+        {/* Screens */}
         <img
           src={zeeFull}
           alt={ALT}
-          className={cn(
-            'absolute inset-0 hidden h-full w-full object-cover lg:block 2xl:object-contain transition-transform duration-[9000ms] ease-out',
-            active ? 'scale-110' : 'scale-100'
-          )}
+          className="absolute inset-0 hidden h-full w-full object-contain lg:block"
         />
       </a>
 
