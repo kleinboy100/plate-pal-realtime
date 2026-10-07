@@ -9,10 +9,10 @@ export const ZEE_WHATSAPP_URL =
 /**
  * Zee Hot Wings advert slide.
  *
- * The poster is the whole slide: the phone crop (2.0) fills the short phone
- * band, the wide crop fills tablet and desktop. Below it sits a plain
- * "Order Now on WhatsApp" strip — a real button, not baked into the artwork —
- * and the whole slide is a link so either target opens the chat.
+ * The poster fills the whole slide (phone crop on small screens, wide crop on
+ * tablet and desktop). The "Order Now on WhatsApp" pill floats over the top
+ * right of the artwork, clear of the headline and clear of the slide dots at
+ * the bottom. The whole slide is a link, so tapping anywhere opens the chat.
  */
 export function ZeeHotWingsSlide({ active }: { active: boolean }) {
   return (
@@ -32,43 +32,45 @@ export function ZeeHotWingsSlide({ active }: { active: boolean }) {
         style={{ backgroundColor: '#42060a' }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex h-full w-full flex-col">
-          <div className="relative min-h-0 flex-1">
-            <img
-              src={zeePhone}
-              alt={`Zee Hot Wings, R100 for 1kg, raw not cooked, pre-orders only. WhatsApp or call ${ZEE_DISPLAY_NUMBER}. Delivery in Jouberton, Klerksdorp and Alabama.`}
-              loading="lazy"
-              width={1536}
-              height={768}
-              draggable={false}
-              className="absolute inset-0 h-full w-full object-contain sm:hidden"
-            />
-            <img
-              src={zeeWide}
-              alt={`Zee Hot Wings, R100 for 1kg, raw not cooked, pre-orders only. WhatsApp or call ${ZEE_DISPLAY_NUMBER}. Delivery in Jouberton, Klerksdorp and Alabama.`}
-              loading="lazy"
-              width={2064}
-              height={576}
-              draggable={false}
-              className="absolute inset-0 hidden h-full w-full object-contain sm:block lg:hidden"
-            />
-            <img
-              src={zeeFull}
-              alt={`Zee Hot Wings, R100 for 1kg, raw not cooked, pre-orders only. WhatsApp or call ${ZEE_DISPLAY_NUMBER}. Delivery in Jouberton, Klerksdorp and Alabama.`}
-              loading="lazy"
-              width={2623}
-              height={608}
-              draggable={false}
-              className="absolute inset-0 hidden h-full w-full object-contain lg:block"
-            />
-          </div>
+        <img
+          src={zeePhone}
+          alt={`Zee Hot Wings, R100 for 1kg, raw not cooked, pre-orders only. WhatsApp or call ${ZEE_DISPLAY_NUMBER}. Delivery in Jouberton, Klerksdorp and Alabama.`}
+          loading="lazy"
+          width={1536}
+          height={768}
+          draggable={false}
+          className="absolute inset-0 h-full w-full object-contain sm:hidden"
+        />
+        <img
+          src={zeeWide}
+          alt={`Zee Hot Wings, R100 for 1kg, raw not cooked, pre-orders only. WhatsApp or call ${ZEE_DISPLAY_NUMBER}. Delivery in Jouberton, Klerksdorp and Alabama.`}
+          loading="lazy"
+          width={2010}
+          height={600}
+          draggable={false}
+          className="absolute inset-0 hidden h-full w-full object-contain sm:block lg:hidden"
+        />
+        <img
+          src={zeeFull}
+          alt={`Zee Hot Wings, R100 for 1kg, raw not cooked, pre-orders only. WhatsApp or call ${ZEE_DISPLAY_NUMBER}. Delivery in Jouberton, Klerksdorp and Alabama.`}
+          loading="lazy"
+          width={2796}
+          height={608}
+          draggable={false}
+          className="absolute inset-0 hidden h-full w-full object-contain lg:block"
+        />
 
-          <div className="flex h-10 shrink-0 items-center justify-center border-t border-white/10 bg-[#42060a] md:h-12">
-            <span className="rounded-full bg-[#ffc107] px-6 py-1.5 text-[13px] font-black uppercase tracking-wider text-[#42060a] shadow-md md:px-8 md:py-2 md:text-base">
-              Order Now on WhatsApp
-            </span>
-          </div>
-        </div>
+        <span className="absolute right-2 top-2 z-30 flex items-center gap-1.5 rounded-full bg-[#ffc107] px-3 py-1.5 text-[12px] font-black uppercase tracking-wide text-[#42060a] shadow-lg md:right-4 md:top-3 md:px-5 md:py-2 md:text-base">
+          <svg
+            viewBox="0 0 24 24"
+            className="h-3.5 w-3.5 md:h-4 md:w-4"
+            fill="currentColor"
+            aria-hidden
+          >
+            <path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .1-1.6-.1-.4-.1-.9-.3-1.5-.6-2.6-1.1-4.3-3.7-4.4-3.9-.1-.2-1-1.4-1-2.6 0-1.2.6-1.8.9-2 .2-.3.5-.3.7-.3h.5c.2 0 .4-.1.7.5l.7 1.7c.1.2.1.4 0 .5l-.3.5-.4.4c-.1.1-.3.3-.1.6.1.3.6 1.1 1.4 1.8 1 .9 1.8 1.1 2 1.2.3.1.4.1.6-.1l.7-.8c.2-.2.4-.2.6-.1l1.6.8c.2.1.4.2.4.3.1.1.1.6-.1 1.1Z" />
+          </svg>
+          Order Now
+        </span>
 
         <div
           aria-hidden
