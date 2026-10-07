@@ -1,6 +1,7 @@
 import { cn } from '@/lib/utils';
-import zeeWide from '@/assets/zee-hot-wings-wide-v2.jpg';
 import zeeMobile from '@/assets/zee-hot-wings-mobile.jpg';
+import zeeWide from '@/assets/zee-hot-wings-wide-v2.jpg';
+import zeeFull from '@/assets/zee-hot-wings-full.jpg';
 
 const ZEE_NUMBER = '27817915471';
 export const ZEE_DISPLAY_NUMBER = '081 791 5471';
@@ -27,21 +28,29 @@ export function ZeeHotWingsSlide({ active }: { active: boolean }) {
         aria-label="Pre-order Zee Hot Wings on WhatsApp — 081 791 5471"
         onClick={(e) => e.stopPropagation()}
         className="absolute inset-0 block"
+        style={{ backgroundColor: '#42060a' }}
       >
-        {/* Phone-sized banner on small screens, wide banner from md up — each fills the slide uncropped */}
+        {/* Phones: the phone-shaped banner fills the slide edge to edge. */}
         <img
           src={zeeMobile}
           alt={ALT}
           className={cn(
-            'absolute inset-0 h-full w-full object-cover md:hidden transition-transform duration-[9000ms] ease-out',
+            'absolute inset-0 h-full w-full object-cover sm:hidden transition-transform duration-[9000ms] ease-out',
             active ? 'scale-110' : 'scale-100'
           )}
         />
+        {/* Narrow windows: show the whole wide banner, maroon fills the sides. */}
         <img
           src={zeeWide}
           alt={ALT}
+          className="absolute inset-0 hidden h-full w-full object-contain sm:block lg:hidden"
+        />
+        {/* Screens: the wide banner with maroon margins fills the slide with nothing cropped. */}
+        <img
+          src={zeeFull}
+          alt={ALT}
           className={cn(
-            'absolute inset-0 hidden h-full w-full object-cover md:block transition-transform duration-[9000ms] ease-out',
+            'absolute inset-0 hidden h-full w-full object-cover lg:block 2xl:object-contain transition-transform duration-[9000ms] ease-out',
             active ? 'scale-110' : 'scale-100'
           )}
         />
