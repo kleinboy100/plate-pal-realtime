@@ -33,6 +33,23 @@ export function ZeeHotWingsSlide({ active }: { active: boolean }) {
         />
       </div>
 
+      {/* Desktop: the price, large, in the space between the message and the poster */}
+      <div className="pointer-events-none absolute left-[53%] top-1/2 z-20 hidden -translate-x-1/2 -translate-y-1/2 flex-col items-center md:flex">
+        <span className="font-display text-7xl font-black leading-none text-[#F5B301] drop-shadow-[0_4px_14px_rgba(0,0,0,0.9)] lg:text-8xl">
+          R100
+        </span>
+        <span className="mt-1.5 text-base font-extrabold uppercase tracking-[0.3em] text-white lg:text-lg">
+          1kg
+        </span>
+        <span
+          className="mt-3 h-1.5 w-32 rounded-full"
+          style={{
+            backgroundImage:
+              'repeating-linear-gradient(90deg, #E11D2E 0 12px, #111111 12px 15px, #F5B301 15px 27px, #111111 27px 30px, #1D4ED8 30px 42px, #111111 42px 45px, #FFFFFF 45px 57px, #111111 57px 60px)',
+          }}
+        />
+      </div>
+
       {/* Message on the left — kept clear of the slide dots at the bottom */}
       <div
         className={cn(
@@ -44,7 +61,7 @@ export function ZeeHotWingsSlide({ active }: { active: boolean }) {
           Zee Hot Wings
         </h2>
 
-        <div className="flex items-baseline gap-1.5">
+        <div className="flex items-baseline gap-1.5 md:hidden">
           <span className="font-display text-xl font-black leading-none text-[#F5B301] drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)] md:text-3xl">
             R100
           </span>
