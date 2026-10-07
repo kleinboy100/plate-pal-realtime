@@ -22,7 +22,7 @@ export function ZeeHotWingsSlide({ active }: { active: boolean }) {
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_78%_18%,rgba(225,29,46,0.35),transparent_62%)]" />
 
       {/* Poster artwork on the right — shown whole, never cropped */}
-      <div className="absolute right-2 top-1/2 z-20 aspect-square h-[78%] -translate-y-1/2 overflow-hidden rounded-lg border-2 border-black shadow-2xl md:right-3 md:h-[88%]">
+      <div className="absolute right-2 top-1/2 z-20 aspect-square h-[76%] -translate-y-1/2 overflow-hidden rounded-lg border-2 border-black shadow-2xl md:right-3 md:h-[88%]">
         <img
           src={zeePoster}
           alt="Zee Hot Wings poster: raw hot wings, 1kg for R100, pre-orders only"
@@ -36,14 +36,12 @@ export function ZeeHotWingsSlide({ active }: { active: boolean }) {
       {/* Message on the left — kept clear of the slide dots at the bottom */}
       <div
         className={cn(
-          'absolute inset-y-0 left-0 z-20 flex w-[56%] flex-col justify-center gap-1 px-3 pb-7 transition-all duration-700 delay-150 md:w-[64%] md:gap-2.5 md:px-6 md:pb-0',
+          'absolute inset-y-0 left-0 z-20 flex w-[58%] flex-col justify-center gap-1 px-3 pb-6 transition-all duration-700 delay-150 md:w-[68%] md:gap-2.5 md:px-6 md:pb-5',
           active ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
         )}
       >
-        <h2 className="font-display text-lg font-black uppercase leading-[0.95] text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)] sm:text-2xl md:text-4xl">
-          Zee
-          <br />
-          Hot Wings
+        <h2 className="font-display text-base font-black uppercase leading-[1] text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)] sm:text-2xl md:text-4xl">
+          Zee Hot Wings
         </h2>
 
         <div className="flex items-baseline gap-1.5">
@@ -53,17 +51,13 @@ export function ZeeHotWingsSlide({ active }: { active: boolean }) {
           <span className="text-[11px] font-extrabold uppercase text-white md:text-lg">1kg</span>
         </div>
 
-        <div className="flex flex-wrap items-center gap-1 md:gap-1.5">
-          <span className="rounded-md border-2 border-black bg-white px-1.5 py-0.5 text-[8px] font-extrabold uppercase tracking-wide text-black md:text-[11px]">
-            Raw — not cooked
-          </span>
-          <span className="rounded-md border-2 border-black bg-[#F5B301] px-1.5 py-0.5 text-[8px] font-extrabold uppercase tracking-wide text-black md:text-[11px]">
-            Pre-orders only
-          </span>
-        </div>
+        <span className="w-fit rounded-md border-2 border-black bg-white px-1.5 py-0.5 text-[8px] font-extrabold uppercase tracking-wide text-black md:text-[11px]">
+          Raw — not cooked
+        </span>
 
-        <p className="text-[9px] font-bold leading-snug text-white/90 md:text-sm">
-          Delivery in Jouberton, Klerksdorp &amp; Alabama
+        <p className="text-[8px] font-bold leading-snug text-white/90 md:text-sm">
+          <span className="text-[#F5B301]">Pre-orders only</span>
+          {' · '}Delivery: Jouberton, Klerksdorp &amp; Alabama
         </p>
 
         <a
