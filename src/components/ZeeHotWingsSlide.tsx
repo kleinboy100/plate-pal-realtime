@@ -8,11 +8,12 @@ export const ZEE_WHATSAPP_URL =
 /**
  * Zee Hot Wings advert slide.
  *
- * The poster fills the slide above a reserved maroon strip at the bottom, so
- * the slideshow's progress dots never sit on the wording. The strip is the same
- * maroon as the poster, so the slide reads as one panel. The "Order Now" pill
- * floats over the top right, clear of the headline, and the whole slide is a
- * link so tapping anywhere opens WhatsApp with the pre-order message ready.
+ * Layout is a column: the poster on top, then a plain maroon strip at the
+ * bottom that holds the slideshow's progress dots, so the dots can never sit on
+ * the wording. The strip is the same maroon as the poster, so the slide reads
+ * as one panel. The "Order Now" pill floats over the top right of the artwork,
+ * and the whole slide is a link so tapping anywhere opens WhatsApp with the
+ * pre-order message ready to send.
  */
 export function ZeeHotWingsSlide({ active }: { active: boolean }) {
   return (
@@ -32,24 +33,31 @@ export function ZeeHotWingsSlide({ active }: { active: boolean }) {
         style={{ backgroundColor: '#42060a' }}
         onClick={(e) => e.stopPropagation()}
       >
-        <img
-          src={zeePhone}
-          alt={`Zee Hot Wings, R100 for 1kg, raw not cooked, pre-orders only. WhatsApp or call ${ZEE_DISPLAY_NUMBER}. Delivery in Jouberton, Klerksdorp and Alabama.`}
-          loading="lazy"
-          width={1536}
-          height={768}
-          draggable={false}
-          className="absolute inset-0 bottom-7 h-full w-full object-contain sm:hidden"
-        />
-        <img
-          src={zeeWide}
-          alt={`Zee Hot Wings, R100 for 1kg, raw not cooked, pre-orders only. WhatsApp or call ${ZEE_DISPLAY_NUMBER}. Delivery in Jouberton, Klerksdorp and Alabama.`}
-          loading="lazy"
-          width={2370}
-          height={600}
-          draggable={false}
-          className="absolute inset-0 bottom-7 hidden h-full w-full object-contain sm:block md:bottom-9"
-        />
+        <div className="flex h-full w-full flex-col">
+          <div className="relative min-h-0 flex-1">
+            <img
+              src={zeePhone}
+              alt={`Zee Hot Wings, R100 for 1kg, raw not cooked, pre-orders only. WhatsApp or call ${ZEE_DISPLAY_NUMBER}. Delivery in Jouberton, Klerksdorp and Alabama.`}
+              loading="lazy"
+              width={1536}
+              height={768}
+              draggable={false}
+              className="absolute inset-0 h-full w-full object-contain sm:hidden"
+            />
+            <img
+              src={zeeWide}
+              alt={`Zee Hot Wings, R100 for 1kg, raw not cooked, pre-orders only. WhatsApp or call ${ZEE_DISPLAY_NUMBER}. Delivery in Jouberton, Klerksdorp and Alabama.`}
+              loading="lazy"
+              width={2370}
+              height={600}
+              draggable={false}
+              className="absolute inset-0 hidden h-full w-full object-contain sm:block"
+            />
+          </div>
+
+          {/* Reserved for the slideshow's progress dots. */}
+          <div aria-hidden className="h-9 w-full shrink-0 md:h-10" />
+        </div>
 
         <span className="absolute right-2 top-2 z-30 flex items-center gap-1.5 rounded-full bg-[#ffc107] px-3 py-1.5 text-[12px] font-black uppercase tracking-wide text-[#42060a] shadow-lg md:right-4 md:top-3 md:px-5 md:py-2 md:text-base">
           <svg
