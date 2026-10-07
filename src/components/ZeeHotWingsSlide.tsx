@@ -39,7 +39,7 @@ export function ZeeHotWingsSlide({ active }: { active: boolean }) {
           width={1536}
           height={768}
           draggable={false}
-          className="absolute inset-x-0 top-0 bottom-7 h-auto w-full object-contain sm:hidden"
+          className="absolute inset-0 bottom-7 h-full w-full object-contain sm:hidden"
         />
         <img
           src={zeeWide}
@@ -48,7 +48,7 @@ export function ZeeHotWingsSlide({ active }: { active: boolean }) {
           width={2370}
           height={600}
           draggable={false}
-          className="absolute inset-x-0 top-0 bottom-7 hidden h-auto w-full object-contain sm:block md:bottom-9"
+          className="absolute inset-0 bottom-7 hidden h-full w-full object-contain sm:block md:bottom-9"
         />
 
         <span className="absolute right-2 top-2 z-30 flex items-center gap-1.5 rounded-full bg-[#ffc107] px-3 py-1.5 text-[12px] font-black uppercase tracking-wide text-[#42060a] shadow-lg md:right-4 md:top-3 md:px-5 md:py-2 md:text-base">
