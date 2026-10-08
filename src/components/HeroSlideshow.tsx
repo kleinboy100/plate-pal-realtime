@@ -31,15 +31,30 @@ export function HeroSlideshow({ menuItems, restaurantId, restaurantName }: HeroS
   const promoActive = isPromoActive();
 
   // While the promo is active, only show promo meals in the slideshow.
-  // Otherwise, top 5 Kota Menu items, sorted from most expensive to least expensive.
+  // Otherwise: 1 Dagwood, 1 Combo, 1 Loaf (least expensive of each) and the
+  // 3 least expensive Kota Menu items.
+  const byPriceAsc = (a: MenuItem, b: MenuItem) => Number(a.price) - Number(b.price);
+  const cheapestOf = (category: string) =>
+    menuItems
+      .filter(item => item.category?.toLowerCase() === category.toLowerCase())
+      .sort(byPriceAsc)[0] ?? null;
+
   const kotaItems = promoActive
     ? menuItems
         .filter(item => isPromoItem(item.id))
         .sort((a, b) => Number(b.price) - Number(a.price))
-    : menuItems
-        .filter(item => item.category?.toLowerCase() === 'kota menu')
-        .sort((a, b) => Number(b.price) - Number(a.price))
-        .slice(0, 10);
+    : [
+        cheapestOf('Dagwoods'),
+        cheapestOf('Combo Menu'),
+        cheapestOf('Loafs'),
+      ]
+        .filter((item): item is MenuItem => item !== null)
+        .concat(
+          menuItems
+            .filter(item => item.category?.toLowerCase() === 'kota menu')
+            .sort(byPriceAsc)
+            .slice(0, 3)
+        );
 
   const mealSlides = kotaItems.length > 0
     ? kotaItems.map(item => ({
