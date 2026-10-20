@@ -174,7 +174,7 @@ export default function RestaurantRegister() {
     <div className="min-h-screen py-8">
       <div className="container mx-auto px-4 max-w-2xl">
         <h1 className="font-display text-3xl font-bold mb-2">Register Your Takeaway</h1>
-        <p className="text-muted-foreground mb-8">Join KasiConnect and start receiving orders</p>
+        <p className="text-muted-foreground mb-8">Join Nosty's and start receiving orders</p>
 
         {/* Progress Steps */}
         <div className="flex items-center justify-between mb-8">
