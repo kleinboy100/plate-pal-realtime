@@ -23,7 +23,7 @@ export default defineConfig(({ mode }) => ({
       devOptions: {
         enabled: false,
       },
-      includeAssets: ["favicon.jpg", "apple-touch-icon.png"],
+      includeAssets: ["favicon.ico", "apple-touch-icon.png", "og-image.jpg"],
       manifest: {
         name: "Nosty'$ Fresh Fast Food",
         short_name: "Nosty's",
