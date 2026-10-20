@@ -39,7 +39,7 @@ export function PrivacyPolicyDialog({ open, onAccept, onDecline }: PrivacyPolicy
             <ul className="list-disc pl-5 space-y-1">
               <li><strong>Account</strong> means a unique account created for You to access our Service.</li>
               <li><strong>Affiliate</strong> means an entity that controls, is controlled by, or is under common control with a party.</li>
-              <li><strong>Application</strong> refers to KasiConnect, the software program provided by the Company.</li>
+              <li><strong>Application</strong> refers to Nosty's Fresh Fast Food, the software program provided by the Company.</li>
               <li><strong>Company</strong> refers to MOZK Solutions (pty) ltd.</li>
               <li><strong>Country</strong> refers to: South Africa</li>
               <li><strong>Device</strong> means any device that can access the Service such as a computer, a cell phone or a digital tablet.</li>
