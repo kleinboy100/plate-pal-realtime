@@ -50,7 +50,7 @@ export default function Index() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [showPrivacy, setShowPrivacy] = useState(false);
 
-  const { isOpen, loading: statusLoading } = useRestaurantOperatingStatus(NOSTY_RESTAURANT_ID);
+  const { isOpen, unavailable, loading: statusLoading } = useRestaurantOperatingStatus(NOSTY_RESTAURANT_ID);
 
   // Show privacy policy on first signup / login
   useEffect(() => {
@@ -157,11 +157,7 @@ export default function Index() {
               )} />
               <Clock className="w-4 h-4" />
               <span className="font-semibold">
-                {/* Temporary: show closed today message on May 31, 2026 */}
-                {new Date().toDateString() === 'Sun May 31 2026'
-                  ? "The store will be closed today"
-                  : isOpen ? "We're open" : "Closed for orders"
-                }
+                {unavailable ? 'Checking store connection…' : isOpen ? "We're open" : "Closed for orders"}
               </span>
             </div>
             <div className="flex-1 flex justify-end">

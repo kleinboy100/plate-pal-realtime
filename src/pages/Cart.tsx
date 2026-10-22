@@ -36,7 +36,7 @@ export default function Cart() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { permission, requestPermission, supported } = usePushNotifications();
-  const { isOpen, reason, openingTime, closingTime, loading: statusLoading } = useRestaurantOperatingStatus(restaurantId);
+  const { isOpen, reason, unavailable, openingTime, closingTime, loading: statusLoading } = useRestaurantOperatingStatus(restaurantId);
   
   const [orderType, setOrderType] = useState<'delivery' | 'collection'>('delivery');
   const [deliveryAddress, setDeliveryAddress] = useState('');
@@ -134,9 +134,9 @@ export default function Cart() {
   };
 
   const handlePlaceOrder = async () => {
-    if (!isOpen) {
+    if (statusLoading || !isOpen) {
       toast({
-        title: "Restaurant closed",
+        title: statusLoading || unavailable ? "Checking store status" : "Restaurant closed",
         description: reason || "This restaurant is not accepting orders right now.",
         variant: "destructive"
       });
@@ -511,7 +511,7 @@ export default function Cart() {
                       <Clock className="text-destructive" size={18} />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-destructive">Restaurant Closed</p>
+                      <p className="text-sm font-semibold text-destructive">{unavailable ? 'Checking store connection' : 'Restaurant Closed'}</p>
                       <p className="text-xs text-destructive/80 mt-1">{reason}</p>
                       {openingTime && closingTime && (
                         <p className="text-xs text-muted-foreground mt-1">
@@ -533,6 +533,8 @@ export default function Cart() {
                     <Loader2 className="w-5 h-5 animate-spin mr-2" />
                     Submitting Order...
                   </>
+                ) : statusLoading || unavailable ? (
+                  'Checking store status…'
                 ) : !isOpen ? (
                   'Restaurant Closed'
                 ) : orderType === 'delivery' && calculatingFee ? (
