@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { publicRestaurantClient } from '@/lib/publicRestaurantClient';
 
 interface OperatingStatus {
   isOpen: boolean;
@@ -33,7 +33,7 @@ export function useRestaurantOperatingStatus(restaurantId: string | null) {
       const timeout = setTimeout(() => controller.abort(), 10000);
       try {
         // A public read is required: customers cannot read the owner-only table.
-        const { data, error } = await supabase
+        const { data, error } = await publicRestaurantClient
           .from('restaurants_public')
           .select('is_accepting_orders')
           .eq('id', restaurantId)
@@ -75,22 +75,6 @@ export function useRestaurantOperatingStatus(restaurantId: string | null) {
     window.addEventListener('online', refresh);
     document.addEventListener('visibilitychange', onVisible);
     
-    // Subscribe to realtime changes on the restaurants table
-    const channel = supabase
-      .channel(`restaurant-status-${restaurantId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'restaurants',
-          filter: `id=eq.${restaurantId}`
-        },
-        refresh
-      )
-      .subscribe();
-    
-    
     return () => {
       disposed = true;
       clearTimeout(retryTimer);
@@ -99,7 +83,6 @@ export function useRestaurantOperatingStatus(restaurantId: string | null) {
       window.removeEventListener('focus', refresh);
       window.removeEventListener('online', refresh);
       document.removeEventListener('visibilitychange', onVisible);
-      supabase.removeChannel(channel);
     };
   }, [restaurantId]);
 

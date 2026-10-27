@@ -2,13 +2,12 @@ import { act, renderHook, cleanup } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useRestaurantOperatingStatus } from './useRestaurantOperatingStatus';
 
-const mocks = vi.hoisted(() => ({ read: vi.fn(), from: vi.fn(), removeChannel: vi.fn() }));
+const mocks = vi.hoisted(() => ({ read: vi.fn(), from: vi.fn(), authenticatedRead: vi.fn() }));
 vi.mock('@/integrations/supabase/client', () => ({
-  supabase: {
-    from: mocks.from,
-    channel: () => ({ on: () => ({ subscribe: () => ({}) }) }),
-    removeChannel: mocks.removeChannel,
-  },
+  supabase: { from: mocks.authenticatedRead },
+}));
+vi.mock('@/lib/publicRestaurantClient', () => ({
+  publicRestaurantClient: { from: mocks.from },
 }));
 
 async function flush() {
@@ -20,6 +19,7 @@ describe('customer store status', () => {
     vi.useFakeTimers();
     mocks.read.mockReset();
     mocks.from.mockReset();
+    mocks.authenticatedRead.mockReset();
     const query = {
       select: () => query,
       eq: () => query,
@@ -51,6 +51,23 @@ describe('customer store status', () => {
     expect(result.current.isOpen).toBe(false);
     await act(async () => { await vi.advanceTimersByTimeAsync(3000); });
     expect(result.current.isOpen).toBe(true);
+    expect(result.current.unavailable).toBe(false);
+  });
+
+  it('reads the manual toggle without touching a broken customer session', async () => {
+    mocks.authenticatedRead.mockImplementation(() => { throw new Error('Session refresh failed'); });
+    mocks.read.mockResolvedValue({ data: { is_accepting_orders: true }, error: null });
+    const { result } = renderHook(() => useRestaurantOperatingStatus('nosty'));
+    await flush();
+    expect(result.current.isOpen).toBe(true);
+    expect(mocks.authenticatedRead).not.toHaveBeenCalled();
+  });
+
+  it('reports closed when the public manual toggle is false', async () => {
+    mocks.read.mockResolvedValue({ data: { is_accepting_orders: false }, error: null });
+    const { result } = renderHook(() => useRestaurantOperatingStatus('nosty'));
+    await flush();
+    expect(result.current.isOpen).toBe(false);
     expect(result.current.unavailable).toBe(false);
   });
 

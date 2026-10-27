@@ -28,7 +28,22 @@ if (isPreviewHost || isInIframe) {
   // Production-only registration via vite-plugin-pwa virtual module
   import("virtual:pwa-register")
     .then(({ registerSW }) => {
-      registerSW({ immediate: true });
+      registerSW({
+        immediate: true,
+        onRegisteredSW(_url, registration) {
+          if (!registration) return;
+          const checkForUpdate = () => {
+            if (navigator.onLine && document.visibilityState === 'visible') {
+              void registration.update().catch(() => {});
+            }
+          };
+          window.addEventListener('focus', checkForUpdate);
+          window.addEventListener('online', checkForUpdate);
+          document.addEventListener('visibilitychange', checkForUpdate);
+          window.setInterval(checkForUpdate, 60_000);
+          checkForUpdate();
+        },
+      });
     })
     .catch(() => {
       // no-op: PWA module unavailable
