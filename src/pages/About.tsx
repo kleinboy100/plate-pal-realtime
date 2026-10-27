@@ -1,6 +1,10 @@
+import { Star } from 'lucide-react';
 import { SiteFooter } from '@/components/SiteFooter';
+import { useRestaurantRating } from '@/hooks/useRestaurantRating';
+import { NOSTY_RESTAURANT_ID } from '@/lib/restaurant';
 
 export default function About() {
+  const { average, count } = useRestaurantRating(NOSTY_RESTAURANT_ID);
   return (
     <div className="min-h-screen bg-background">
       <main className="container mx-auto px-4 py-8 max-w-3xl">
@@ -11,6 +15,19 @@ export default function About() {
           made fresh in front of you, packed generously, and reach your door while it is still hot.
           Everything on our menu is prepared to order, never pre-made and never reheated.
         </p>
+
+        {average !== null && (
+          <div className="card-elevated p-5 mb-6 flex items-center gap-4">
+            <div className="flex items-center gap-1.5 bg-accent/15 px-4 py-2 rounded-xl">
+              <Star size={22} className="text-accent fill-accent" />
+              <span className="text-2xl font-bold text-foreground">{average.toFixed(2)}</span>
+            </div>
+            <p className="text-muted-foreground leading-relaxed">
+              Our live customer rating, calculated from <strong className="text-foreground">{count} real reviews</strong> left
+              by people who ordered through this app. It updates automatically as new reviews come in.
+            </p>
+          </div>
+        )}
 
         <h2 className="font-display text-xl font-bold text-foreground mt-8 mb-3">What we cook</h2>
         <p className="text-muted-foreground mb-4 leading-relaxed">
