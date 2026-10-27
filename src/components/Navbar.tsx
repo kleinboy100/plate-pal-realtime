@@ -17,6 +17,8 @@ import { useCustomerAlerts } from '@/hooks/useCustomerAlerts';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { RatingBadge } from '@/components/RatingBadge';
+import { NOSTY_RESTAURANT_ID } from '@/lib/restaurant';
 import nostyLogo from '@/assets/nosty-logo.jpg';
 
 export function Navbar() {
@@ -135,6 +137,7 @@ export function Navbar() {
               It's All About Mongko Le Manyeke!
             </span>
           </Link>
+          <RatingBadge restaurantId={NOSTY_RESTAURANT_ID} />
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-1">

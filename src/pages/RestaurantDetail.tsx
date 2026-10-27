@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { KFCMenuItem } from '@/components/KFCMenuItem';
 import { ReviewList } from '@/components/ReviewList';
 import { supabase } from '@/integrations/supabase/client';
+import { useRestaurantRating } from '@/hooks/useRestaurantRating';
 
 interface Restaurant {
   id: string;
@@ -35,6 +36,7 @@ export default function RestaurantDetail() {
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [activeTab, setActiveTab] = useState<'menu' | 'reviews'>('menu');
+  const { average: liveRating, count: reviewCount } = useRestaurantRating(id ?? null);
 
   useEffect(() => {
     if (id) {
@@ -118,8 +120,11 @@ export default function RestaurantDetail() {
                 >
                   <Star size={16} className="text-accent fill-accent" />
                   <span className="font-medium">
-                    {Number(restaurant.rating) > 0 ? Number(restaurant.rating).toFixed(1) : 'New'}
+                    {liveRating !== null ? liveRating.toFixed(2) : 'New'}
                   </span>
+                  {reviewCount > 0 && (
+                    <span className="text-xs text-muted-foreground">({reviewCount})</span>
+                  )}
                 </button>
               </div>
               <h1 className="font-display text-3xl font-bold text-foreground mb-2">
