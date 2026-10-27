@@ -22,6 +22,13 @@
       "when": 1789454959248,
       "tag": "0002_fix_menu_image_storage_policies",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793103766010,
+      "tag": "0003_fix_reviews_public_security_definer",
+      "breakpoints": true
     }
   ]
 }
