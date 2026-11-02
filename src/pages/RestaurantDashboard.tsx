@@ -112,10 +112,14 @@ export default function RestaurantDashboard() {
     // Ignore stale responses so a slow older request can't overwrite newer data.
     const requestId = ++fetchSeq.current;
     const restaurantId = selectedRestaurant;
+    // Only load the last 7 days of history. Pending and active orders are
+    // always included regardless of age, so nothing in progress can disappear.
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
     const { data, error } = await supabase
       .from('orders')
       .select('*, order_items(*)')
       .eq('restaurant_id', restaurantId)
+      .or(`created_at.gte.${sevenDaysAgo},status.in.(pending,confirmed,preparing,ready,out_for_delivery)`)
       .order('created_at', { ascending: false });
     // Only skip if a newer request has already been applied.
     if (requestId < appliedSeq.current) return;
@@ -325,6 +329,7 @@ export default function RestaurantDashboard() {
               </TabsContent>
 
               <TabsContent value="completed">
+                <p className="text-xs text-muted-foreground mb-2">Showing the last 7 days</p>
                 {completedOrders.length === 0 ? (
                   <div className="text-center py-12 card-elevated">
                     <p className="text-muted-foreground">No completed orders yet</p>
