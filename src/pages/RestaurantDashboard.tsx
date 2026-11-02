@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -30,6 +30,7 @@ export default function RestaurantDashboard() {
   const { isStaff, staffRestaurantId } = useIsRestaurantStaff();
   const [restaurants, setRestaurants] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
+  const fetchSeq = useRef(0);
   const [selectedRestaurant, setSelectedRestaurant] = useState<string>('');
   const [newOrderIds, setNewOrderIds] = useState<Set<string>>(new Set());
   const { permission, requestPermission, showNotification, supported } = usePushNotifications();
@@ -107,12 +108,21 @@ export default function RestaurantDashboard() {
   };
 
   const fetchOrders = async () => {
-    const { data } = await supabase
+    // Ignore stale responses so a slow older request can't overwrite newer data.
+    const requestId = ++fetchSeq.current;
+    const restaurantId = selectedRestaurant;
+    const { data, error } = await supabase
       .from('orders')
       .select('*, order_items(*)')
-      .eq('restaurant_id', selectedRestaurant)
+      .eq('restaurant_id', restaurantId)
       .order('created_at', { ascending: false });
-    setOrders(data || []);
+    if (requestId !== fetchSeq.current) return;
+    // Keep the last good list on failures (network blips, token refresh) instead of blanking it.
+    if (error || !data) {
+      if (error) console.warn('Orders refresh failed, keeping previous list:', error.message);
+      return;
+    }
+    setOrders(data);
   };
 
   const updateStatus = async (orderId: string, status: string) => {
