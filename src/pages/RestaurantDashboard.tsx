@@ -329,6 +329,7 @@ export default function RestaurantDashboard() {
               </TabsContent>
 
               <TabsContent value="completed">
+                <p className="text-xs text-muted-foreground mb-2">Showing the last 7 days</p>
                 {completedOrders.length === 0 ? (
                   <div className="text-center py-12 card-elevated">
                     <p className="text-muted-foreground">No completed orders yet</p>
