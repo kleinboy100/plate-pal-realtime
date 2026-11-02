@@ -31,6 +31,7 @@ export default function RestaurantDashboard() {
   const [restaurants, setRestaurants] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
   const fetchSeq = useRef(0);
+  const appliedSeq = useRef(0);
   const [selectedRestaurant, setSelectedRestaurant] = useState<string>('');
   const [newOrderIds, setNewOrderIds] = useState<Set<string>>(new Set());
   const { permission, requestPermission, showNotification, supported } = usePushNotifications();
@@ -116,12 +117,14 @@ export default function RestaurantDashboard() {
       .select('*, order_items(*)')
       .eq('restaurant_id', restaurantId)
       .order('created_at', { ascending: false });
-    if (requestId !== fetchSeq.current) return;
+    // Only skip if a newer request has already been applied.
+    if (requestId < appliedSeq.current) return;
     // Keep the last good list on failures (network blips, token refresh) instead of blanking it.
     if (error || !data) {
       if (error) console.warn('Orders refresh failed, keeping previous list:', error.message);
       return;
     }
+    appliedSeq.current = requestId;
     setOrders(data);
   };
 
