@@ -36,6 +36,13 @@
       "when": 1794561719677,
       "tag": "0004_restrict_recipe_and_stock_reads",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1795170341023,
+      "tag": "0005_record_order_preparation_times",
+      "breakpoints": true
     }
   ]
 }

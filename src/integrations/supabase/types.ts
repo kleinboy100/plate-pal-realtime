@@ -327,6 +327,8 @@ export type Database = {
           order_type: string
           payment_confirmed: boolean | null
           payment_method: string | null
+          preparation_started_at: string | null
+          ready_at: string | null
           restaurant_id: string
           status: string
           tip_amount: number
@@ -353,6 +355,8 @@ export type Database = {
           order_type?: string
           payment_confirmed?: boolean | null
           payment_method?: string | null
+          preparation_started_at?: string | null
+          ready_at?: string | null
           restaurant_id: string
           status?: string
           tip_amount?: number
@@ -379,6 +383,8 @@ export type Database = {
           order_type?: string
           payment_confirmed?: boolean | null
           payment_method?: string | null
+          preparation_started_at?: string | null
+          ready_at?: string | null
           restaurant_id?: string
           status?: string
           tip_amount?: number
