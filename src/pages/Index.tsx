@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Clock } from 'lucide-react';
+import { Search, Wrench } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { KFCMenuItem } from '@/components/KFCMenuItem';
 
@@ -10,13 +10,10 @@ import { PrivacyPolicyDialog } from '@/components/PrivacyPolicyDialog';
 import { AdSenseBanner } from '@/components/AdSenseBanner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useRestaurantOperatingStatus } from '@/hooks/useRestaurantOperatingStatus';
 import { useIsRestaurantOwner } from '@/hooks/useIsRestaurantOwner';
 import { useIsRestaurantStaff } from '@/hooks/useIsRestaurantStaff';
 import { useIsRestaurantDriver } from '@/hooks/useIsRestaurantDriver';
 import { cn } from '@/lib/utils';
-import proudlySaLogo from '@/assets/proudly-sa.png';
-import africanPattern from '@/assets/african-pattern.jpg';
 
 // Nosty's restaurant ID
 const NOSTY_RESTAURANT_ID = '7f5250bb-263f-4bca-a4af-d325f761542b';
@@ -49,8 +46,6 @@ export default function Index() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [showPrivacy, setShowPrivacy] = useState(false);
-
-  const { isOpen, unavailable, loading: statusLoading } = useRestaurantOperatingStatus(NOSTY_RESTAURANT_ID);
 
   // Show privacy policy on first signup / login
   useEffect(() => {
@@ -133,46 +128,22 @@ export default function Index() {
         onDecline={handleDeclinePrivacy}
       />
 
-      {/* Operating Status Banner */}
-      {!statusLoading && (
-        <div
-          className="relative py-3 px-4 text-sm font-medium transition-all duration-300 animate-slide-down border-b border-black/20"
-          style={{
-            backgroundImage: `url(${africanPattern})`,
-            backgroundRepeat: 'repeat',
-            backgroundSize: '320px auto',
-          }}
-        >
-          {/* Readability overlay */}
-          <div className={cn(
-            "absolute inset-0 pointer-events-none",
-            isOpen ? "bg-black/30" : "bg-black/55"
-          )} />
-          <div className="container mx-auto flex items-center justify-between gap-2 relative">
-            <div className="flex-1" />
-            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-black/40 backdrop-blur-sm text-white">
-              <div className={cn(
-                "w-2 h-2 rounded-full animate-pulse",
-                isOpen ? "bg-success" : "bg-muted-foreground"
-              )} />
-              <Clock className="w-4 h-4" />
-              <span className="font-semibold">
-                {unavailable ? 'Checking store connection…' : isOpen ? "We're open" : "Closed for orders"}
-              </span>
-            </div>
-            <div className="flex-1 flex justify-end">
-              <img
-                src={proudlySaLogo}
-                alt="Proudly South African"
-                width={40}
-                height={40}
-                loading="lazy"
-                className="h-9 w-9 md:h-10 md:w-10 object-contain drop-shadow-md"
-              />
-            </div>
+      {/* Planned maintenance notice */}
+      <div
+        role="status"
+        aria-live="polite"
+        className="border-b bg-secondary text-secondary-foreground px-4 py-3 animate-slide-down"
+      >
+        <div className="container mx-auto flex items-start justify-center gap-3 text-center">
+          <Wrench className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
+          <div>
+            <p className="font-semibold">Planned maintenance in progress</p>
+            <p className="text-sm">
+              We apologize for the delay and inconvenience. We expect to be back online from 24 November 2026.
+            </p>
           </div>
         </div>
-      )}
+      </div>
 
       {/* Hero Section with Slideshow */}
       <section className="relative h-[200px] md:h-[260px] overflow-hidden bg-[hsl(220,70%,40%)]">
