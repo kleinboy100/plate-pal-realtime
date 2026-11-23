@@ -35,6 +35,9 @@ export const SiteFooter = () => {
         <p className="text-xs text-muted-foreground mt-6 pt-4 border-t border-border">
           © {year} Nosty'$ Fresh Fast Food, Jouberton, Klerksdorp, South Africa. All prices in South African Rand (ZAR).
         </p>
+        <p className="text-xs text-muted-foreground mt-2">
+          Powered By Mozk Solutions (pty) LTD
+        </p>
       </div>
     </footer>
   );
