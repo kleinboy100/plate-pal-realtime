@@ -137,9 +137,9 @@ export default function Index() {
         <div className="container mx-auto flex items-start justify-center gap-3 text-center">
           <Wrench className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
           <div>
-            <p className="font-semibold">We’re upgrading for your best experience</p>
+            <p className="font-semibold">We’re upgrading for a better experience</p>
             <p className="text-sm">
-              We’re working on app upgrades to give you the best experience, with more exciting things coming soon. In the meantime, you can still place an order by calling our restaurant. We’re sorry for the inconvenience and look forward to serving you again soon.
+              Call to order: <a href="tel:+27714596248" aria-label="Call the restaurant at 071 459 6248" className="font-semibold underline underline-offset-2">071 459 6248</a>. Sorry for the inconvenience — exciting things are coming soon.
             </p>
           </div>
         </div>
