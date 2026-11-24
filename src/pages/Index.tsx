@@ -137,9 +137,9 @@ export default function Index() {
         <div className="container mx-auto flex items-start justify-center gap-3 text-center">
           <Wrench className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
           <div>
-            <p className="font-semibold">Planned maintenance in progress</p>
+            <p className="font-semibold">We’re upgrading for your best experience</p>
             <p className="text-sm">
-              We apologize for the delay and inconvenience. We expect to be back online from 24 November 2026.
+              We’re working on app upgrades to give you the best experience, with more exciting things coming soon. In the meantime, you can still place an order by calling our restaurant. We’re sorry for the inconvenience and look forward to serving you again soon.
             </p>
           </div>
         </div>
